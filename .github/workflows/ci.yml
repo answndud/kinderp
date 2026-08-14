@@ -62,6 +62,9 @@ jobs:
       - name: Check CSP-compatible event contracts
         run: npm run security:inline-handlers
 
+      - name: Check product time usage contracts
+        run: npm run security:product-time
+
       - name: Run fast test suite
         run: ./gradlew --no-daemon fastTest
 

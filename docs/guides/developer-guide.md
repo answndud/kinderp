@@ -23,7 +23,7 @@
 
 핵심 원칙은 **Simple is Best** 입니다.
 
-업무 기준 날짜와 자동 기록 시간은 `ProductTime`을 통해 `Asia/Seoul` 기준으로 계산합니다. 서버 운영체제의 기본 시간대에 의존하지 않습니다.
+업무 기준 날짜와 자동 기록 시간은 `ProductTime`을 통해 `Asia/Seoul` 기준으로 계산합니다. 서버 운영체제의 기본 시간대에 의존하지 않습니다. 도메인 코드의 직접적인 `LocalDate.now()`·`LocalDateTime.now()`·`LocalTime.now()` 호출은 CI의 `npm run security:product-time`으로 차단합니다.
 
 ---
 
