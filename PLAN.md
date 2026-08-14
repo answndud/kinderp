@@ -18,7 +18,7 @@ Kindergarten ERP를 TownPet과 차별화되는 다중 테넌트 내부 운영 �
 2. 외부 알림 provider sandbox와 incident 수신 채널을 연결한다.
    - 파일: `src/main/java/com/erp/domain/notification/service/channel/**`, `src/main/resources/application-prod.yml`, `docs/guides/risk-response.md`, `docs/guides/deployment-guide.md`
    - 변경: provider webhook signature, provider rate limit, delivery/retry/dead-letter, incident 알림 수신을 실제 sandbox에서 확인한다.
-   - 검증: provider sandbox smoke, 서명 검증 실패 테스트, dead-letter 재시도 후 수신 확인, Alertmanager test alert 수신 확인
+   - 검증: 로컬 통합 테스트에서 실제 payload 기준 HMAC 서명 계약과 dead-letter 전이를 확인했다. 남은 검증은 provider sandbox smoke, provider 서명 검증 실패, dead-letter 재시도 후 외부 수신, Alertmanager test alert 수신이다.
    - 완료: 외부 provider 성공·실패·재시도와 incident 채널 수신 결과가 correlation ID와 함께 기록된다.
    - 주의: provider 계정·webhook secret·Alertmanager 수신 URL이 필요하다.
 

@@ -9,6 +9,16 @@ import com.erp.domain.notification.entity.NotificationOutbox;
 import com.erp.domain.notification.repository.NotificationOutboxRepository;
 import com.erp.domain.notification.service.NotificationDispatchService;
 import com.erp.domain.notification.entity.NotificationChannel;
+import com.erp.domain.notification.service.channel.WebhookNotificationPayload;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.util.HexFormat;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -17,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.client.RestTemplate;
@@ -52,6 +63,9 @@ class AuthAnomalyIncidentChannelIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private NotificationOutboxRepository notificationOutboxRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockitoBean(name = "notificationRestTemplate")
     private RestTemplate notificationRestTemplate;
@@ -136,6 +150,35 @@ class AuthAnomalyIncidentChannelIntegrationTest extends BaseIntegrationTest {
 
         then(notificationRestTemplate).should(times(1))
                 .postForEntity(eq("https://hooks.test/incident"), any(HttpEntity.class), eq(String.class));
+
+        var requestCaptor = org.mockito.ArgumentCaptor.forClass(HttpEntity.class);
+        then(notificationRestTemplate).should().postForEntity(
+                eq("https://hooks.test/incident"), requestCaptor.capture(), eq(String.class));
+        HttpEntity<?> request = requestCaptor.getValue();
+        assertThat(request.getBody()).isInstanceOf(WebhookNotificationPayload.class);
+        assertSignedWebhookRequest(request);
+    }
+
+    private void assertSignedWebhookRequest(HttpEntity<?> request) {
+        HttpHeaders headers = request.getHeaders();
+        String timestamp = headers.getFirst("X-Webhook-Timestamp");
+        String signature = headers.getFirst("X-Webhook-Signature");
+        assertThat(timestamp).isNotBlank();
+        assertThat(signature).startsWith("v1=");
+
+        try {
+            String serializedBody = objectMapper.writeValueAsString(request.getBody());
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec("test-incident-webhook-secret".getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            String expected = HexFormat.of().formatHex(mac.doFinal(
+                    (timestamp + "." + serializedBody).getBytes(StandardCharsets.UTF_8)));
+            assertThat(signature).isEqualTo("v1=" + expected);
+            assertThat(Long.parseLong(timestamp)).isBetween(
+                    Instant.now().minusSeconds(10).getEpochSecond(),
+                    Instant.now().plusSeconds(10).getEpochSecond());
+        } catch (JsonProcessingException | NoSuchAlgorithmException | InvalidKeyException exception) {
+            throw new AssertionError("webhook signature contract could not be verified", exception);
+        }
     }
 
 }
