@@ -5,38 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${title}">유치원 ERP</title>
     
-    <!-- Tailwind CSS -->
-    <script th:attr="nonce=${cspNonce}" src="https://cdn.tailwindcss.com"></script>
-    <script th:attr="nonce=${cspNonce}">
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#F3FBF7',
-                            100: '#E2F5EB',
-                            200: '#C7EBD9',
-                            300: '#A4DEC2',
-                            400: '#79CCA5',
-                            500: '#56B88C',
-                            600: '#3F9C73',
-                            700: '#327D5E',
-                            800: '#26624A',
-                            900: '#1D4D3A',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        body { font-family: 'Pretendard', 'Noto Sans KR', sans-serif; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/app.css}" href="/css/app.css">
     <link rel="stylesheet" th:href="@{/css/custom.css}" href="/css/custom.css">
 </head>
 <body class="bg-gray-50">
@@ -64,16 +33,18 @@
         <!-- Filter -->
         <div class="mb-6 rounded-xl border border-gray-200 bg-white p-3">
             <div class="flex gap-2">
-                <button id="allBtn" class="min-h-11 rounded-lg bg-primary-100 px-4 py-2 font-semibold text-primary-700 transition-colors"
+                <button type="button" id="allBtn" class="min-h-11 rounded-lg bg-primary-100 px-4 py-2 font-semibold text-primary-700 transition-colors"
                         hx-get="/announcements/list?importantOnly=false"
                         hx-target="#announcement-list"
-                        hx-swap="outerHTML">
+                        hx-swap="outerHTML"
+                        aria-pressed="true">
                     전체
                 </button>
-                <button id="importantBtn" class="min-h-11 rounded-lg bg-yellow-50 px-4 py-2 font-semibold text-yellow-800 transition-colors hover:bg-yellow-100"
+                <button type="button" id="importantBtn" class="min-h-11 rounded-lg bg-yellow-50 px-4 py-2 font-semibold text-yellow-800 transition-colors hover:bg-yellow-100"
                         hx-get="/announcements/list?importantOnly=true"
                         hx-target="#announcement-list"
-                        hx-swap="outerHTML">
+                        hx-swap="outerHTML"
+                        aria-pressed="false">
                     중요 공지
                 </button>
             </div>
@@ -83,7 +54,11 @@
         <div id="announcement-list"
              hx-get="/announcements/list?importantOnly=false"
              hx-trigger="load"
-             class="space-y-4">
+             class="space-y-4"
+             role="region"
+             aria-label="공지사항 목록"
+             aria-live="polite"
+             aria-busy="true">
             <!-- Loading spinner -->
             <div class="flex justify-center items-center py-12">
                 <svg class="animate-spin h-8 w-8 text-primary-600" fill="none" viewBox="0 0 24 24">
@@ -95,7 +70,7 @@
     </main>
 
     <!-- HTMX -->
-    <script th:attr="nonce=${cspNonce}" src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script th:attr="nonce=${cspNonce}" src="/vendor/htmx.min.js"></script>
     <script th:attr="nonce=${cspNonce}" th:src="@{/js/app.js}" src="/js/app.js"></script>
 
     <script th:attr="nonce=${cspNonce}">
@@ -111,11 +86,15 @@
                 allBtn.classList.add('bg-gray-100', 'text-gray-700');
                 importantBtn.classList.remove('bg-gray-100', 'text-gray-700');
                 importantBtn.classList.add('bg-yellow-100', 'text-yellow-800');
+                allBtn.setAttribute('aria-pressed', 'false');
+                importantBtn.setAttribute('aria-pressed', 'true');
             } else {
                 importantBtn.classList.remove('bg-yellow-100', 'text-yellow-800');
                 importantBtn.classList.add('bg-gray-100', 'text-gray-700');
                 allBtn.classList.remove('bg-gray-100', 'text-gray-700');
                 allBtn.classList.add('bg-primary-100', 'text-primary-700');
+                allBtn.setAttribute('aria-pressed', 'true');
+                importantBtn.setAttribute('aria-pressed', 'false');
             }
         });
     </script>

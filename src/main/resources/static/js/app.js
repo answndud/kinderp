@@ -48,7 +48,6 @@ document.addEventListener('htmx:configRequest', function (evt) {
         evt.detail.headers[CSRF_HEADER_NAME] = csrfToken;
     }
 });
-
 const originalFetch = window.fetch.bind(window);
 window.fetch = function (input, init = {}) {
     const method = (init.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
@@ -128,6 +127,114 @@ document.addEventListener('htmx:afterSwap', applyActiveNavLinks);
 document.addEventListener('htmx:responseError', function (evt) {
     console.error('HTMX Error:', evt.detail.xhr);
     // 에러 처리 (예: 토스트 메시지 표시)
+});
+
+function resolveAction(action) {
+    const parts = (action || '').split('.').filter(Boolean);
+    let context = window;
+    for (const part of parts) {
+        if (context == null || !(part in context)) {
+            return null;
+        }
+        if (part === parts.at(-1)) {
+            return { context, handler: context[part] };
+        }
+        context = context[part];
+    }
+    return null;
+}
+
+function actionArguments(element) {
+    const action = element.dataset.action;
+    const owner = element.closest('[data-id]');
+    const id = element.dataset.id || owner?.dataset.id;
+    const name = element.dataset.name;
+
+    if (action === 'loadKids') {
+        return [{ page: Number(element.dataset.page || window.currentPage || 1) }];
+    }
+    if (action === 'changePage') {
+        return [Number(element.dataset.page)];
+    }
+    if (action === 'openChangeClassroom' || action === 'openDeleteKid') {
+        return [element];
+    }
+    if (action === 'saveAttendance') {
+        return [Number(element.dataset.kidId), element];
+    }
+    if (action === 'showParentManageModal' || action === 'assignParent' || action === 'selectKindergarten') {
+        return [Number(id)];
+    }
+    if (action === 'removeParent') {
+        return [Number(element.dataset.kidId), Number(id), name];
+    }
+    if (action === 'showBulkModal') {
+        return [element.dataset.type];
+    }
+    if (action?.startsWith('Applications.')) {
+        return [id, name];
+    }
+    if (action === 'Notifications.open') {
+        return [id, element.dataset.link || owner?.dataset.link];
+    }
+    if (action === 'Notifications.markRead' || action === 'Notifications.remove') {
+        return [id];
+    }
+    return [];
+}
+
+async function dispatchDataAction(element, event) {
+    if (element.dataset.stopPropagation === 'true') {
+        event.stopPropagation();
+    }
+
+    const action = element.dataset.action;
+    if (action === 'navigate') {
+        window.location.assign(element.dataset.href);
+        return;
+    }
+    if (action === 'historyBack') {
+        window.history.back();
+        return;
+    }
+
+    const resolved = resolveAction(action);
+    if (!resolved || typeof resolved.handler !== 'function') {
+        console.warn(`Unknown data-action: ${action}`);
+        return;
+    }
+
+    try {
+        await resolved.handler.apply(resolved.context, actionArguments(element));
+    } catch (error) {
+        if (window.UI?.error) {
+            await window.UI.error(error.message || '요청 처리 중 오류가 발생했습니다.');
+        } else {
+            console.error(error);
+        }
+    }
+}
+
+document.addEventListener('click', (event) => {
+    const actionElement = event.target.closest('[data-action]');
+    if (actionElement) {
+        dispatchDataAction(actionElement, event);
+    }
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+        return;
+    }
+    const actionElement = event.target.closest('[data-key-action]');
+    if (!actionElement) {
+        return;
+    }
+    event.preventDefault();
+    if (!actionElement.dataset.action) {
+        actionElement.dataset.action = actionElement.dataset.keyAction;
+    }
+    dispatchDataAction(actionElement, event);
 });
 
 // Alpine.js 전역 데이터
@@ -281,105 +388,6 @@ window.UI = window.UI || {
     }
 };
 
-// 알림 (공통)
-window.Notifications = window.Notifications || {
-    _pollTimerId: null,
-
-    refresh() {
-        if (window.htmx) {
-            htmx.trigger(document.body, 'notifications-changed');
-        }
-    },
-
-    startAutoRefresh(intervalMs = 30000) {
-        if (this._pollTimerId) {
-            return;
-        }
-
-        this._pollTimerId = window.setInterval(() => {
-            if (document.visibilityState === 'visible') {
-                this.refresh();
-            }
-        }, intervalMs);
-
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                this.refresh();
-            }
-        });
-
-        window.addEventListener('focus', () => this.refresh());
-    },
-
-    async requestJson(url, method, body) {
-        const response = await fetch(url, {
-            method,
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: body ? JSON.stringify(body) : undefined
-        });
-
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok) {
-            throw new Error(payload.message || '요청이 실패했습니다');
-        }
-        return payload;
-    },
-
-    async open(notificationId, linkUrl) {
-        if (notificationId) {
-            await this.requestJson(`/api/v1/notifications/${notificationId}/read`, 'PUT');
-            this.refresh();
-        }
-
-        if (linkUrl && linkUrl !== 'null' && linkUrl !== 'undefined' && linkUrl.trim() !== '') {
-            window.location.href = linkUrl;
-        }
-    },
-
-    async markRead(notificationId) {
-        if (!notificationId) return;
-        await this.requestJson(`/api/v1/notifications/${notificationId}/read`, 'PUT');
-        this.refresh();
-    },
-
-    async markAllRead() {
-        const ok = await window.UI.confirm({
-            title: '전체 읽음 처리',
-            text: '모든 알림을 읽음 처리할까요?',
-            confirmText: '처리',
-            cancelText: '취소',
-            icon: 'warning'
-        });
-        if (!ok) return;
-
-        await this.requestJson('/api/v1/notifications/read-all', 'PUT');
-        this.refresh();
-    },
-
-    async remove(notificationId) {
-        if (!notificationId) return;
-
-        const ok = await window.UI.confirm({
-            title: '알림 삭제',
-            text: '알림을 삭제할까요?',
-            confirmText: '삭제',
-            cancelText: '취소',
-            icon: 'warning'
-        });
-        if (!ok) return;
-
-        await this.requestJson(`/api/v1/notifications/${notificationId}`, 'DELETE');
-        this.refresh();
-    }
-};
-
-// 페이지 로드 시 실행
-document.addEventListener('DOMContentLoaded', function () {
-    window.Notifications.startAutoRefresh();
-});
 
 document.addEventListener('submit', async (e) => {
     const form = e.target;

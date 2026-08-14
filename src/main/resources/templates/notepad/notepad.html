@@ -5,50 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${title}">유치원 ERP</title>
     
-    <!-- Tailwind CSS -->
-    <script th:attr="nonce=${cspNonce}" src="https://cdn.tailwindcss.com"></script>
-    <script th:attr="nonce=${cspNonce}">
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#F3FBF7',
-                            100: '#E2F5EB',
-                            200: '#C7EBD9',
-                            300: '#A4DEC2',
-                            400: '#79CCA5',
-                            500: '#56B88C',
-                            600: '#3F9C73',
-                            700: '#327D5E',
-                            800: '#26624A',
-                            900: '#1D4D3A',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        body { font-family: 'Pretendard', 'Noto Sans KR', sans-serif; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/app.css}" href="/css/app.css">
     <link rel="stylesheet" th:href="@{/css/custom.css}" href="/css/custom.css">
 </head>
 <body class="bg-gray-50">
 <header th:replace="~{fragments/header :: header}"></header>
 
-    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8" th:attr="data-role=${currentMember?.role?.name()}">
         <!-- Page Header -->
         <div class="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <p class="mb-2 text-sm font-semibold text-primary-700">Daily Notes</p>
                 <h1 class="text-3xl font-bold text-gray-900">알림장</h1>
-                <p class="mt-3 text-gray-600">반과 원아별 알림장을 확인하고 필요한 내용을 작성하세요.</p>
+                <p class="mt-3 text-gray-600" th:text="${currentMember?.role?.name() == 'PARENT' ? '내 아이에게 전달된 알림장을 먼저 확인하세요.' : '반과 원아별 알림장을 확인하고 필요한 내용을 작성하세요.'}">반과 원아별 알림장을 확인하고 필요한 내용을 작성하세요.</p>
             </div>
             <!-- Create Button (Principal/Teacher only) -->
             <a id="createNotepadBtn" href="/notepad/write" class="hidden min-h-11 items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700">
@@ -62,14 +31,21 @@
 
         <!-- Filter -->
         <div class="mb-6 rounded-xl border border-gray-200 bg-white p-4">
-            <div class="flex flex-col sm:flex-row gap-4">
-                <select id="filterClassroom" name="classroomId" class="h-11 rounded-lg border border-gray-200 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                    <label for="filterClassroom" class="mb-1.5 block text-xs font-semibold text-gray-600">반</label>
+                    <select id="filterClassroom" name="classroomId" class="h-11 w-full rounded-lg border border-gray-200 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
                     <option value="">전체 반</option>
-                </select>
-                <select id="filterKid" name="kidId" disabled class="h-11 rounded-lg border border-gray-200 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    </select>
+                </div>
+                <div>
+                    <label for="filterKid" class="mb-1.5 block text-xs font-semibold text-gray-600">원생</label>
+                    <select id="filterKid" name="kidId" disabled class="h-11 w-full rounded-lg border border-gray-200 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
                     <option value="">전체 원생</option>
-                </select>
+                    </select>
+                </div>
             </div>
+            <p id="notepadStatus" class="mt-3 text-sm text-gray-500" role="status" aria-live="polite">알림장을 불러오는 중입니다.</p>
         </div>
 
         <!-- Notepad List Container (HTMX) -->
@@ -78,7 +54,11 @@
              hx-trigger="load, filters-changed from:body"
              hx-include="#filterClassroom,#filterKid"
              hx-swap="outerHTML"
-             class="space-y-4">
+             class="space-y-4"
+             role="region"
+             aria-label="알림장 목록"
+             aria-live="polite"
+             aria-busy="true">
             <div class="flex justify-center items-center py-12">
                 <svg class="animate-spin h-8 w-8 text-primary-600" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -89,13 +69,13 @@
     </main>
 
     <!-- HTMX -->
-    <script th:attr="nonce=${cspNonce}" src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script th:attr="nonce=${cspNonce}" src="/vendor/htmx.min.js"></script>
 
     <!-- Alpine.js -->
-    <script th:attr="nonce=${cspNonce}" defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.0/dist/cdn.min.js"></script>
+    <script th:attr="nonce=${cspNonce}" defer src="/vendor/alpine.min.js"></script>
 
     <!-- SweetAlert2 -->
-    <script th:attr="nonce=${cspNonce}" src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script th:attr="nonce=${cspNonce}" src="/vendor/sweetalert2.all.min.js"></script>
 
     <!-- Custom JS (UI/Notifications) -->
     <script th:attr="nonce=${cspNonce}" th:src="@{/js/app.js}"></script>
@@ -115,11 +95,21 @@
 
             const filterClassroomSelect = document.getElementById('filterClassroom');
             const filterKidSelect = document.getElementById('filterKid');
+            const notepadStatus = document.getElementById('notepadStatus');
+
+            const setNotepadStatus = (message, isError = false) => {
+                if (!notepadStatus) return;
+                notepadStatus.textContent = message;
+                notepadStatus.classList.toggle('text-red-600', isError);
+                notepadStatus.classList.toggle('text-gray-500', !isError);
+            };
 
             const triggerListReload = () => {
+                setNotepadStatus('필터를 적용하는 중입니다.');
                 if (window.htmx) {
                     htmx.trigger(document.body, 'filters-changed');
                 }
+                [300, 1000, 2000].forEach(delay => window.setTimeout(updateListStatus, delay));
             };
 
             const setOptions = (select, placeholderLabel, items) => {
@@ -191,7 +181,7 @@
                     filterKidSelect.disabled = true;
                 }
             } catch (error) {
-                console.error('반 목록 로드 실패:', error);
+                setNotepadStatus('반 목록을 불러오지 못했습니다. 새로고침 후 다시 시도하세요.', true);
             }
 
             // Filter: kids depend on classroom (PRINCIPAL/TEACHER)
@@ -209,13 +199,27 @@
                     setOptions(filterKidSelect, '전체 원생', kids);
                     filterKidSelect.disabled = !filterClassroomSelect.value;
                 } catch (error) {
-                    console.error('원생 목록 로드 실패:', error);
+                    setNotepadStatus('원생 목록을 불러오지 못했습니다. 다시 시도하세요.', true);
                 }
 
                 triggerListReload();
             });
 
             filterKidSelect.addEventListener('change', triggerListReload);
+
+            const updateListStatus = () => {
+                const list = document.getElementById('notepad-list');
+                if (!list) return;
+                if (list.querySelector('.animate-spin')) return;
+                const itemCount = list.querySelectorAll('a[href^="/notepad/"]').length;
+                setNotepadStatus(itemCount > 0 ? `${itemCount}개의 알림장을 표시하고 있습니다.` : '조건에 맞는 알림장이 없습니다.');
+            };
+
+            document.body.addEventListener('htmx:afterSettle', (event) => {
+                if (event.detail?.elt?.id === 'notepad-list' || document.getElementById('notepad-list')) {
+                    updateListStatus();
+                }
+            });
 
             // Parent: load my kids into filter
             if (isParent) {
@@ -228,11 +232,17 @@
                         filterKidSelect.value = kids[0].id;
                     }
                 } catch (error) {
-                    console.error('내 원생 목록 로드 실패:', error);
+                    setNotepadStatus('내 원생 목록을 불러오지 못했습니다. 다시 시도하세요.', true);
                 }
 
                 triggerListReload();
             }
+
+            document.body.addEventListener('htmx:responseError', (event) => {
+                if (event.detail?.path?.includes('/notepad')) {
+                    setNotepadStatus('알림장을 불러오지 못했습니다. 네트워크 상태를 확인하세요.', true);
+                }
+            });
 
             // 알림장 작성 (SweetAlert2)
             const createBtn = document.getElementById('createNotepadBtn');

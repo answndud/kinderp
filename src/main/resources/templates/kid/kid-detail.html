@@ -4,36 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>원생 상세 - 유치원 ERP</title>
-
-    <script th:attr="nonce=${cspNonce}" src="https://cdn.tailwindcss.com"></script>
-    <script th:attr="nonce=${cspNonce}">
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#F3FBF7',
-                            100: '#E2F5EB',
-                            200: '#C7EBD9',
-                            300: '#A4DEC2',
-                            400: '#79CCA5',
-                            500: '#56B88C',
-                            600: '#3F9C73',
-                            700: '#327D5E',
-                            800: '#26624A',
-                            900: '#1D4D3A'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Pretendard', 'Noto Sans KR', sans-serif; }
     </style>
+    <link rel="stylesheet" th:href="@{/css/app.css}" href="/css/app.css">
     <link rel="stylesheet" th:href="@{/css/custom.css}" href="/css/custom.css">
 </head>
 <body class="bg-gray-50">
@@ -51,7 +25,7 @@
             <a th:href="@{'/kids/' + ${kid.id} + '/edit'}" href="/kids/0/edit" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-primary-100 px-4 py-2 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-50">
                 편집
             </a>
-            <button type="button" onclick="openParentManageModal()" class="min-h-11 rounded-lg border border-primary-100 px-4 py-2 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-50">
+            <button type="button" data-action="openParentManageModal" class="min-h-11 rounded-lg border border-primary-100 px-4 py-2 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-50">
                 학부모 관리
             </button>
             <a href="/kids" class="col-span-2 inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 sm:col-span-1">
@@ -109,7 +83,7 @@
 </main>
 
 <!-- SweetAlert2 -->
-<script th:attr="nonce=${cspNonce}" src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:attr="nonce=${cspNonce}" src="/vendor/sweetalert2.all.min.js"></script>
 <!-- Custom JS (Notifications/UI) -->
 <script th:attr="nonce=${cspNonce}" th:src="@{/js/app.js}" src="/js/app.js"></script>
 
@@ -227,7 +201,7 @@
                         <span class="font-medium text-gray-900">${escapeHtml(p.parentName)}</span>
                         <span class="ml-2 text-sm text-gray-600">(${escapeHtml(p.relationship)})</span>
                     </div>
-                    <button type="button" onclick="removeParent(${detailKidId}, ${p.parentId}, ${jsStringForAttribute(p.parentName)})" class="min-h-11 rounded-lg px-3 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50">
+                    <button type="button" data-action="removeParent" data-kid-id="${detailKidId}" data-id="${p.parentId}" data-name="${escapeAttribute(p.parentName)}" class="min-h-11 rounded-lg px-3 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50">
                         연결 해제
                     </button>
                 </div>
@@ -272,7 +246,7 @@
                                     <option value="GUARDIAN">보호자</option>
                                 </select>
                             </div>
-                            <button type="button" onclick="assignParent()" class="min-h-11 w-full rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700">
+                            <button type="button" data-action="assignParent" class="min-h-11 w-full rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700">
                                 학부모 추가
                             </button>
                         </div>

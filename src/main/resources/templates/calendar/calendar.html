@@ -4,37 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>일정/캘린더 - 유치원 ERP</title>
-
-    <!-- Tailwind CSS -->
-    <script th:attr="nonce=${cspNonce}" src="https://cdn.tailwindcss.com"></script>
-    <script th:attr="nonce=${cspNonce}">
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#F3FBF7',
-                            100: '#E2F5EB',
-                            200: '#C7EBD9',
-                            300: '#A4DEC2',
-                            400: '#79CCA5',
-                            500: '#56B88C',
-                            600: '#3F9C73',
-                            700: '#327D5E',
-                            800: '#26624A',
-                            900: '#1D4D3A',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Pretendard', 'Noto Sans KR', sans-serif; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/app.css}" href="/css/app.css">
     <link rel="stylesheet" th:href="@{/css/custom.css}" href="/css/custom.css">
 </head>
 <body class="bg-gray-50">
@@ -49,7 +19,7 @@
                 <h1 class="text-3xl font-bold text-gray-900">일정/캘린더</h1>
                 <p class="mt-3 text-gray-600">유치원, 반, 개인 일정을 한곳에서 관리하세요.</p>
             </div>
-            <button id="createEventBtn"
+            <button type="button" id="createEventBtn"
                     class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 font-semibold text-white transition-colors hover:bg-primary-700">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -61,27 +31,29 @@
         <div class="mb-6 rounded-xl border border-gray-200 bg-white p-5">
             <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
                 <div class="lg:col-span-2">
-                    <label class="block text-sm font-semibold text-gray-600 mb-2">조회 기간</label>
+                    <span class="block text-sm font-semibold text-gray-600 mb-2">조회 기간</span>
                     <div class="flex gap-2">
-                        <input type="date" id="startDate" name="startDate" class="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-                        <input type="date" id="endDate" name="endDate" class="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <label for="startDate" class="sr-only">조회 시작일</label>
+                        <input type="date" id="startDate" name="startDate" aria-label="조회 시작일" class="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <label for="endDate" class="sr-only">조회 종료일</label>
+                        <input type="date" id="endDate" name="endDate" aria-label="조회 종료일" class="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-600 mb-2">범위</label>
-                    <select id="scopeType" name="scopeType" class="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    <label for="scopeType" class="block text-sm font-semibold text-gray-600 mb-2">범위</label>
+                    <select id="scopeType" name="scopeType" aria-label="일정 범위" class="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
                         <option value="">전체</option>
                         <option th:each="scope : ${scopeTypes}" th:value="${scope.name()}" th:text="${scope.name()}"></option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-600 mb-2">반</label>
-                    <select id="classroomId" name="classroomId" class="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" disabled>
+                    <label for="classroomId" class="block text-sm font-semibold text-gray-600 mb-2">반</label>
+                    <select id="classroomId" name="classroomId" aria-label="조회할 반" class="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" disabled>
                         <option value="">전체</option>
                     </select>
                 </div>
                 <div class="flex items-end">
-                    <button id="todayBtn" class="min-h-11 w-full rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">오늘</button>
+                    <button type="button" id="todayBtn" class="min-h-11 w-full rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">오늘</button>
                 </div>
             </div>
         </div>
@@ -91,7 +63,11 @@
              hx-trigger="calendar-filters-changed from:body"
              hx-include="#startDate,#endDate,#scopeType,#classroomId"
              hx-swap="outerHTML"
-             class="space-y-4">
+             class="space-y-4"
+             role="region"
+             aria-label="일정 목록"
+             aria-live="polite"
+             aria-busy="true">
             <div class="flex justify-center items-center py-16">
                 <svg class="animate-spin h-8 w-8 text-primary-600" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -103,13 +79,13 @@
 </main>
 
 <!-- HTMX -->
-<script th:attr="nonce=${cspNonce}" src="https://unpkg.com/htmx.org@1.9.10"></script>
+<script th:attr="nonce=${cspNonce}" src="/vendor/htmx.min.js"></script>
 
 <!-- Alpine.js -->
-<script th:attr="nonce=${cspNonce}" defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.0/dist/cdn.min.js"></script>
+<script th:attr="nonce=${cspNonce}" defer src="/vendor/alpine.min.js"></script>
 
 <!-- SweetAlert2 -->
-<script th:attr="nonce=${cspNonce}" src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:attr="nonce=${cspNonce}" src="/vendor/sweetalert2.all.min.js"></script>
 
 <!-- Custom JS -->
 <script th:attr="nonce=${cspNonce}" th:src="@{/js/app.js}"></script>
@@ -127,12 +103,23 @@
         const todayBtn = document.getElementById('todayBtn');
         const createEventBtn = document.getElementById('createEventBtn');
 
-        const toDateString = (date) => date.toISOString().split('T')[0];
+        const toDateString = (date) => new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Asia/Seoul',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).format(date);
 
         const setDefaultRange = () => {
             const now = new Date();
-            const start = new Date(now.getFullYear(), now.getMonth(), 1);
-            const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            const parts = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'Asia/Seoul', year: 'numeric', month: 'numeric'
+            }).formatToParts(now).reduce((result, part) => {
+                result[part.type] = Number(part.value);
+                return result;
+            }, {});
+            const start = new Date(Date.UTC(parts.year, parts.month - 1, 1));
+            const end = new Date(Date.UTC(parts.year, parts.month, 0));
             startDateInput.value = toDateString(start);
             endDateInput.value = toDateString(end);
         };
