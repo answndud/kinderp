@@ -1,26 +1,20 @@
 # Docs Index
 
-이 폴더는 현재 로컬 기준의 문서 운영 SSOT입니다.
-active 문서와 완료 archive를 분리해, 다음 세션에서도 바로 이어서 작업할 수 있게 유지합니다.
+이 폴더는 개발, 실행, 환경, 배포 가이드를 모아 둡니다.
+현재/향후 구현 작업은 저장소 루트 `PLAN.md`에서 관리합니다.
 
 ## Start Here
 
 새 세션에서 먼저 읽는 순서는 아래와 같습니다.
 
-1. `docs/PLAN.md`
-2. `docs/PROGRESS.md`
-3. `docs/guides/developer-guide.md`
-4. `docs/guides/env-contract.md`
-5. `docs/COMPLETED.md` (과거 맥락이 필요할 때만)
+1. `PLAN.md`
+2. `docs/guides/developer-guide.md`
+3. `docs/guides/env-contract.md`
 
-## Active Docs
+## Project State
 
-- `docs/PLAN.md`
-  - 현재 active 계획과 우선순위
-- `docs/PROGRESS.md`
-  - 현재 상태, blocker, 최근 검증, 다음 액션
-- `docs/COMPLETED.md`
-  - 완료된 작업의 상세 archive
+- `PLAN.md`
+  - 현재/향후 구현 작업, 검증 명령, 완료 조건
 
 ## Guides
 
@@ -43,9 +37,18 @@ active 문서와 완료 archive를 분리해, 다음 세션에서도 바로 이�
 - `docs/guides/demo-scenario.md`
   - demo 실행, 계정, 5분/10분 시연 순서와 실패 시 복구 절차
 
+## Architecture
+
+- `docs/architecture/portfolio-story.md`
+  - TownPet과의 차별화, 대표 업무 흐름, 설계 결정, 면접 시연 순서, 추가 증거 계획
+- `docs/architecture/workflow-state-machine.md`
+  - 출결·입학·Outbox의 허용 상태 전이, 동시성·tenant scope 증거
+- `docs/architecture/performance-methodology.md`
+  - JVM query-count story와 k6 HTTP p95 측정 조건 및 한계
+
 ## Rules
 
-- active 작업은 `docs/PLAN.md`, `docs/PROGRESS.md`에만 남깁니다.
-- 완료된 작업은 active 문서에 남기지 않고 `docs/COMPLETED.md`로 옮깁니다.
-- 현재 로컬에 존재하지 않는 legacy 문서 트리는 SSOT로 취급하지 않습니다.
+- 현재/향후 작업은 루트 `PLAN.md`에만 남깁니다.
+- 완료된 작업은 `PLAN.md`에서 제거하고 별도 완료 로그를 만들지 않습니다.
+- `docs/COMPLETED.md`는 기존 블로그 링크와 역사적 결정 기록을 위한 archive이며 active SSOT로 취급하지 않습니다.
 - 블로그 작업 SSOT는 별도로 루트의 `BLOG_PLAN.md`, `BLOG_PROGRESS.md`를 사용합니다.

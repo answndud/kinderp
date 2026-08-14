@@ -9,7 +9,6 @@ const repoRoot = resolve(scriptDir, '..');
 const userArgs = process.argv.slice(2);
 const defaultTargets = [
   'src/main/resources/templates',
-  'src/main/resources/static/css',
   'src/main/resources/static/js',
 ];
 

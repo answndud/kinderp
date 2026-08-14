@@ -3,7 +3,7 @@
 이 문서는 이 저장소에서 기능을 추가/수정하는 개발자를 위한 실무 가이드입니다.
 유저 관점 설명은 `docs/guides/user-guide.md`를 참고하세요.
 실행 환경별 필수 변수와 기본 노출 정책은 `docs/guides/env-contract.md`를 SSOT로 봅니다.
-active 작업 계획/상태는 `docs/PLAN.md`, `docs/PROGRESS.md`, 완료 이력은 `docs/COMPLETED.md`를 기준으로 관리합니다.
+현재/향후 구현 작업은 저장소 루트 `PLAN.md`를 기준으로 관리합니다.
 
 ---
 
@@ -18,7 +18,7 @@ active 작업 계획/상태는 `docs/PLAN.md`, `docs/PROGRESS.md`, 완료 이력
   - Spring Data JPA + QueryDSL
   - Spring Security + JWT(HTTP-only cookie)
   - MySQL 8, Redis
-  - Thymeleaf + HTMX + Alpine.js + Tailwind(CDN)
+  - Thymeleaf + HTMX + Alpine.js + Tailwind(로컬 빌드)
   - Flyway
 
 핵심 원칙은 **Simple is Best** 입니다.
@@ -89,19 +89,29 @@ JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home ./gradl
 
 - `src/main/resources/templates/*`: 역할 기반 SSR 화면
 - `src/main/resources/static/js/app.js`: 공통 UI/SweetAlert2/알림 유틸
+- `src/main/resources/static/js/notifications.js`: 알림 API·자동 갱신 런타임
+- `src/main/resources/static/js/header.js`: header 메뉴·알림 패널 controller
+- `src/main/resources/static/js/pages/*`: 화면별 업무 모듈(`dashboard.js`, `kids.js`, `attendance.js`, `applications.js` 등)
+- Tailwind는 템플릿을 content로 읽는 로컬 CLI 빌드(`npm run frontend:build`)로 정적 자산을 생성합니다.
 - HTMX로 fragment 단위 갱신, Alpine.js로 최소 상태 관리
 - 디자인/프론트엔드 개선 컨텍스트는 루트 `.impeccable.md`를 기준으로 합니다.
 - Impeccable skill은 repo-local `.agents/skills/*`에만 둡니다. 전역 `~/.codex`, `~/.claude`, global npm install, 사용자 홈 설정은 변경하지 않습니다.
-- detector는 전역 설치 없이 npm script로 실행합니다.
+- detector는 전역 설치 없이 npm script로 실행하며, 기본 대상은 템플릿/JS 마크업입니다. 생성 CSS는 `npm run css:build`와 브라우저에서 별도로 검증합니다.
 
 ```bash
 npm run impeccable:detect
 npm run impeccable:detect -- --fast
 npm run impeccable:detect:json -- --fast
+npm run accessibility:templates
+npm run security:inline-handlers
+npm run security:view-errors
+npm run e2e:smoke
 ```
 
 - 이 detector script는 `impeccable@2.1.7`을 `npm exec --package`로 실행하고, repo-local `.npmrc`와 스크립트 환경변수로 npm cache/log를 저장소 내부 `.cache/npm`에 둡니다.
 - UI 개선 작업 흐름은 audit/critique로 문제 정리, 구현, polish, detector 및 Gradle 검증 순서를 권장합니다.
+- `accessibility:templates`는 비숨김 폼 컨트롤의 label/ARIA 이름, 버튼 `type`, 이미지 `alt` 누락을 빠르게 검사하며 push CI에서도 실행합니다.
+- `security:view-errors`는 SSR 뷰 컨트롤러가 내부 예외 메시지를 사용자 flash message로 노출하지 않는지 검사합니다. 상세 원인은 서버 로그에만 남깁니다.
 
 ## DB
 
@@ -194,8 +204,11 @@ npm run impeccable:detect:json -- --fast
 - `V4__create_calendar_events.sql`: 캘린더
 - `V5__add_performance_indexes_for_dashboard_and_notepad.sql`: 성능 인덱스
 - `V15__drop_notepad_legacy_is_read.sql`: `notepad.is_read` 레거시 컬럼 제거
+- `V16__add_notification_outbox_timeline_index.sql`: Outbox 상태/채널 timeline 인덱스
+- `V17__add_notification_outbox_dead_letter_index.sql`: dead-letter 최신순 운영 조회 인덱스
+- `V18__add_attendance_request_idempotency_key.sql`: 학부모 출결 변경 요청의 requester별 멱등 키 보장
 
-마이그레이션이 컬럼 제거처럼 되돌리기 어려운 변경이면 배포 전 DB 백업과 forward-fix SQL을 준비하고, 변경 배경을 `docs/COMPLETED.md`에 남깁니다.
+마이그레이션이 컬럼 제거처럼 되돌리기 어려운 변경이면 배포 전 DB 백업과 forward-fix SQL을 준비하고, 변경 배경과 운영 절차를 관련 `docs/guides/*` 문서에 남깁니다.
 
 ---
 
@@ -219,8 +232,7 @@ npm run impeccable:detect:json -- --fast
 
 기능/정책 변경 시 반드시 문서를 같이 갱신하세요.
 
-- active 계획/상태: `docs/PLAN.md`, `docs/PROGRESS.md`
-- 완료 archive: `docs/COMPLETED.md`
+- 현재/향후 구현 작업: 루트 `PLAN.md`
 - 개발/실행/환경/배포 가이드: `docs/guides/*`
 
 특히 성능 작업은 아래 순서를 지켜 기록합니다.
@@ -229,7 +241,7 @@ npm run impeccable:detect:json -- --fast
 2. 개선 전 측정
 3. 개선 적용
 4. 개선 후 측정
-5. 트레이드오프 문서화 및 완료 archive 반영
+5. 트레이드오프를 관련 가이드 또는 README에 문서화
 
 ---
 
@@ -241,7 +253,7 @@ npm run impeccable:detect:json -- --fast
 4. API 응답 `ApiResponse<T>` 유지
 5. 필요 시 Flyway migration 추가
 6. 통합 테스트 추가/수정
-7. `docs/PLAN.md`, `docs/PROGRESS.md`, `docs/COMPLETED.md` 상태 반영
+7. 루트 `PLAN.md`에서 완료된 작업 제거
 8. 성능 영향이 있으면 전/후 수치 기록
 
 ---
@@ -262,5 +274,4 @@ npm run impeccable:detect:json -- --fast
 - 사용자 가이드: `docs/guides/user-guide.md`
 - 프로젝트 개요: `README.md`
 - 문서 인덱스: `docs/README.md`
-- active 계획/진행: `docs/PLAN.md`, `docs/PROGRESS.md`
-- 완료 archive: `docs/COMPLETED.md`
+- 현재/향후 구현 작업: 루트 `PLAN.md`

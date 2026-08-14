@@ -2,7 +2,7 @@
 
 이 문서는 **초보자도 이 파일 하나만 보고** Kindergarten ERP를 실제 인터넷에 배포할 수 있도록 정리한 배포 SSOT입니다.
 
-기준일: **2026-03-30 (KST)**
+기준일: **2026-08-14 (KST)**
 
 이 문서가 다루는 범위는 아래와 같습니다.
 
@@ -677,7 +677,7 @@ ls -la
 
 ```bash
 cd /opt/kindergarten-erp/deploy
-./deploy-with-rollback.sh
+SMOKE_URL=https://erp.example.com/login ./deploy-with-rollback.sh
 docker compose --env-file .env.prod -f docker-compose.prod.yml ps
 ```
 
@@ -696,6 +696,7 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml logs -f caddy
 
 ```bash
 curl --fail http://127.0.0.1:9091/actuator/health/readiness
+curl --fail https://erp.example.com/login
 docker compose --env-file .env.prod -f docker-compose.prod.yml ps
 docker compose --env-file .env.prod -f docker-compose.prod.yml logs --tail=200 app
 ```
@@ -759,6 +760,7 @@ Repository Secrets에 아래 값을 넣습니다.
 | `DEPLOY_PATH` | `/opt/kindergarten-erp/deploy` |
 | `GHCR_USERNAME` | GitHub username |
 | `GHCR_READ_TOKEN` | 서버에서 GHCR 이미지를 pull할 때 사용할 token |
+| `DEPLOY_SMOKE_URL` | 선택값. 배포 후 외부 HTTPS login/health URL. 설정하면 실패 시 자동 rollback |
 
 초보자 권장:
 
@@ -1225,7 +1227,9 @@ jobs:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           ssh "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$DEPLOY_PATH'"
-          scp deploy/docker-compose.prod.yml deploy/Caddyfile "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
+          scp deploy/docker-compose.prod.yml deploy/Caddyfile \
+            scripts/deploy-with-rollback.sh scripts/backup-production.sh scripts/verify-production-backup.sh \
+            "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
 
       - name: Deploy on server
         env:
@@ -1234,24 +1238,24 @@ jobs:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
+          SMOKE_URL: ${{ secrets.DEPLOY_SMOKE_URL }}
           IMAGE_TAG: ghcr.io/${{ github.repository_owner }}/kindergarten-erp:${{ github.sha }}
         run: |
           ssh "$DEPLOY_USER@$DEPLOY_HOST" \
-            "export APP_IMAGE='$IMAGE_TAG' GHCR_USERNAME='$GHCR_USERNAME' GHCR_READ_TOKEN='$GHCR_READ_TOKEN'; \
+            "export APP_IMAGE='$IMAGE_TAG' GHCR_USERNAME='$GHCR_USERNAME' GHCR_READ_TOKEN='$GHCR_READ_TOKEN' SMOKE_URL='$SMOKE_URL'; \
              cd '$DEPLOY_PATH'; \
+             chmod 700 ./deploy-with-rollback.sh ./backup-production.sh ./verify-production-backup.sh; \
              echo \"\$GHCR_READ_TOKEN\" | docker login ghcr.io -u \"\$GHCR_USERNAME\" --password-stdin; \
-             docker compose --env-file .env.prod -f docker-compose.prod.yml pull; \
-             docker compose --env-file .env.prod -f docker-compose.prod.yml up -d; \
-             curl -f http://127.0.0.1:9091/actuator/health/readiness"
+             ./deploy-with-rollback.sh"
 ```
 
-이 워크플로우는 가장 단순한 버전입니다.
+실제 저장소의 CD 워크플로우는 위 절차에 이미지 pull, readiness 확인, 실패 시 이전 이미지 롤백을 포함한다. 백업 스크립트는 중간 실패 시 staging 디렉터리를 정리하고 checksum 검증 후 최종 디렉터리로 atomic promote하지만, 운영 DB 자격증명과 보관 정책을 확인한 뒤 배포 전 별도 실행한다.
 
-추후 개선 포인트:
+운영 전 남은 확인 사항:
 
-- deploy 전 DB snapshot 자동화
-- 실패 시 자동 롤백
-- Slack/Discord 배포 알림
+- 실제 HTTPS 도메인과 외부 서버에서 smoke/rollback을 실행하고 SHA 및 결과를 기록
+- 운영 DB/Redis 백업 복구 리허설과 보관·암호화 정책 확정
+- 외부 알림 provider 연결 및 수신 확인
 
 ---
 

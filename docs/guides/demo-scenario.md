@@ -1,6 +1,6 @@
 # Demo Scenario Runbook
 
-기준일: 2026-05-19
+기준일: 2026-08-14
 
 이 문서는 Kindergarten ERP를 면접/시연에서 빠르게 보여주기 위한 클릭 순서와 기대 화면을 정리합니다.
 
@@ -64,7 +64,7 @@ SPRING_PROFILES_ACTIVE=demo ./gradlew bootRun
 | 알림 실패는 어떻게 재처리하나요? | `src/main/java/com/erp/domain/notification/*`, `src/main/resources/templates/notifications/outbox.html` |
 | 입학 workflow는 어디서 관리하나요? | `src/main/java/com/erp/domain/kidapplication/service/*` |
 | 운영 환경 변수는 어디에 정리했나요? | `docs/guides/env-contract.md` |
-| 완료 이력과 검증은 어디에 남기나요? | `docs/COMPLETED.md` |
+| 현재 작업과 검증 계획은 어디에 남기나요? | 루트 `PLAN.md` |
 
 ## 7. 시연 실패 시 빠른 복구
 

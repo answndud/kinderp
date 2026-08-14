@@ -140,8 +140,8 @@ curl -X GET http://localhost:8080/api/v1/auth/me -b cookies.txt
 
 - 전체 개요: `README.md`
 - 문서 인덱스: `docs/README.md`
-- active 계획: `docs/PLAN.md`
-- active 진행 상태: `docs/PROGRESS.md`
+- active 계획: `PLAN.md`
+- active 진행 상태: `PLAN.md`의 `Active` 섹션
 - 완료 archive: `docs/COMPLETED.md`
 - 개발자 가이드: `docs/guides/developer-guide.md`
 - 환경 변수 계약: `docs/guides/env-contract.md`

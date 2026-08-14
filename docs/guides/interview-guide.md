@@ -1,8 +1,12 @@
 # Backend Portfolio Interview Guide
 
-기준일: 2026-05-19
+기준일: 2026-08-14
 
 이 문서는 면접관이 Kindergarten ERP를 빠르게 평가할 때 볼 수 있는 백엔드 포트폴리오 설명 가이드입니다.
+
+## 0. 이 프로젝트의 포지션
+
+TownPet이 레거시 데이터와 서비스 구조를 안전하게 바꾸는 프로젝트라면, Kindergarten ERP는 운영 중 여러 역할이 같은 tenant 데이터를 처리할 때 권한·상태·실패 복구를 통제하는 내부 플랫폼입니다. 면접에서는 기능 목록보다 학부모 요청 → 교사/원장 승인 → 감사 기록 → Outbox 전달/재시도의 닫힌 흐름을 먼저 보여줍니다. 전체 흐름과 추가할 증거는 [`docs/architecture/portfolio-story.md`](../architecture/portfolio-story.md)에 있습니다.
 
 ## 1. 5분 설명 루트
 
@@ -15,22 +19,22 @@
 ## 2. 10분 시연 루트
 
 1. `demo` 프로파일로 실행하고 원장 계정으로 로그인합니다.
-2. `/applications/pending`에서 입학 신청/대기열/offer 흐름을 설명합니다.
-3. `/attendance-requests`에서 학부모 요청과 교사/원장 승인 경계를 설명합니다.
+2. `/attendance-requests`에서 학부모 요청과 교사/원장 승인 경계를 설명합니다.
+3. `/applications/pending`에서 입학 신청의 상태 전이와 tenant 권한을 설명합니다.
 4. `/notification-outbox`에서 timeline, status/channel/search 필터, dead-letter retry 버튼을 보여줍니다.
-5. `/audit-logs`, `/domain-audit-logs`에서 reason/summary 필터와 CSV export가 같은 조건을 쓰는 방식을 보여줍니다.
-6. Swagger UI에서 `Attendance`, `Dashboard`, `Auth`, `Notification Ops` API 그룹을 보여주며 API 계약 확인 경로를 설명합니다.
-7. README의 Notepad/Dashboard query count 개선표와 CI `5m 28s -> 1m 14s` 대표 지표를 보여주고, 최신 main 결과는 GitHub Actions 배지와 run history로 확인합니다.
+5. `/audit-logs`, `/domain-audit-logs`에서 요청부터 상태 전이·재시도까지 추적되는 방식을 보여줍니다.
+6. 관련 통합 테스트에서 권한 실패와 상태 전이·동시성 결과를 확인합니다.
+7. README의 성능 수치와 CI 결과를 보여주고, 실제 배포가 없는 부분은 준비된 자산과 미실행 범위를 구분해 설명합니다.
 
 ## 3. 말하기 스크립트
 
 ### 5분 버전
 
-1. "이 프로젝트는 유치원 운영을 주제로 한 Spring Boot 백엔드 포트폴리오이고, 단순 CRUD보다 권한 경계와 운영 문제를 끝까지 닫는 데 집중했습니다."
-2. "원장, 교사, 학부모가 같은 데이터에 접근하지만 가능한 액션이 다르기 때문에 tenant와 role 경계를 API, service, test에서 같이 검증했습니다."
-3. "세션은 HTTP-only cookie JWT와 Redis refresh/session registry로 관리하고, 로그아웃이나 세션 종료 시 즉시 revoke되도록 했습니다."
-4. "운영 중 실패하는 외부 알림은 outbox dead-letter로 관측하고, 원장 전용 화면/API에서 실패 건만 재시도할 수 있게 했습니다."
-5. "성능은 Notepad와 Dashboard에서 쿼리 수와 응답 시간을 전후 측정했고, CI도 혼자 운영하는 main 프로젝트에 맞게 quick check와 manual quality로 분리했습니다."
+1. "이 프로젝트는 여러 역할이 같은 유치원 tenant를 처리할 때 권한과 업무 상태의 정합성을 보장하는 내부 운영 플랫폼입니다."
+2. "학부모 요청은 tenant 경계 안에 저장되고, 교사나 원장의 승인만 허용된 상태 전이를 만들 수 있습니다."
+3. "상태 전이는 감사 로그와 알림 Outbox로 이어지며, 외부 전달 실패는 dead-letter 운영 화면에서 원인과 재시도를 확인합니다."
+4. "세션은 HTTP-only cookie JWT와 Redis refresh/session registry로 관리하고, 권한은 controller·service·integration test에서 함께 검증했습니다."
+5. "TownPet이 레거시 이관과 구조 변경의 안전성을 보여준다면, 이 프로젝트는 운영 중 정합성·실패 복구·관측성을 보여줍니다."
 
 ### 10분 버전
 
@@ -59,7 +63,7 @@
 | 약점 질문 | 짧은 답변 |
 | --- | --- |
 | 실제 배포가 없나요? | 비용 문제로 클라우드 배포는 하지 않았지만 Dockerfile, deploy compose, env contract, readiness, CD workflow_dispatch까지 준비했습니다. |
-| Tailwind CDN은 운영에 부적절하지 않나요? | 맞습니다. 백엔드 포트폴리오라 UI build pipeline은 후순위로 뒀고, 운영 전에는 Tailwind build/CSP/fingerprint를 추가해야 합니다. |
+| Tailwind CDN 의존성은 운영에 부적절하지 않나요? | 초기 CDN 의존성을 제거하고 저장소 로컬 vendor asset과 Tailwind build 산출물로 전환했습니다. 외부 자산을 남길 경우에는 공식 digest/SRI를 별도로 검증합니다. |
 | 모놀리식이 한계 아닌가요? | 현재 규모에서는 트랜잭션과 권한 경계를 한 저장소에서 닫는 것이 합리적이고, 분리한다면 notification/audit/reporting부터 분리합니다. |
 | 외부 알림은 실제 발송인가요? | 실제 provider 연동보다 outbox 상태 전이, dead-letter 관측, 재시도 운영면을 검증하는 데 집중했습니다. |
 | full test를 매번 안 돌려도 되나요? | push는 빠른 실패 신호, 큰 변경은 수동 quality workflow로 나눴습니다. 혼자 운영하는 main 프로젝트의 비용/피드백 균형입니다. |
@@ -73,7 +77,7 @@
 | 운영 중 알림 전송 실패는 어떻게 보나요? | outbox timeline에서 상태/채널/검색어로 좁혀 보고, dead-letter만 원장 전용 retry API/화면으로 재처리합니다. | `/notification-outbox`, `domain/notification` |
 | 배포 전 CORS는 어떻게 바꾸나요? | `CORS_ALLOWED_ORIGINS`로 환경별 origin을 주입하고 credentialed CORS에서 wildcard를 쓰지 않습니다. | `SecurityConfig`, `env-contract.md` |
 | 큰 service는 어떻게 관리했나요? | `KidApplicationService`는 신청/조회/취소/만료 orchestration을 맡고, review 상태 전이는 `KidApplicationReviewService`, 원생 등록/알림/audit은 보조 service로 분리했습니다. | `domain/kidapplication/service` |
-| 성능 개선은 어떻게 증명했나요? | query count/elapsed time을 전후 측정하고 performance smoke test와 archive에 남겼습니다. | README, `performance/*`, `docs/COMPLETED.md` |
+| 성능 개선은 어떻게 증명했나요? | query count/elapsed time을 전후 측정하고 README와 performance smoke test에 남겼습니다. | README, `performance/*` |
 
 ## 7. 최근 강화 작업의 의도
 
@@ -125,7 +129,7 @@
 - 운영성: audit log, outbox retry/dead-letter, Prometheus/Grafana, readiness, structured logging.
 - 성능: Notepad/Dashboard N+1 제거, query count와 응답 시간 전후 비교, push CI 경량화.
 - 테스트: Testcontainers 기반 MySQL/Redis 통합 테스트, fast/integration/performance smoke 분리.
-- 문서화: `docs/PLAN.md`, `docs/PROGRESS.md`, `docs/COMPLETED.md`로 active/archive 상태 관리.
+- 문서화: 루트 `PLAN.md`로 현재/향후 구현 작업을 관리하고 완료 항목은 제거.
 
 ## 9. 남은 리스크와 후속 개선
 

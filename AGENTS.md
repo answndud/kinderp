@@ -1,7 +1,7 @@
 # AGENTS.md
 
 이 문서는 이 저장소에서 작업하는 코딩 에이전트용 SSOT입니다.
-긴 배경과 active/archive 문서 운영 규칙은 `docs/README.md`, `docs/PLAN.md`, `docs/PROGRESS.md`부터 시작해 필요한 하위 문서에 유지하고, 에이전트 작업 규칙은 이 파일을 우선합니다.
+현재 작업 계획은 이 파일과 같은 범위의 루트 `PLAN.md`에서 시작하고, 긴 배경은 `docs/README.md`와 필요한 하위 문서에 유지합니다. 에이전트 작업 규칙은 이 파일을 우선합니다.
 
 ## 1) Project Snapshot
 
@@ -10,7 +10,7 @@
 - 철학: **Simple is Best**
 - 기술: Java 21, Spring Boot 3.5.9, JPA, QueryDSL, Security, JWT, Flyway
 - DB/Infra: MySQL 8, Redis
-- 화면: Thymeleaf + HTMX + Alpine.js + Tailwind(CDN)
+- 화면: Thymeleaf + HTMX + Alpine.js + Tailwind(로컬 빌드)
 - 아키텍처: `domain/{controller,service,repository,entity,dto}` + `global/*`
 - JPA 기본: OSIV OFF, `default_batch_fetch_size=100`
 
@@ -156,8 +156,8 @@ docker compose --env-file docker/.env -f docker/docker-compose.yml down
 
 ## 9) Docs Rules (Mandatory)
 
-- active 계획/상태는 `docs/PLAN.md`, `docs/PROGRESS.md`를 SSOT로 유지한다.
-- 완료된 작업은 active 문서에 남기지 말고 `docs/COMPLETED.md`로 archive한다.
+- 현재/향후 작업은 루트 `PLAN.md`를 SSOT로 유지한다.
+- 완료된 작업은 `PLAN.md`에서 제거하며 별도 완료 로그를 만들지 않는다.
 - 개발/실행/환경/배포 가이드는 `docs/guides/*`에 유지한다.
 - 현재 로컬에 없는 legacy 문서 트리는 복구 전제 없이 참조하지 않는다.
 
@@ -178,22 +178,15 @@ docker compose --env-file docker/.env -f docker/docker-compose.yml down
   3) 개선 적용
   4) 개선 후 동일 시나리오 재측정
   5) 결과/트레이드오프 문서화
-- 문서에는 정량(숫자) + 정성(왜 이 선택을 했는지) 둘 다 포함하고, 완료 시 `docs/COMPLETED.md`에 남긴다.
+- 결과 문서에는 정량(숫자) + 정성(왜 이 선택을 했는지) 둘 다 포함한다.
 
 ## 12) Execution Planning & Progress Tracking Rule (Mandatory)
 
-- 모든 개발 작업은 시작 전에 `docs/PLAN.md`, `docs/PROGRESS.md`, `docs/guides/developer-guide.md`, `docs/guides/env-contract.md`를 먼저 확인한다.
-- `docs/COMPLETED.md`는 archive 문서다. 과거 맥락이 필요할 때만 읽고, 세션 시작 필수 읽기 대상으로 취급하지 않는다.
-- 새 세션/다른 에이전트가 이어받을 때도 동일하게 `docs/PLAN.md`, `docs/PROGRESS.md`를 active SSOT로 사용한다.
-- 작업 시작 시 `docs/PLAN.md`에 아래 내용을 먼저 작성/갱신한다.
-  1) 목표/범위
-  2) 세부 작업 단계
-  3) 검증 계획(테스트/수동 시나리오)
-  4) 리스크 및 대응
-- 작업 진행 중에는 `docs/PROGRESS.md`를 실시간으로 갱신한다.
-  - 상태, blocker, 최근 검증, 다음 액션만 남긴다.
-  - 완료된 작업을 active 문서에 계속 남기지 않는다.
-- 계획이 변경되면 `docs/PLAN.md`를 먼저 업데이트하고, 변경 사유를 `docs/PROGRESS.md`에 기록한다.
-- 기능 구현 완료 시 최종 상태, 검증 결과(실행 명령, 통과/실패, 후속 과제)를 `docs/COMPLETED.md`로 옮기고, active 문서는 다시 비운다.
-- active 작업이 없으면 `docs/PLAN.md`, `docs/PROGRESS.md`는 `현재 active 작업 없음`만 유지한다.
+- 모든 개발 작업은 시작 전에 루트 `PLAN.md`, `docs/guides/developer-guide.md`, `docs/guides/env-contract.md`를 먼저 확인한다.
+- `PLAN.md`는 현재/향후 구현 작업의 SSOT다.
+- 작업 시작 시 `PLAN.md`에 목표, 실행 순서, 대상 파일, 구체적 변경, 검증 명령, 완료 조건을 작성하거나 갱신한다.
+- 작업 진행 중에는 완료한 slice를 제거하고 남은 작업, blocker, 재개에 필요한 결정만 유지한다.
+- 계획이 변경되면 구현보다 먼저 `PLAN.md`를 현재 상태에 맞춘다.
+- 기능 구현 완료 시 완료된 항목을 제거한다. 완료 이력, 명령 출력, diff, 회고는 `PLAN.md`에 남기지 않는다.
+- active 작업이 없으면 `PLAN.md`에 `No active work`만 명확히 유지한다.
 - 본 규칙은 OAuth2 작업 포함, 이후 모든 개발 프로세스에 기본 적용한다.

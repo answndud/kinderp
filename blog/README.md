@@ -23,7 +23,7 @@
 - [blog/00_quality_checklist.md](./00_quality_checklist.md)
   - 초보자 이해도 / 재현성 / 면접 대응력 기준의 편집 체크리스트
 
-기존 [docs/PLAN.md](../docs/PLAN.md), [docs/PROGRESS.md](../docs/PROGRESS.md)는 **애플리케이션 개발 작업용 SSOT**로 유지합니다.
+루트 [PLAN.md](../PLAN.md)는 **애플리케이션 개발 작업용 SSOT**로 유지합니다.
 
 ## 링크 정책
 

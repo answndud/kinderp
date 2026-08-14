@@ -1,6 +1,6 @@
 # Risk Response
 
-기준일: 2026-07-28
+기준일: 2026-08-14
 
 이 문서는 면접관이 약점을 찾는 관점에서 물어볼 수 있는 질문에 대해, 숨기지 않고 현재 판단과 운영 전 보완책을 설명하기 위한 문서입니다.
 
@@ -9,7 +9,7 @@
 | 질문/약점 | 현재 상태 | 왜 이렇게 했나 | 운영 전 보완책 | 근거 |
 | --- | --- | --- | --- | --- |
 | 왜 실제 클라우드 배포가 없나요? | 클라우드 미배포, Dockerfile/deploy 자산/runbook만 준비 | 비용 제약이 있고, 취업 포트폴리오에서는 로컬 재현성과 배포 준비도를 우선했다 | 도메인, HTTPS, secret, DB backup, rollback, health/readiness를 실제 서버에서 검증 | `deploy/*`, `docs/guides/deployment-guide.md`, `docs/guides/env-contract.md` |
-| Tailwind CDN을 production처럼 쓰는 건 위험하지 않나요? | Thymeleaf + HTMX + Alpine.js + Tailwind CDN | 백엔드 포트폴리오라 UI build pipeline보다 서버 기능/운영성을 우선했다 | Tailwind build pipeline, asset fingerprinting, CSP, bundle size 점검 추가 | `README.md`, `docs/guides/developer-guide.md`, `.impeccable.md` |
+| Tailwind asset을 production처럼 관리할 수 있나요? | Thymeleaf + HTMX + Alpine.js + 저장소 로컬 vendor asset + Tailwind build 산출물 | 초기 CDN 의존성을 제거하고 frontend asset을 재현 가능한 build 입력으로 고정했다 | 외부 asset 추가 시 공식 digest/SRI 확인, bundle size를 계속 점검 | `package.json`, `scripts/build-assets.mjs`, `tailwind.config.js`, `.impeccable.md` |
 | 모놀리식 구조가 과하지 않거나 반대로 너무 단순하지 않나요? | Spring Boot monolith, `domain/*`와 `global/*` 분리 | 유치원 ERP 규모에서는 트랜잭션/권한/운영 흐름을 한 저장소에서 닫는 편이 설명 가능성이 높다 | 트래픽/조직 규모가 커지면 notification/audit/reporting 같은 비동기/읽기 영역부터 분리 | `src/main/java/com/erp/domain`, `src/main/java/com/erp/global` |
 | 외부 알림은 실제 발송이 아니라 시연/mocking 중심 아닌가요? | sender adapter 경계, outbox 상태 전이, retry/backoff/dead-letter, timeline/search/filter 운영 API와 Prometheus 발송 결과 메트릭 | 외부 provider 비용/계정 없이도 실패 대응과 재처리 설계를 검증하기 위함 | 실제 provider credential, webhook signature, DLQ 알림, provider별 rate limit과 sandbox smoke 추가 | `NotificationDispatchService`, `NotificationChannelSender`, `NotificationOutboxOpsApiIntegrationTest` |
 | OAuth2는 실제 운영 redirect까지 검증했나요? | Google/Kakao 설정 경로와 local/demo 중심 | 실제 client secret과 운영 도메인이 없으므로 로컬 설정 계약까지만 준비 | 운영 도메인 발급 후 redirect URI, secure cookie, SameSite, CORS를 함께 검증 | `docs/guides/env-contract.md`, `SecurityConfig` |
