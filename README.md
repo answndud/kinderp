@@ -72,7 +72,8 @@
 |------|------|
 | Main branch | `main` 고정 운영 |
 | 최신 CI | `Backend CI` 배지와 Actions에서 확인. 최근 main push는 1분대 통과 |
-| Demo smoke | `/dashboard`, `/applications/pending`, `/notification-outbox`, `/swagger-ui.html` 확인 |
+| Demo smoke | `/dashboard`, `/applications/pending`, `/notification-outbox`, `/swagger-ui.html` 확인 + Playwright 8건 통과 |
+| Frontend quality | `frontend:build`, 템플릿 접근성, KST 브라우저 시간 계약 검사 통과 |
 | Release check | `./gradlew bootJar` 통과 |
 | Prod safety | seed, Swagger/OpenAPI, app-port Prometheus, insecure cookie, wildcard/non-HTTPS CORS 차단 테스트 보유 |
 | Production-like dry-run | bootJar, local/prod compose config, backup/checksum 및 disposable MySQL/Redis restore drill 통과 |
@@ -240,9 +241,13 @@ SPRING_PROFILES_ACTIVE=demo ./gradlew bootRun
 ./gradlew fastTest
 ./gradlew integrationTest
 ./gradlew performanceSmokeTest
+npm run frontend:build
+npm run accessibility:templates
+npm run e2e:smoke
 ```
 
 - 통합 테스트는 MySQL/Redis Testcontainers 기반입니다.
+- `e2e:smoke`는 먼저 `SPRING_PROFILES_ACTIVE=demo ./gradlew bootRun`을 실행한 뒤 사용합니다. 로그인·역할별 홈·모바일·저감 모션·KST 시간 계약을 포함한 8개 시나리오를 검증합니다.
 - 실행 전 필수 환경 변수는 [`docs/guides/env-contract.md`](./docs/guides/env-contract.md)를 확인하면 됩니다.
 
 ## 현재 상태

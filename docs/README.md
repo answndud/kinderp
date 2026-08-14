@@ -40,7 +40,7 @@
 ## Architecture
 
 - `docs/architecture/portfolio-story.md`
-  - TownPet과의 차별화, 대표 업무 흐름, 설계 결정, 면접 시연 순서, 추가 증거 계획
+  - TownPet과의 차별화, 대표 업무 흐름, 설계 결정, 면접 시연 순서, 현재 증거와 남은 보완점
 - `docs/architecture/workflow-state-machine.md`
   - 출결·입학·Outbox의 허용 상태 전이, 동시성·tenant scope 증거
 - `docs/architecture/performance-methodology.md`
