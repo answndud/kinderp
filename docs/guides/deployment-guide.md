@@ -853,10 +853,12 @@ export REDIS_PASSWORD='disposable-redis-password'
   --redis-container erp-restore-redis \
   --mysql-database kindergarten \
   --mysql-user erp \
+  --mysql-assert-query 'SELECT COUNT(*) FROM member' \
+  --mysql-assert-expected 12 \
   --confirm-disposable
 ```
 
-스크립트는 백업 checksum을 먼저 확인하고 MySQL logical dump를 import한 뒤 Redis RDB를 교체·재기동합니다. 대상 컨테이너에 disposable 라벨이 없거나 `--confirm-disposable`이 없으면 실행하지 않습니다. 실제 운영 복구는 RDS snapshot/Redis 운영 절차를 별도로 승인하고 진행해야 합니다.
+스크립트는 백업 checksum을 먼저 확인하고 MySQL logical dump를 import한 뒤 Redis RDB를 교체·재기동합니다. `--mysql-assert-query`/`--mysql-assert-expected`와 `--redis-assert-key`/`--redis-assert-expected`를 함께 주면 복구 후 데이터 값까지 비교하고, assertion이 실패하면 비정상 종료합니다. 대상 컨테이너에 disposable 라벨이 없거나 `--confirm-disposable`이 없으면 실행하지 않습니다. 실제 운영 복구는 RDS snapshot/Redis 운영 절차를 별도로 승인하고 진행해야 합니다.
 
 ---
 
