@@ -36,6 +36,19 @@
             toDateString(date) {
                 return date.toISOString().slice(0, 10);
             },
+            async loadScopedAttendanceRate(startDate, endDate) {
+                const params = new URLSearchParams({ startDate, endDate });
+                const response = await fetch(`/api/v1/attendance/dashboard-summary?${params}`, {
+                    credentials: 'same-origin'
+                });
+                if (!response.ok) return false;
+
+                const payload = await response.json().catch(() => ({}));
+                const attendanceRate = payload.data?.attendanceRate;
+                if (!Number.isFinite(attendanceRate)) return false;
+                this.stats.attendanceRate = Math.round(attendanceRate);
+                return true;
+            },
             async loadPrincipalAttendanceRate() {
                 const response = await fetch('/api/v1/dashboard/statistics', { credentials: 'same-origin' });
                 if (!response.ok) return false;
@@ -78,6 +91,8 @@
                     let attendanceLoaded = false;
                     if (me.data.role === 'PRINCIPAL') {
                         attendanceLoaded = await this.loadPrincipalAttendanceRate();
+                    } else {
+                        attendanceLoaded = await this.loadScopedAttendanceRate(startDate, endDate);
                     }
 
                     if (!attendanceLoaded) {

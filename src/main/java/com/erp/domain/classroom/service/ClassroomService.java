@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 반 서비스
@@ -75,6 +76,10 @@ public class ClassroomService {
         Member requester = accessPolicyService.getRequester(requesterId);
         accessPolicyService.validateClassroomReadAccess(requester, classroom);
         return classroom;
+    }
+
+    public Optional<Classroom> getClassroomByTeacher(Long teacherId) {
+        return classroomRepository.findByTeacherIdAndDeletedAtIsNull(teacherId);
     }
 
     /**

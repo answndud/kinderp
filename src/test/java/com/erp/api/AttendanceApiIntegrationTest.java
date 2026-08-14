@@ -177,6 +177,43 @@ class AttendanceApiIntegrationTest extends BaseIntegrationTest {
 
         @Test
         @WithMockUser(username = "teacher@test.com", roles = {"TEACHER"})
+        @DisplayName("홈 출결 요약 - 교사 담당 반 범위만 조회")
+        void getDashboardSummary_Success_Teacher() throws Exception {
+            mockMvc.perform(get("/api/v1/attendance/dashboard-summary")
+                            .param("startDate", "2025-01-13")
+                            .param("endDate", "2025-01-17"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.expectedCount").isNumber())
+                    .andExpect(jsonPath("$.data.attendanceRate").isNumber());
+        }
+
+        @Test
+        @WithMockUser(username = "parent@test.com", roles = {"PARENT"})
+        @DisplayName("홈 출결 요약 - 학부모 자녀 범위만 조회")
+        void getDashboardSummary_Success_Parent() throws Exception {
+            mockMvc.perform(get("/api/v1/attendance/dashboard-summary")
+                            .param("startDate", "2025-01-13")
+                            .param("endDate", "2025-01-17"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.expectedCount").isNumber());
+        }
+
+        @Test
+        @WithMockUser(username = "parent@test.com", roles = {"PARENT"})
+        @DisplayName("홈 출결 요약 - 기간이 31일을 초과하면 실패")
+        void getDashboardSummary_Fail_TooLongRange() throws Exception {
+            mockMvc.perform(get("/api/v1/attendance/dashboard-summary")
+                            .param("startDate", "2025-01-01")
+                            .param("endDate", "2025-02-01"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.code").value("C001"));
+        }
+
+        @Test
+        @WithMockUser(username = "teacher@test.com", roles = {"TEACHER"})
         @DisplayName("반별 일별 출석 현황 조회 - 실패 (반 ID 누락)")
         void getDailyAttendance_Fail_MissingClassroomId() throws Exception {
             mockMvc.perform(get("/api/v1/attendance/daily")

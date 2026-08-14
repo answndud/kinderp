@@ -97,6 +97,18 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
                                                               @Param("endDate") LocalDate endDate,
                                                               @Param("status") AttendanceStatus status);
 
+    @Query("SELECT a.date AS date, COUNT(a) AS presentCount " +
+            "FROM Attendance a " +
+            "WHERE a.kid.id IN :kidIds " +
+            "AND a.date >= :startDate AND a.date <= :endDate " +
+            "AND a.status IN ('PRESENT', 'LATE') " +
+            "GROUP BY a.date")
+    List<DailyPresentCountProjection> findPresentCountsByKidIdsAndDateBetween(
+            @Param("kidIds") List<Long> kidIds,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
     @Query("SELECT COUNT(a) FROM Attendance a WHERE a.kid.classroom.kindergarten.id = :kindergartenId " +
             "AND a.date >= :startDate AND a.date <= :endDate " +
             "AND a.status IN ('PRESENT', 'LATE')")

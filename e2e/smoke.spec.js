@@ -30,6 +30,19 @@ test('principal home uses cached dashboard attendance statistics', async ({ page
   expect(dailyAttendanceRequests).toHaveLength(0);
 });
 
+test('parent home uses scoped dashboard attendance summary', async ({ page }) => {
+  const dailyAttendanceRequests = [];
+  const dashboardSummaryRequests = [];
+  page.on('request', (request) => {
+    if (request.url().includes('/api/v1/attendance/daily')) dailyAttendanceRequests.push(request.url());
+    if (request.url().includes('/api/v1/attendance/dashboard-summary')) dashboardSummaryRequests.push(request.url());
+  });
+
+  await loginAs(page, 'parent1@test.com');
+  await expect.poll(() => dashboardSummaryRequests.length).toBeGreaterThan(0);
+  expect(dailyAttendanceRequests).toHaveLength(0);
+});
+
 test('principal can scan the dashboard action queue and outbox timeline', async ({ page }) => {
   await loginAsPrincipal(page);
 

@@ -5,6 +5,7 @@ import com.erp.domain.attendance.dto.request.BulkAttendanceRequest;
 import com.erp.domain.attendance.dto.request.DropOffRequest;
 import com.erp.domain.attendance.dto.request.PickUpRequest;
 import com.erp.domain.attendance.dto.response.AttendanceResponse;
+import com.erp.domain.attendance.dto.response.AttendanceDashboardSummaryResponse;
 import com.erp.domain.attendance.dto.response.DailyAttendanceResponse;
 import com.erp.domain.attendance.dto.response.MonthlyAttendanceKidReportResponse;
 import com.erp.domain.attendance.dto.response.MonthlyAttendanceReportResponse;
@@ -18,6 +19,7 @@ import com.erp.domain.dashboard.service.DashboardService;
 import com.erp.domain.kid.entity.Kid;
 import com.erp.domain.kid.service.KidService;
 import com.erp.domain.member.entity.Member;
+import com.erp.domain.member.entity.MemberRole;
 import com.erp.global.exception.BusinessException;
 import com.erp.global.exception.ErrorCode;
 import com.erp.global.security.access.AccessPolicyService;
@@ -28,6 +30,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.YearMonth;
+import java.time.DayOfWeek;
+import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -257,6 +262,42 @@ public class AttendanceService {
                 .collect(Collectors.toList());
     }
 
+    public AttendanceDashboardSummaryResponse getDashboardSummary(
+            LocalDate startDate,
+            LocalDate endDate,
+            Long requesterId
+    ) {
+        if (startDate == null || endDate == null
+                || startDate.isAfter(endDate)
+                || ChronoUnit.DAYS.between(startDate, endDate) > 30) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "출결 조회 기간은 1일 이상 31일 이하여야 합니다");
+        }
+
+        Member requester = requester(requesterId);
+        List<Kid> accessibleKids = resolveDashboardKids(requester);
+        if (accessibleKids.isEmpty()) {
+            return new AttendanceDashboardSummaryResponse(0, 0, 0.0);
+        }
+
+        List<Long> kidIds = accessibleKids.stream().map(Kid::getId).toList();
+        Map<LocalDate, Long> presentCountByDate = attendanceRepository
+                .findPresentCountsByKidIdsAndDateBetween(kidIds, startDate, endDate)
+                .stream()
+                .collect(Collectors.toMap(
+                        AttendanceRepository.DailyPresentCountProjection::getDate,
+                        AttendanceRepository.DailyPresentCountProjection::getPresentCount
+                ));
+
+        long expectedCount = countActiveKidSchoolDays(accessibleKids, startDate, endDate);
+        long presentCount = presentCountByDate.entrySet().stream()
+                .filter(entry -> isSchoolDay(entry.getKey()))
+                .mapToLong(Map.Entry::getValue)
+                .sum();
+        double attendanceRate = expectedCount == 0 ? 0.0 : presentCount * 100.0 / expectedCount;
+
+        return new AttendanceDashboardSummaryResponse(presentCount, expectedCount, attendanceRate);
+    }
+
     public MonthlyAttendanceReportResponse getMonthlyReportByClassroom(Long classroomId, int year, int month, Long requesterId) {
         Classroom classroom = getClassroomForRead(requesterId, classroomId);
         YearMonthRange range = resolveYearMonthRange(year, month);
@@ -376,6 +417,46 @@ public class AttendanceService {
         }
         YearMonth yearMonth = YearMonth.of(year, month);
         return new YearMonthRange(yearMonth.atDay(1), yearMonth.atEndOfMonth());
+    }
+
+    private List<Kid> resolveDashboardKids(Member requester) {
+        if (requester.getRole() == MemberRole.PRINCIPAL) {
+            return kidService.getKidsByKindergarten(requester.getKindergarten().getId(), requester.getId());
+        }
+        if (requester.getRole() == MemberRole.TEACHER) {
+            return classroomService.getClassroomByTeacher(requester.getId())
+                    .map(classroom -> kidService.getKidsByClassroom(classroom.getId(), requester.getId()))
+                    .orElseGet(List::of);
+        }
+        return kidService.getKidsByParent(requester.getId());
+    }
+
+    private long countActiveKidSchoolDays(List<Kid> kids, LocalDate startDate, LocalDate endDate) {
+        long total = 0L;
+        for (Kid kid : kids) {
+            LocalDate activeStart = kid.getAdmissionDate() == null
+                    ? startDate
+                    : maxDate(startDate, kid.getAdmissionDate());
+            LocalDate deletedDate = kid.getDeletedAt() == null ? null : kid.getDeletedAt().toLocalDate();
+            LocalDate activeEnd = deletedDate == null ? endDate : minDate(endDate, deletedDate);
+            for (LocalDate date = activeStart; !date.isAfter(activeEnd); date = date.plusDays(1)) {
+                if (isSchoolDay(date)) total++;
+            }
+        }
+        return total;
+    }
+
+    private boolean isSchoolDay(LocalDate date) {
+        DayOfWeek dayOfWeek = date.getDayOfWeek();
+        return dayOfWeek != DayOfWeek.SATURDAY && dayOfWeek != DayOfWeek.SUNDAY;
+    }
+
+    private LocalDate maxDate(LocalDate left, LocalDate right) {
+        return left.isAfter(right) ? left : right;
+    }
+
+    private LocalDate minDate(LocalDate left, LocalDate right) {
+        return left.isBefore(right) ? left : right;
     }
 
     private void validateKidBelongsToClassroom(Kid kid, Classroom classroom) {

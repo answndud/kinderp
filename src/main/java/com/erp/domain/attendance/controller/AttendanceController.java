@@ -5,6 +5,7 @@ import com.erp.domain.attendance.dto.request.BulkAttendanceRequest;
 import com.erp.domain.attendance.dto.request.DropOffRequest;
 import com.erp.domain.attendance.dto.request.PickUpRequest;
 import com.erp.domain.attendance.dto.response.AttendanceResponse;
+import com.erp.domain.attendance.dto.response.AttendanceDashboardSummaryResponse;
 import com.erp.domain.attendance.dto.response.BulkAttendanceResponse;
 import com.erp.domain.attendance.dto.response.DailyAttendanceResponse;
 import com.erp.domain.attendance.dto.response.MonthlyAttendanceReportResponse;
@@ -89,6 +90,21 @@ public class AttendanceController {
             """;
 
     private final AttendanceService attendanceService;
+
+    @GetMapping("/dashboard-summary")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+            summary = "요청자 범위 출결 요약",
+            description = "현재 로그인한 사용자가 볼 수 있는 원생만 대상으로 기간별 출결률을 계산합니다."
+    )
+    public ResponseEntity<ApiResponse<AttendanceDashboardSummaryResponse>> getDashboardSummary(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        AttendanceDashboardSummaryResponse response = attendanceService.getDashboardSummary(
+                startDate, endDate, userDetails.getMemberId());
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 
     /**
      * 출석 등록 (교사만 가능)
