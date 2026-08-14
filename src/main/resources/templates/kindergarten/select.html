@@ -8,136 +8,33 @@
     <link rel="stylesheet" th:href="@{/css/custom.css}" href="/css/custom.css">
 </head>
 <body class="bg-gray-50">
-
-    <!-- Header -->
-    <header class="bg-white border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex-shrink-0">
-                    <a href="/" class="flex items-center gap-2">
-                        <div class="w-10 h-10 bg-emerald-700 rounded-xl flex items-center justify-center">
-                            <img th:src="@{/img/logo.svg}" src="/img/logo.svg" alt="KinderCare" class="w-full h-full object-contain" />
-                        </div>
-                        <span class="sr-only">KinderCare</span>
-                    </a>
+<header class="bg-white border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+            <a href="/" class="flex items-center gap-2">
+                <div class="w-10 h-10 bg-emerald-700 rounded-xl flex items-center justify-center">
+                    <img th:src="@{/img/logo.svg}" src="/img/logo.svg" alt="KinderCare" class="w-full h-full object-contain" />
                 </div>
-            </div>
+                <span class="sr-only">KinderCare</span>
+            </a>
         </div>
-    </header>
+    </div>
+</header>
 
-    <!-- Main Content -->
-    <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
-        <div class="mb-6">
-            <p class="text-sm font-semibold text-primary-700">Teacher Application</p>
-            <h1 class="mt-2 text-3xl font-bold text-gray-900">유치원 선택</h1>
-            <p class="mt-2 max-w-2xl text-gray-600">지원할 유치원을 선택하면 원장 승인 후 업무 화면을 사용할 수 있습니다.</p>
-        </div>
+<main id="kindergarten-select-page" class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+    <div class="mb-6">
+        <p class="text-sm font-semibold text-primary-700">Teacher Application</p>
+        <h1 class="mt-2 text-3xl font-bold text-gray-900">유치원 선택</h1>
+        <p class="mt-2 max-w-2xl text-gray-600">지원할 유치원을 선택하면 원장 승인 후 업무 화면을 사용할 수 있습니다.</p>
+    </div>
 
-        <div id="kindergartenList" class="space-y-3" role="region" aria-label="유치원 목록" aria-live="polite" aria-busy="true">
-            <p class="rounded-xl border border-gray-200 bg-white px-5 py-8 text-center text-sm text-gray-500">유치원 목록을 불러오는 중입니다.</p>
-        </div>
-    </main>
+    <div id="kindergartenList" class="space-y-3" role="region" aria-label="유치원 목록" aria-live="polite" aria-busy="true">
+        <p class="rounded-xl border border-gray-200 bg-white px-5 py-8 text-center text-sm text-gray-500">유치원 목록을 불러오는 중입니다.</p>
+    </div>
+</main>
 
-    <!-- SweetAlert2 -->
-    <script th:attr="nonce=${cspNonce}" src="/vendor/sweetalert2.all.min.js"></script>
-
-    <!-- Custom JS (UI helpers) -->
-    <script th:attr="nonce=${cspNonce}" th:src="@{/js/app.js}"></script>
- 
-     <script th:attr="nonce=${cspNonce}">
-        async function loadKindergartens() {
-            try {
-                const response = await fetch('/api/v1/kindergartens');
-                const result = await response.json();
-
-                if (result.success && result.data.length > 0) {
-                    const list = document.getElementById('kindergartenList');
-                    list.innerHTML = result.data.map(k => `
-                        <button type="button"
-                                class="flex min-h-16 w-full items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white px-4 py-3 text-left transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-600"
-                                data-action="selectKindergarten" data-id="${Number(k.id)}">
-                            <div class="min-w-0">
-                                <h3 class="font-semibold text-gray-900">${escapeHtml(k.name)}</h3>
-                                <p class="mt-1 text-sm text-gray-500">${escapeHtml(k.address || '주소 미등록')}</p>
-                            </div>
-                            <svg class="h-5 w-5 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                            </svg>
-                        </button>
-                    `).join('');
-                    list.setAttribute('aria-busy', 'false');
-                } else {
-                    const list = document.getElementById('kindergartenList');
-                    list.innerHTML =
-                        '<p class="rounded-xl border border-gray-200 bg-white px-5 py-8 text-center text-sm leading-6 text-gray-500">등록된 유치원이 없습니다. 원장 계정이 먼저 유치원을 등록해야 합니다.</p>';
-                    list.setAttribute('aria-busy', 'false');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                const list = document.getElementById('kindergartenList');
-                list.innerHTML =
-                    '<p class="rounded-lg border border-red-200 bg-red-50 px-4 py-5 text-center text-sm leading-6 text-red-700">유치원 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>';
-                list.setAttribute('aria-busy', 'false');
-            }
-        }
-
-        async function selectKindergarten(id) {
-	            const ok = await UI.confirm({
-	                title: '유치원 소속 선택',
-	                text: '이 유치원에 소속하시겠습니까?',
-	                confirmText: '소속하기',
-	                cancelText: '취소',
-	                icon: 'question',
-                    showCancelButton: true
-	            });
-            if (!ok) return;
-
-            try {
-                const note = await UI.promptTextarea({
-                    title: '지원 메시지 (선택)',
-                    label: '원장님에게 전달할 메시지를 입력해 주세요',
-                    placeholder: '예) 담임 배정이 가능하면 빠르게 합류하고 싶습니다.'
-                });
-
-                if (note && note.isDismissed) {
-                    return;
-                }
-
-                const response = await fetch('/api/v1/kindergarten-applications', {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        kindergartenId: id,
-                        message: (note && note.value && note.value.trim()) ? note.value.trim() : null
-                    })
-                });
-
-                const result = await response.json().catch(() => ({}));
-                if (!response.ok || result.success === false) {
-                    throw new Error(result.message || '유치원 지원 요청에 실패했습니다.');
-                }
-
-                await UI.success('지원이 접수되었습니다. 승인 전까지 대기 페이지로 이동합니다.');
-                window.location.href = '/applications/pending';
-            } catch (error) {
-                console.error('Error:', error);
-                await UI.error(error.message || '요청 처리 중 오류가 발생했습니다.');
-            }
-        }
-
-	        loadKindergartens();
-
-            function escapeHtml(value) {
-                return String(value ?? '')
-                    .replaceAll('&', '&amp;')
-                    .replaceAll('<', '&lt;')
-                    .replaceAll('>', '&gt;')
-                    .replaceAll('"', '&quot;')
-                    .replaceAll("'", '&#39;');
-            }
-	    </script>
+<script th:attr="nonce=${cspNonce}" src="/vendor/sweetalert2.all.min.js"></script>
+<script th:attr="nonce=${cspNonce}" th:src="@{/js/app.js}" src="/js/app.js"></script>
+<script th:attr="nonce=${cspNonce}" th:src="@{/js/pages/kindergarten-select.js}" src="/js/pages/kindergarten-select.js"></script>
 </body>
 </html>
