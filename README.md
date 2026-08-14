@@ -10,42 +10,51 @@
 
 ## 30초 요약
 
-- 단순 CRUD가 아니라 **원장/교사/학부모 권한 경계, 입학 승인 상태 전이, 출결 요청 승인, 감사 로그, outbox timeline/dead-letter 운영**까지 닫은 백엔드 프로젝트입니다.
-- 성능 개선은 감으로 처리하지 않고 **쿼리 수/응답 시간/CI 시간**을 전후 비교했습니다. Notepad 목록은 `22 queries -> 4 queries`, Dashboard 반복 조회는 cache hit 기준 `5 queries -> 0 queries`로 줄였습니다.
+- 이 프로젝트의 핵심 문제는 **하나의 유치원 데이터를 원장·교사·학부모가 서로 다른 권한으로 동시에 처리할 때 정합성과 운영 추적성을 어떻게 보장할 것인가**입니다.
+- 단순 CRUD가 아니라 **tenant 경계, 입학·출결 승인 상태 전이, 감사 로그, Outbox dead-letter 운영**까지 하나의 업무 흐름으로 닫았습니다.
+- 성능 개선은 감으로 처리하지 않고 **쿼리 수/응답 시간/CI 시간**을 전후 비교했습니다. Notepad 목록은 `22 queries -> 5 queries`, Dashboard 반복 조회는 cache hit 기준 `5 queries -> 0 queries`로 줄였습니다.
 - 면접 시연은 `demo` 프로파일로 재현 가능합니다. 최신 main 기준 `Backend CI` 상태는 상단 배지와 [Actions](https://github.com/answndud/Kindergarten_ERP/actions/workflows/ci.yml)에서 확인합니다.
 - 실제 클라우드 배포는 비용 문제로 수행하지 않았고, 대신 Docker/배포 자산/runbook과 local/demo/prod 환경 계약을 분리해 설명 가능하게 준비했습니다.
+
+> TownPet이 레거시 이관과 서비스 구조의 안전성을 보여준다면, Kindergarten ERP는 운영 중 발생하는 권한·승인·동시성·실패 복구를 통제하는 내부 플랫폼을 보여줍니다. 상세 설계는 [포트폴리오 설계 서사](./docs/architecture/portfolio-story.md)에서 확인할 수 있습니다.
 
 ## 한눈에 보기
 
 | 항목 | 내용 |
 |------|------|
-| 프로젝트 성격 | 백엔드 포트폴리오 프로젝트 |
-| 포트폴리오에서 강조한 역량 | 백엔드 설계/구현, 보안, 테스트/CI, 운영 관측성 |
+| 프로젝트 성격 | 다중 테넌트 내부 운영 플랫폼 포트폴리오 |
+| 포트폴리오에서 강조한 역량 | 권한·workflow 정합성, 동시성, 실패 복구, 성능 측정, 운영 관측성 |
 | 핵심 사용자 | `PRINCIPAL`, `TEACHER`, `PARENT` |
 | 핵심 기술 | Java 21, Spring Boot 3.5.9, MySQL 8, Redis, JPA, QueryDSL |
 | 실행 프로필 | `local`, `demo`, `prod` |
-| 최근 운영 개선 | 입력 오류 500 방지, 캘린더 366일 조회 cap, Notification Outbox timeline/search/filter/retry, audit 세부 필터, `Backend CI` `5m 28s -> 1분대` |
-| 바로 볼 문서 | [`docs/COMPLETED.md`](./docs/COMPLETED.md), [`docs/guides/developer-guide.md`](./docs/guides/developer-guide.md), [`docs/guides/env-contract.md`](./docs/guides/env-contract.md), [`docs/guides/deployment-guide.md`](./docs/guides/deployment-guide.md) |
+| 최근 운영 개선 | 입력 오류 500 방지, 인증 rate-limit/`Retry-After`, graceful shutdown, production Compose resource/log guardrail, Notification Outbox 운영면, `Backend CI` `5m 28s -> 1분대` |
+| 바로 볼 문서 | [`PLAN.md`](./PLAN.md), [`docs/guides/developer-guide.md`](./docs/guides/developer-guide.md), [`docs/guides/env-contract.md`](./docs/guides/env-contract.md), [`docs/guides/deployment-guide.md`](./docs/guides/deployment-guide.md) |
 | 최소 로컬 검증 | 빠른 수정은 `./gradlew compileJava compileTestJava` + `git diff --check`, 릴리스 전만 `./gradlew test` |
 
 ## 3분 리뷰 루트
 
 면접관이 짧게 훑는다면 아래 5곳만 보면 됩니다.
 
-1. [핵심 문제와 해결](#핵심-문제와-해결): 권한, 세션, 상태 전이, 감사, outbox 실패 대응.
+1. [핵심 문제와 해결](#핵심-문제와-해결): tenant, 권한, 상태 전이, 감사, outbox 실패 대응.
 2. [수치로 검증한 개선](#수치로-검증한-개선): 쿼리 수, 응답 시간, CI 시간 개선.
 3. [화면](#화면): 대시보드, 신청 큐, 출석, 감사 로그, outbox 운영 화면.
 4. [API / 운영 문서](#api--운영-문서): Swagger, audit export, outbox, dashboard API.
 5. [테스트 & CI](#테스트--ci): quick CI와 manual quality 분리 이유.
+
+## 대표 업무 흐름
+
+학부모가 출결 변경을 요청하면 API는 세션과 tenant 경계를 확인한 뒤 요청을 저장합니다. 네트워크 재전송은 `Idempotency-Key`로 같은 요청 ID를 재사용하고, 다른 payload의 키 재사용은 거부합니다. 교사 또는 원장이 이를 승인하면 허용된 상태 전이와 동시성 조건을 검증하고, 업무 감사 로그와 알림 Outbox를 남깁니다. 외부 전달이 실패하면 worker는 해당 건을 dead-letter로 전환하고, 원장은 실패 원인·시도 횟수·재시도 이력을 확인합니다.
+
+이 흐름은 [아키텍처 및 증거 지도](./docs/architecture/portfolio-story.md)의 대표 시나리오와 코드·테스트·운영 화면을 연결합니다.
 
 ## 바로 확인할 것
 
 - [5분 실행 / 검증](#5분-실행--검증): `demo` 프로파일과 시연 계정으로 빠르게 재현할 수 있습니다.
 - [수치로 검증한 개선](#수치로-검증한-개선): 쿼리 수와 응답 시간 기준 개선 결과를 먼저 볼 수 있습니다.
 - [화면](#화면): 대시보드, 신청 처리 큐, 감사 로그, 알림 Outbox 운영 화면을 바로 확인할 수 있습니다.
-- [docs/COMPLETED.md](./docs/COMPLETED.md): 배치별 구현, 검증, 후속 리스크를 archive 형태로 추적할 수 있습니다.
+- [PLAN.md](./PLAN.md): 현재/향후 구현 작업과 검증 계획을 확인할 수 있습니다.
 - [docs/guides/evidence-map.md](./docs/guides/evidence-map.md): README의 주요 주장별 코드/테스트/문서 증거를 연결했습니다.
-- [docs/guides/risk-response.md](./docs/guides/risk-response.md): 미배포, 모놀리식, Tailwind CDN, demo/mock 범위 같은 약점 질문 대응을 정리했습니다.
+- [docs/guides/risk-response.md](./docs/guides/risk-response.md): 미배포, 모놀리식, 외부 provider 미연동, demo/mock 범위 같은 약점 질문 대응을 정리했습니다.
 - [docs/guides/production-like-checklist.md](./docs/guides/production-like-checklist.md): cloud 미배포 상태에서 반복 가능한 prod safety/bootJar/compose dry-run 증거를 정리했습니다.
 - [docs/guides/interview-guide.md](./docs/guides/interview-guide.md): 면접관 관점에서 볼 핵심 개선 스토리와 질문 대응 포인트를 정리했습니다.
 - [docs/guides/demo-scenario.md](./docs/guides/demo-scenario.md): demo 계정, 클릭 순서, 실패 시 복구 절차를 정리했습니다.
@@ -66,7 +75,7 @@
 | Demo smoke | `/dashboard`, `/applications/pending`, `/notification-outbox`, `/swagger-ui.html` 확인 |
 | Release check | `./gradlew bootJar` 통과 |
 | Prod safety | seed, Swagger/OpenAPI, app-port Prometheus, insecure cookie, wildcard/non-HTTPS CORS 차단 테스트 보유 |
-| Production-like dry-run | bootJar, local/prod compose config, prod safety checklist 문서화 |
+| Production-like dry-run | bootJar, local/prod compose config, backup/checksum 및 disposable MySQL/Redis restore drill 통과 |
 | 배포 | 클라우드 미배포. `deploy/*`, Dockerfile, 배포 가이드만 준비 |
 
 ## 핵심 문제와 해결
@@ -79,6 +88,8 @@
 | 운영 가시성 부족 | auth audit log, domain audit log, management plane, Prometheus/Grafana, structured logging | reason/summary 필터, 조회/export API, 운영 화면, readiness/metrics |
 | 테스트 신뢰성 부족 | MySQL/Redis Testcontainers 통합 테스트 + `fast/integration/performanceSmoke` CI 분리 | GitHub Actions 배지, 테스트 태스크, smoke 검증 |
 | 운영 실패 대응 부족 | Notification Outbox timeline, status/channel/search filter, dead-letter retry API 추가 | `/api/v1/notification-outbox/*`, principal-only 통합 테스트 |
+| 인증 남용과 재시도 혼선 | Redis 기반 login/refresh rate limit, 429 `Retry-After` 계약 | `AuthApiIntegrationTest`, `AuthRateLimitService` |
+| 배포 컨테이너 운영 위험 | production Compose 자원 상한, 로그 rotation, `no-new-privileges`, graceful shutdown | `deploy/docker-compose.prod.yml`, `application-prod.yml`, production-like checklist |
 | 입력 오류 500 위험 | MVC parameter/type/date 예외를 400 `ApiResponse.error`로 정규화 | 출석 월 조회 invalid/missing/type 오류 테스트 |
 | 과도한 일정 조회 | 캘린더 조회 기간 366일 cap + `RecurrenceExpander` 분리 | fast unit test, calendar integration test |
 
@@ -86,20 +97,20 @@
 
 | 대상 | 개선 전 | 개선 후 | 핵심 개선 |
 |------|--------:|--------:|----------|
-| Notepad 목록 조회 | queries 22, 15ms | queries 4, 4ms | 읽음 수 N+1 제거, 다건 집계 쿼리 전환 |
-| Dashboard 통계 | queries 13, 30ms | queries 5, 9ms | 정확도 보정 + 집계 쿼리 통합 |
+| Notepad 목록 조회 | queries 22, 17ms | queries 5, 6ms | 읽음 수 N+1 제거, 다건 집계 쿼리 전환 |
+| Dashboard 통계 | queries 13, 13ms | queries 5, 5ms | 정확도 보정 + 집계 쿼리 통합 |
 | Dashboard 반복 조회 | queries 5, 12ms | queries 0, 0ms | 60초 TTL 캐시 적용 (`dashboardStatistics`) |
 | Backend CI wall-clock | 5m 28s | 1m 14s 대표, 최근 main push 1분대 | push CI는 quick check로 축소, heavy 검증은 수동 workflow로 분리 |
 
-- k6 부하 테스트 결과
-  - Notepad list: avg 20.72ms, p95 45.32ms, error 0.00%
-  - Dashboard stats: avg 12.46ms, p95 27.88ms, error 0.00%
-  - 전체 `http_req_duration` p95: 294.44ms
-- 상세 배경, 측정 조건, 변경 배치는 [`docs/COMPLETED.md`](./docs/COMPLETED.md) archive에 정리했습니다.
+- k6 부하 테스트 결과 (2026-08-14, Docker k6, 15 VU, 각 30초)
+  - Notepad list: p95 69.36ms, p99 99.52ms, error 0.00%
+  - Dashboard stats: p95 25.39ms, p99 29.96ms, error 0.00%
+  - 전체 `http_req_duration`: p95 362.13ms, p99 464.86ms, error 0.00%
+- 측정 조건, 수치의 범위, 아직 없는 증거는 [성능 측정 방법과 증거 범위](./docs/architecture/performance-methodology.md)에 명시했습니다.
 
 ## 화면
 
-2026-05-19 기준 desktop-first 화면입니다.
+2026-08-14 기준 운영형 responsive 화면입니다. 원장·교사 업무 큐와 학부모 모바일 핵심 흐름을 함께 검증했습니다.
 
 | 원장 대시보드 | 출석 관리 |
 |---|---|
@@ -150,7 +161,7 @@
 ### 공통 백엔드 기능
 
 - Google/Kakao OAuth2 로그인, 명시적 소셜 계정 연결, provider 충돌 정책
-- 로그인/refresh rate limit, trusted proxy 기반 client IP 해석
+- signup/login/refresh rate limit, 429 `Retry-After`, trusted proxy 기반 client IP 해석
 - `notification_outbox` 기반 비동기 알림 전달과 retry/backoff/dead-letter 처리
 - 원장 전용 outbox 운영 API(timeline, status/channel/search filter, dead-letter retry)
 - auth audit/domain audit archive-purge scheduler
@@ -177,9 +188,8 @@ erp/
 ├── docker/                          # local infra + monitoring overlay
 ├── docs/
 │   ├── README.md                    # 문서 시작점
-│   ├── PLAN.md                      # active plan
-│   ├── PROGRESS.md                  # active progress
-│   ├── COMPLETED.md                 # completed archive
+│   ├── architecture/                # workflow, access, performance evidence
+│   ├── resume/                      # hiring-facing application materials
 │   ├── guides/                      # env/developer/user/deployment guide
 │   └── assets/readme/               # README screenshots
 └── blog/                            # 구현 배경과 설계 설명 글
@@ -244,7 +254,7 @@ SPRING_PROFILES_ACTIVE=demo ./gradlew bootRun
 | Verification | push quick CI + 수동 quality workflow + 로컬 `test`/`integrationTest`/`performanceSmokeTest` 구성 완료 |
 | Operations | auth/domain audit, management plane, Prometheus/Grafana overlay, active session control 포함 |
 | Deployment package | `Dockerfile`, `deploy/*`, [`docs/guides/deployment-guide.md`](./docs/guides/deployment-guide.md) 기준 배포 자산 정리 |
-| Active work | 현재 없음. [`docs/PLAN.md`](./docs/PLAN.md), [`docs/PROGRESS.md`](./docs/PROGRESS.md)는 비운 상태로 유지 |
+| Active work | [`PLAN.md`](./PLAN.md)에서 현재/향후 작업을 관리 |
 
 ## API / 운영 문서
 
@@ -258,7 +268,7 @@ SPRING_PROFILES_ACTIVE=demo ./gradlew bootRun
 | Auth | `/api/v1/auth/login`, `/api/v1/auth/refresh`, `/api/v1/auth/sessions` | refresh rotation, active sessions |
 | Member | `/api/v1/members/me`, `/api/v1/members/password` | 자기 정보/보안 설정 |
 | Kid / Classroom | `/api/v1/kids`, `/api/v1/classrooms` | 원생/반 관리 |
-| Attendance | `/api/v1/attendance`, `/api/v1/attendance-requests/*` | 출석 처리, 승인 워크플로우 |
+| Attendance | `/api/v1/attendance`, `/api/v1/attendance-requests/*` | 출석 처리, 승인 워크플로우, 생성 요청 `Idempotency-Key` (Swagger 설명 포함) |
 | Application | `/api/v1/kid-applications/*`, `/api/v1/kindergarten-applications/*` | 입학/교사 지원 워크플로우 |
 | Audit | `/api/v1/auth/audit-logs?reason=A001`, `/api/v1/domain-audit-logs?summary=입학`, export API | 운영 감사 필터/CSV export |
 | Notification Ops | `/api/v1/notification-outbox?status=DEAD_LETTER&channel=EMAIL&q=smtp`, `/api/v1/notification-outbox/summary`, `/api/v1/notification-outbox/{id}/retry` | timeline/search/filter/dead-letter 재시도 |
@@ -286,9 +296,7 @@ SPRING_PROFILES_ACTIVE=demo ./gradlew bootRun
 | 문서 | 설명 |
 |------|------|
 | [`docs/README.md`](./docs/README.md) | 문서 인덱스 |
-| [`docs/PLAN.md`](./docs/PLAN.md) | active plan |
-| [`docs/PROGRESS.md`](./docs/PROGRESS.md) | active progress |
-| [`docs/COMPLETED.md`](./docs/COMPLETED.md) | 완료 archive |
+| [`PLAN.md`](./PLAN.md) | 현재/향후 구현 계획 |
 | [`docs/guides/developer-guide.md`](./docs/guides/developer-guide.md) | 개발자 가이드 |
 | [`docs/guides/env-contract.md`](./docs/guides/env-contract.md) | 환경 변수 계약 |
 | [`docs/guides/user-guide.md`](./docs/guides/user-guide.md) | 사용자 가이드 |

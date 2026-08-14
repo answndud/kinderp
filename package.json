@@ -6,11 +6,24 @@
     "node": ">=18"
   },
   "scripts": {
+    "assets:build": "node scripts/build-assets.mjs",
+    "css:build": "tailwindcss -i ./src/main/resources/static/css/tailwind.input.css -o ./src/main/resources/static/css/app.css --minify",
+    "frontend:build": "npm run css:build && npm run assets:build",
+    "docs:links": "node scripts/check-markdown-links.mjs",
+    "accessibility:templates": "node scripts/check-template-accessibility.mjs",
+    "security:inline-handlers": "node scripts/check-inline-event-handlers.mjs",
+    "security:view-errors": "node scripts/check-view-error-messages.mjs",
     "impeccable:detect": "node scripts/impeccable-detect.mjs",
     "impeccable:detect:json": "node scripts/impeccable-detect.mjs --json",
     "e2e:smoke": "playwright test e2e/smoke.spec.js"
   },
   "devDependencies": {
-    "@playwright/test": "^1.52.0"
+    "@playwright/test": "^1.52.0",
+    "tailwindcss": "^3.4.17"
+  },
+  "dependencies": {
+    "@alpinejs/csp": "^3.16.1",
+    "htmx.org": "^1.9.12",
+    "sweetalert2": "^11.26.0"
   }
 }

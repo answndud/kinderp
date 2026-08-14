@@ -38,6 +38,18 @@ jobs:
       - name: Grant execute permission for Gradle wrapper
         run: chmod +x gradlew
 
+      - name: Check template accessibility contracts
+        run: npm run accessibility:templates
+
+      - name: Check current documentation links
+        run: npm run docs:links
+
+      - name: Check view error message contracts
+        run: npm run security:view-errors
+
+      - name: Check CSP-compatible event contracts
+        run: npm run security:inline-handlers
+
       - name: Run fast test suite
         run: ./gradlew --no-daemon fastTest
 
@@ -49,3 +61,6 @@ jobs:
           docker compose --env-file docker/.env.example -f docker/docker-compose.yml config >/tmp/docker-compose.base.yml
           PROD_ENV_FILE=.env.prod.example docker compose --env-file deploy/.env.prod.example -f deploy/docker-compose.prod.yml config >/tmp/docker-compose.prod.yml
           docker run --rm -e APP_DOMAIN=erp.example.com -v "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2 caddy validate --config /etc/caddy/Caddyfile
+
+      - name: Validate operational shell scripts
+        run: bash -n scripts/deploy-with-rollback.sh scripts/backup-production.sh scripts/verify-production-backup.sh
