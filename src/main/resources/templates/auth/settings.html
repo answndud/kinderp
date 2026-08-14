@@ -3,37 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_parameter_name" th:content="${_csrf.parameterName}">
     <title>설정 - 유치원 ERP</title>
 
-    <script th:attr="nonce=${cspNonce}" src="https://cdn.tailwindcss.com"></script>
-    <script th:attr="nonce=${cspNonce}">
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#F3FBF7',
-                            100: '#E2F5EB',
-                            200: '#C7EBD9',
-                            300: '#A4DEC2',
-                            400: '#79CCA5',
-                            500: '#56B88C',
-                            600: '#3F9C73',
-                            700: '#327D5E',
-                            800: '#26624A',
-                            900: '#1D4D3A',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
+    <link rel="stylesheet" th:href="@{/css/app.css}" href="/css/app.css">
     <link rel="stylesheet" th:href="@{/css/custom.css}" href="/css/custom.css">
 </head>
 <body class="bg-gray-50">
 
 <header th:replace="~{fragments/header :: header}"></header>
+
+<form id="logoutAfterPasswordChange" th:action="@{/logout}" method="post" class="hidden">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+</form>
 
 <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-8">
@@ -69,7 +52,7 @@
                     <h2 class="text-lg font-semibold text-gray-900">계정 정보</h2>
                     <p class="text-sm text-gray-600">기본 계정 정보를 확인하세요</p>
                 </div>
-                <button onclick="location.href='/profile'" class="inline-flex min-h-9 items-center rounded-lg px-2 text-primary-700 hover:bg-primary-50 hover:text-primary-800 font-medium text-sm">
+                <button type="button" data-action="navigate" data-href="/profile" class="inline-flex min-h-9 items-center rounded-lg px-2 text-primary-700 hover:bg-primary-50 hover:text-primary-800 font-medium text-sm">
                     프로필 보기 &rarr;
                 </button>
             </div>
@@ -158,8 +141,7 @@
                                     다른 로그인 수단을 먼저 확보해야 연결을 해제할 수 있습니다.
                                 </p>
                             </div>
-                            <button th:if="${googleUnlinkAllowed}"
-                                    type="button"
+                            <button type="button" th:if="${googleUnlinkAllowed}"
                                     class="js-unlink-social-button inline-flex min-h-10 items-center justify-center rounded-lg border border-red-200 bg-white px-4 text-sm font-medium text-red-700 transition-colors hover:bg-red-50"
                                     data-provider="google"
                                     data-provider-label="Google">
@@ -200,8 +182,7 @@
                                     다른 로그인 수단을 먼저 확보해야 연결을 해제할 수 있습니다.
                                 </p>
                             </div>
-                            <button th:if="${kakaoUnlinkAllowed}"
-                                    type="button"
+                            <button type="button" th:if="${kakaoUnlinkAllowed}"
                                     class="js-unlink-social-button inline-flex min-h-10 items-center justify-center rounded-lg border border-red-200 bg-white px-4 text-sm font-medium text-red-700 transition-colors hover:bg-red-50"
                                     data-provider="kakao"
                                     data-provider-label="Kakao">
@@ -220,17 +201,17 @@
 
             <form th:if="${passwordChangeAvailable}" id="passwordForm" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">현재 비밀번호</label>
-                    <input type="password" id="currentPassword" required class="h-11 w-full px-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-1">현재 비밀번호</label>
+                    <input type="password" id="currentPassword" autocomplete="current-password" required class="h-11 w-full px-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">새 비밀번호</label>
-                    <input type="password" id="newPassword" required minlength="8" class="h-11 w-full px-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1">새 비밀번호</label>
+                    <input type="password" id="newPassword" autocomplete="new-password" required minlength="8" class="h-11 w-full px-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
                     <p class="text-xs text-gray-500 mt-1">최소 8자 이상 입력하세요</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">새 비밀번호 확인</label>
-                    <input type="password" id="confirmPassword" required minlength="8" class="h-11 w-full px-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">새 비밀번호 확인</label>
+                    <input type="password" id="confirmPassword" autocomplete="new-password" required minlength="8" class="h-11 w-full px-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
                 </div>
                 <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-primary-700">
                     비밀번호 변경
@@ -239,13 +220,13 @@
 
             <form th:if="${!passwordChangeAvailable}" id="bootstrapPasswordForm" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">새 비밀번호</label>
-                    <input type="password" id="bootstrapNewPassword" required minlength="8" class="h-11 w-full px-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    <label for="bootstrapNewPassword" class="block text-sm font-medium text-gray-700 mb-1">새 비밀번호</label>
+                    <input type="password" id="bootstrapNewPassword" autocomplete="new-password" required minlength="8" class="h-11 w-full px-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
                     <p class="text-xs text-gray-500 mt-1">최소 8자 이상 입력하세요</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">새 비밀번호 확인</label>
-                    <input type="password" id="bootstrapConfirmPassword" required minlength="8" class="h-11 w-full px-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    <label for="bootstrapConfirmPassword" class="block text-sm font-medium text-gray-700 mb-1">새 비밀번호 확인</label>
+                    <input type="password" id="bootstrapConfirmPassword" autocomplete="new-password" required minlength="8" class="h-11 w-full px-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
                 </div>
                 <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-primary-700">
                     로컬 비밀번호 설정
@@ -259,8 +240,7 @@
                     <h2 class="text-lg font-semibold text-gray-900">활성 세션 관리</h2>
                     <p class="text-sm text-gray-600 mt-1">로그인된 기기와 최근 활동 시각을 확인하고, 다른 기기 세션을 즉시 종료할 수 있습니다.</p>
                 </div>
-                <button id="revokeOtherSessionsButton"
-                        type="button"
+                <button type="button" id="revokeOtherSessionsButton"
                         class="inline-flex min-h-10 items-center justify-center rounded-lg border border-gray-200 bg-gray-100 px-4 text-sm font-medium text-gray-400 transition-colors disabled:cursor-not-allowed"
                         disabled>
                     다른 기기 로그아웃
@@ -271,9 +251,9 @@
                 세션 종료는 refresh token과 access token을 함께 무효화합니다. 종료된 기기는 즉시 다시 로그인해야 합니다.
             </div>
 
-            <div id="sessionErrorBanner" class="hidden mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+            <div id="sessionErrorBanner" class="hidden mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert"></div>
 
-            <div id="sessionList" class="max-h-[34rem] overflow-y-auto rounded-xl border border-gray-200 bg-white">
+            <div id="sessionList" class="max-h-[34rem] overflow-y-auto rounded-xl border border-gray-200 bg-white" role="region" aria-label="활성 세션 목록" aria-live="polite" aria-busy="true">
                 <div class="border-dashed border-gray-200 bg-gray-50 px-4 py-5 text-sm text-gray-500">
                     활성 세션을 불러오는 중입니다.
                 </div>
@@ -328,9 +308,9 @@
     </div>
 </main>
 
-<script th:attr="nonce=${cspNonce}" src="https://unpkg.com/htmx.org@1.9.10"></script>
-<script th:attr="nonce=${cspNonce}" defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.0/dist/cdn.min.js"></script>
-<script th:attr="nonce=${cspNonce}" src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:attr="nonce=${cspNonce}" src="/vendor/htmx.min.js"></script>
+<script th:attr="nonce=${cspNonce}" defer src="/vendor/alpine.min.js"></script>
+<script th:attr="nonce=${cspNonce}" src="/vendor/sweetalert2.all.min.js"></script>
 <script th:attr="nonce=${cspNonce}" th:src="@{/js/app.js}"></script>
 
 <script th:attr="nonce=${cspNonce}" th:if="${passwordChangeAvailable}">
@@ -373,7 +353,7 @@
 
             if (response.ok) {
                 await UI.success('비밀번호가 변경되었습니다. 다시 로그인해 주세요.');
-                window.location.href = '/logout';
+                document.getElementById('logoutAfterPasswordChange').submit();
                 return;
             }
 
@@ -495,10 +475,12 @@
                     ${escapeHtml(message)}
                 </div>
             `;
+            sessionListElement.setAttribute('aria-busy', 'false');
         };
 
         const loadSessions = async () => {
             setSessionError();
+            sessionListElement.setAttribute('aria-busy', 'true');
             sessionListElement.innerHTML = `
                 <div class="bg-gray-50 px-4 py-5 text-sm text-gray-500">
                     활성 세션을 불러오는 중입니다.
@@ -623,6 +605,7 @@
                 `;
             }).join('');
 
+            sessionListElement.setAttribute('aria-busy', 'false');
             bindSessionActionHandlers();
         };
 

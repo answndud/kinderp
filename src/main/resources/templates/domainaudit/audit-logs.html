@@ -4,35 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>업무 감사 로그 - 유치원 ERP</title>
-
-    <script th:attr="nonce=${cspNonce}" src="https://cdn.tailwindcss.com"></script>
-    <script th:attr="nonce=${cspNonce}">
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#F3FBF7',
-                            100: '#E2F5EB',
-                            200: '#C7EBD9',
-                            300: '#A4DEC2',
-                            400: '#79CCA5',
-                            500: '#56B88C',
-                            600: '#3F9C73',
-                            700: '#327D5E',
-                            800: '#26624A',
-                            900: '#1D4D3A'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Pretendard', 'Noto Sans KR', sans-serif; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/app.css}" href="/css/app.css">
     <link rel="stylesheet" th:href="@{/css/custom.css}" href="/css/custom.css">
 </head>
 <body class="bg-gray-50">
@@ -46,6 +18,7 @@
             <p class="text-sm text-gray-600 mt-2">
                 입학, 출결 요청, 공지 수정/삭제 같은 비즈니스 상태 변경 이력을 유치원 단위로 추적합니다.
             </p>
+            <p id="auditStatus" class="mt-3 text-sm text-gray-500" role="status" aria-live="polite">업무 감사 로그를 불러오는 중입니다.</p>
         </div>
         <div class="flex items-center gap-3">
             <a href="/attendance-requests"
@@ -153,7 +126,7 @@
                 </div>
             </div>
 
-            <div id="errorBanner" class="hidden rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+            <div id="errorBanner" class="hidden rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert"></div>
 
             <div class="rounded-xl border border-gray-200 bg-white overflow-hidden">
                 <div class="flex items-center justify-between gap-3 border-b border-gray-200 px-6 py-4">
@@ -161,11 +134,12 @@
                         <h2 class="text-lg font-semibold text-gray-900">이벤트 목록</h2>
                         <p class="text-sm text-gray-500">최근 이벤트부터 정렬됩니다.</p>
                     </div>
-                    <div id="loadingIndicator" class="hidden text-sm font-medium text-primary-700">불러오는 중...</div>
+                    <div id="loadingIndicator" class="hidden text-sm font-medium text-primary-700" role="status" aria-live="polite">불러오는 중...</div>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
+                    <table class="min-w-[980px] divide-y divide-gray-200">
+                        <caption class="sr-only">업무 감사 로그 목록</caption>
                         <thead class="bg-gray-50">
                         <tr>
                             <th class="whitespace-nowrap px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">시간</th>
@@ -176,7 +150,7 @@
                             <th class="whitespace-nowrap px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">메타데이터</th>
                         </tr>
                         </thead>
-                        <tbody id="auditTableBody" class="divide-y divide-gray-100 bg-white">
+                        <tbody id="auditTableBody" class="divide-y divide-gray-100 bg-white" aria-live="polite">
                         <tr>
                             <td colspan="6" class="px-6 py-12 text-center text-sm text-gray-500">로그를 불러오는 중입니다.</td>
                         </tr>
@@ -214,6 +188,7 @@
         const activeFilterSummary = document.getElementById('activeFilterSummary');
         const paginationSummary = document.getElementById('paginationSummary');
         const exportCsvButton = document.getElementById('exportCsvButton');
+        const auditStatus = document.getElementById('auditStatus');
 
         let currentPage = 0;
         let currentTotalPages = 0;
@@ -254,10 +229,19 @@
             setLoading(true);
             hideError();
 
-            const response = await fetch(`/api/v1/domain-audit-logs?${buildQueryString(true, page)}`, {
-                credentials: 'same-origin'
-            });
-            const payload = await response.json();
+            let payload;
+            try {
+                const response = await fetch(`/api/v1/domain-audit-logs?${buildQueryString(true, page)}`, {
+                    credentials: 'same-origin'
+                });
+                payload = await response.json();
+            } catch (error) {
+                setLoading(false);
+                tableBody.innerHTML = emptyRow('업무 감사 로그를 불러오지 못했습니다.');
+                showError('네트워크 상태를 확인한 뒤 다시 시도해 주세요.');
+                auditStatus.textContent = '로그를 불러오지 못했습니다.';
+                return;
+            }
             setLoading(false);
 
             if (!payload.success) {
@@ -266,6 +250,7 @@
                 totalLogsValue.textContent = '-';
                 pageValue.textContent = '-';
                 paginationSummary.textContent = '-';
+                auditStatus.textContent = '로그를 불러오지 못했습니다.';
                 return;
             }
 
@@ -278,6 +263,7 @@
             pageValue.textContent = `${currentPage + 1}/${Math.max(currentTotalPages, 1)}`;
             activeFilterSummary.textContent = buildFilterSummary();
             paginationSummary.textContent = `총 ${pageData.totalElements ?? 0}건 중 ${currentPage + 1}페이지`;
+            auditStatus.textContent = `${pageData.totalElements ?? 0}건 · ${buildFilterSummary()} · 마지막 갱신 ${new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}`;
 
             prevPageButton.disabled = currentPage <= 0;
             nextPageButton.disabled = currentPage + 1 >= currentTotalPages;
@@ -318,8 +304,15 @@
                         <div class="text-sm text-gray-900">${escapeHtml(log.targetType)}</div>
                         <div class="text-xs text-gray-500">ID ${log.targetId ?? '-'}</div>
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-700">${escapeHtml(log.summary)}</td>
-                    <td class="px-6 py-4 text-xs text-gray-500 font-mono break-all">${escapeHtml(log.metadataJson || '-')}</td>
+                    <td class="min-w-[190px] max-w-[260px] whitespace-normal px-6 py-4 text-sm text-gray-700">${escapeHtml(log.summary)}</td>
+                    <td class="max-w-[240px] px-6 py-4 text-xs text-gray-500">
+                        ${log.metadataJson
+                            ? `<details class="audit-metadata">
+                                   <summary class="cursor-pointer font-semibold text-primary-700">메타데이터 보기</summary>
+                                   <pre class="mt-2 max-h-32 overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-5">${escapeHtml(log.metadataJson)}</pre>
+                               </details>`
+                            : '<span>-</span>'}
+                    </td>
                 </tr>
             `;
         }
