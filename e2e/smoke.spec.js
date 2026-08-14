@@ -69,6 +69,26 @@ test('mobile viewport keeps the login action usable', async ({ page }) => {
   await expect(page.locator('body')).toHaveJSProperty('scrollWidth', 390);
 });
 
+test('reduced-motion preference removes entrance motion from the home brief', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await loginAsPrincipal(page);
+
+  await page.goto('/');
+  const homeBrief = page.locator('.home-brief.section-enter');
+  await expect(homeBrief).toBeVisible();
+  const motionStyle = await homeBrief.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      opacity: style.opacity,
+      transform: style.transform,
+      animationDurationMs: parseFloat(style.animationDuration) || 0
+    };
+  });
+  expect(motionStyle.opacity).toBe('1');
+  expect(motionStyle.transform).toMatch(/^(none|matrix\(1, 0, 0, 1, 0, 0\))$/);
+  expect(motionStyle.animationDurationMs).toBeLessThanOrEqual(0.01);
+});
+
 test('parent can review request status on a mobile viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await loginAs(page, 'parent1@test.com');
