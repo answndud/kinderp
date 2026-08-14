@@ -16,7 +16,7 @@
       th:attr="data-parent=${isParent},data-staff=${isStaff}">
     <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-8">
         <div>
-            <p class="text-sm font-semibold text-primary-700" th:text="${isParent ? 'Parent Queue' : 'Staff Review Queue'}">Parent Queue</p>
+            <p class="text-sm font-semibold text-primary-700" th:text="${isParent ? '학부모 요청' : '운영자 검토 대기열'}">학부모 요청</p>
             <h1 class="text-3xl font-bold text-gray-900 mt-1"
                 th:text="${isParent ? '내 출결 변경 요청' : '출결 변경 요청 검토'}">내 출결 변경 요청</h1>
             <p class="text-sm text-gray-600 mt-2"
