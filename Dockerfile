@@ -27,6 +27,9 @@ EXPOSE 9091
 
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"
 
+HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
+    CMD wget --quiet --tries=1 --spider http://127.0.0.1:9091/actuator/health/readiness || exit 1
+
 USER 10001:10001
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

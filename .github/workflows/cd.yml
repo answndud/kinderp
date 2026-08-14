@@ -92,7 +92,9 @@ jobs:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           ssh "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$DEPLOY_PATH'"
-          scp deploy/docker-compose.prod.yml deploy/Caddyfile scripts/deploy-with-rollback.sh "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
+          scp deploy/docker-compose.prod.yml deploy/Caddyfile \
+            scripts/deploy-with-rollback.sh scripts/backup-production.sh scripts/verify-production-backup.sh \
+            "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
 
       - name: Deploy on server
         env:
@@ -101,11 +103,12 @@ jobs:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
+          SMOKE_URL: ${{ secrets.DEPLOY_SMOKE_URL }}
           IMAGE_TAG: ghcr.io/${{ github.repository_owner }}/kindergarten-erp:${{ github.sha }}
         run: |
           ssh "$DEPLOY_USER@$DEPLOY_HOST" \
-            "export APP_IMAGE='$IMAGE_TAG' GHCR_USERNAME='$GHCR_USERNAME' GHCR_READ_TOKEN='$GHCR_READ_TOKEN'; \
+            "export APP_IMAGE='$IMAGE_TAG' GHCR_USERNAME='$GHCR_USERNAME' GHCR_READ_TOKEN='$GHCR_READ_TOKEN' SMOKE_URL='$SMOKE_URL'; \
              cd '$DEPLOY_PATH'; \
-             chmod 700 ./deploy-with-rollback.sh; \
+             chmod 700 ./deploy-with-rollback.sh ./backup-production.sh ./verify-production-backup.sh; \
              echo \"\$GHCR_READ_TOKEN\" | docker login ghcr.io -u \"\$GHCR_USERNAME\" --password-stdin; \
              ./deploy-with-rollback.sh"
