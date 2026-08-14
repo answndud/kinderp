@@ -8,10 +8,10 @@
     <link rel="stylesheet" th:href="@{/css/custom.css}" href="/css/custom.css">
 </head>
 <body class="bg-gray-50">
-
 <header th:replace="~{fragments/header :: header}"></header>
 
-<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+<main id="classrooms-page" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
+      th:attr="data-kindergarten-id=${currentMember?.kindergartenId}">
     <div class="mb-7">
         <p class="mb-2 text-sm font-semibold text-primary-700">Classroom Directory</p>
         <h1 class="text-3xl font-bold text-gray-900">반 관리</h1>
@@ -32,27 +32,25 @@
             <form id="classroom-form" class="space-y-4">
                 <div>
                     <label for="classroom-name" class="block text-sm font-medium text-gray-700 mb-1.5">반 이름 *</label>
-                    <input id="classroom-name" required
+                    <input id="classroom-name" required autocomplete="organization-title"
                            class="h-11 w-full rounded-lg border border-gray-200 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                            placeholder="예) 해바라기반" />
                 </div>
                 <div>
                     <label for="classroom-age" class="block text-sm font-medium text-gray-700 mb-1.5">연령대</label>
-                    <input id="classroom-age" 
+                    <input id="classroom-age" autocomplete="off"
                            class="h-11 w-full rounded-lg border border-gray-200 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                            placeholder="예) 5세" />
                 </div>
-
                 <div class="flex justify-end pt-2">
                     <button type="submit" id="createClassroomSubmit" class="min-h-11 w-full rounded-lg bg-primary-600 px-5 py-2.5 font-semibold text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">
                         반 생성
                     </button>
                 </div>
             </form>
-
-            <div class="mt-4 text-sm text-gray-600" th:if="${currentMember?.kindergartenId == null}">
+            <p id="classroomStatus" class="mt-4 text-sm text-gray-600" role="status" aria-live="polite" aria-atomic="true" th:if="${currentMember?.kindergartenId == null}">
                 반을 생성하려면 먼저 소속 유치원이 필요합니다.
-            </div>
+            </p>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-5 sm:p-6">
@@ -63,7 +61,6 @@
                 </div>
                 <button type="button" class="min-h-11 rounded-lg border border-gray-200 px-4 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50" data-action="loadClassrooms">새로고침</button>
             </div>
-
             <div id="classroom-list" class="divide-y divide-gray-100" role="region" aria-label="반 목록" aria-live="polite" aria-busy="true">
                 <div class="text-center py-8 text-gray-500">불러오는 중...</div>
             </div>
@@ -71,134 +68,10 @@
     </div>
 </main>
 
-<!-- HTMX -->
 <script th:attr="nonce=${cspNonce}" src="/vendor/htmx.min.js"></script>
-
-<!-- Alpine.js -->
 <script th:attr="nonce=${cspNonce}" defer src="/vendor/alpine.min.js"></script>
-
-<!-- SweetAlert2 -->
 <script th:attr="nonce=${cspNonce}" src="/vendor/sweetalert2.all.min.js"></script>
-
-<!-- Custom JS (Notifications/UI) -->
-<script th:attr="nonce=${cspNonce}" th:src="@{/js/app.js}"></script>
-
-<script th:attr="nonce=${cspNonce}" th:inline="javascript">
-    const initialKindergartenId = /*[[${currentMember?.kindergartenId}]]*/ null;
-    let kindergartenId = initialKindergartenId;
-
-    async function fetchMe() {
-        const response = await fetch('/api/v1/members/me', { credentials: 'same-origin' });
-        if (!response.ok) return null;
-        const result = await response.json().catch(() => ({}));
-        return result.data || null;
-    }
-
-    async function ensureKindergartenId() {
-        if (kindergartenId) return kindergartenId;
-        const me = await fetchMe();
-        if (me && me.kindergartenId) kindergartenId = me.kindergartenId;
-        return kindergartenId;
-    }
-
-    async function loadClassrooms() {
-        const id = await ensureKindergartenId();
-        const container = document.getElementById('classroom-list');
-        container.setAttribute('aria-busy', 'true');
-
-        if (!id) {
-            container.innerHTML = '<div class="py-8 text-center text-sm leading-6 text-gray-500">소속 유치원이 없어 반 목록을 불러올 수 없습니다. 승인/배정을 먼저 완료하세요.</div>';
-            container.setAttribute('aria-busy', 'false');
-            return;
-        }
-
-        const response = await fetch(`/api/v1/classrooms?kindergartenId=${id}`, { credentials: 'same-origin' });
-        if (!response.ok) {
-            container.innerHTML = '<div class="py-8 text-center text-sm leading-6 text-gray-500">반 목록을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</div>';
-            container.setAttribute('aria-busy', 'false');
-            return;
-        }
-
-        const result = await response.json().catch(() => ({}));
-        const classrooms = result.data || [];
-
-        if (!classrooms.length) {
-            container.innerHTML = '<div class="py-8 text-center text-sm leading-6 text-gray-500">등록된 반이 없습니다. 왼쪽에서 첫 반을 생성하세요.</div>';
-            container.setAttribute('aria-busy', 'false');
-            return;
-        }
-
-        container.innerHTML = classrooms.map(c => {
-            const teacher = c.teacherName ? `담임 ${escapeHtml(c.teacherName)}` : '담임 미배정';
-            const age = c.ageGroup ? `<span class="rounded-full bg-primary-50 px-2.5 py-1 text-xs font-semibold text-primary-700">${escapeHtml(c.ageGroup)}</span>` : '';
-            return `
-                <div class="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <div class="font-semibold text-gray-900">${escapeHtml(c.name)}</div>
-                        <div class="mt-1 text-sm text-gray-600">${teacher}</div>
-                    </div>
-                    <div>${age || '<span class="text-sm text-gray-500">연령대 미지정</span>'}</div>
-                </div>
-            `;
-        }).join('');
-        container.setAttribute('aria-busy', 'false');
-    }
-
-    function escapeHtml(value) {
-        return String(value ?? '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        loadClassrooms().catch(() => {});
-
-        const form = document.getElementById('classroom-form');
-        const submitButton = document.getElementById('createClassroomSubmit');
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            submitButton.disabled = true;
-            const id = await ensureKindergartenId();
-            if (!id) {
-                await UI.alert({
-                    title: '소속 유치원이 필요해요',
-                    text: '반을 생성하려면 먼저 유치원 소속이 필요합니다.',
-                    icon: 'info'
-                });
-                submitButton.disabled = false;
-                return;
-            }
-
-            const name = document.getElementById('classroom-name').value;
-            const ageGroup = document.getElementById('classroom-age').value;
-
-            const response = await fetch('/api/v1/classrooms', {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    kindergartenId: Number(id),
-                    name: name,
-                    ageGroup: ageGroup && ageGroup.trim() !== '' ? ageGroup : null
-                })
-            });
-
-            const payload = await response.json().catch(() => ({}));
-            if (!response.ok) {
-                await UI.error(payload.message || '반 생성에 실패했습니다.');
-                submitButton.disabled = false;
-                return;
-            }
-
-            await UI.success('반이 생성되었습니다.');
-            form.reset();
-            await loadClassrooms();
-            submitButton.disabled = false;
-        });
-    });
-</script>
+<script th:attr="nonce=${cspNonce}" th:src="@{/js/app.js}" src="/js/app.js"></script>
+<script th:attr="nonce=${cspNonce}" th:src="@{/js/pages/classrooms.js}" src="/js/pages/classrooms.js"></script>
 </body>
 </html>
