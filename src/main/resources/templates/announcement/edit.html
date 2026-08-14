@@ -15,7 +15,7 @@
     <header th:replace="~{fragments/header :: header}"></header>
 
     <!-- Main Content -->
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <main id="announcement-edit-page" data-content-editor class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <!-- Page Header -->
         <div class="mb-8">
             <a th:href="@{/announcement/{id}(id=${announcement.id})}" class="inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 mb-4">
@@ -100,16 +100,6 @@
         </div>
     </main>
 
-    <script th:attr="nonce=${cspNonce}">
-        // Auto-resize textarea
-        const textarea = document.getElementById('content');
-        textarea.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
-
-        // Initial height
-        textarea.style.height = (textarea.scrollHeight) + 'px';
-    </script>
+    <script th:attr="nonce=${cspNonce}" th:src="@{/js/pages/content-editor.js}" src="/js/pages/content-editor.js"></script>
 </body>
 </html>

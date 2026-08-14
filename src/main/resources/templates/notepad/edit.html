@@ -13,7 +13,7 @@
 
 <header th:replace="~{fragments/header :: header}"></header>
 
-<main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+<main id="notepad-edit-page" data-content-editor class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
     <div class="mb-7">
         <a th:href="@{/notepad/{id}(id=${notepad.id()})}" class="inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 mb-4">
             <span class="text-lg">←</span>
@@ -59,18 +59,9 @@
         </form>
     </div>
 
-    <script th:attr="nonce=${cspNonce}">
-        const textarea = document.getElementById('content');
-        if (textarea) {
-            const resize = () => {
-                textarea.style.height = 'auto';
-                textarea.style.height = (textarea.scrollHeight) + 'px';
-            };
-            textarea.addEventListener('input', resize);
-            resize();
-        }
-    </script>
 </main>
+
+<script th:attr="nonce=${cspNonce}" th:src="@{/js/pages/content-editor.js}" src="/js/pages/content-editor.js"></script>
 
 </body>
 </html>
