@@ -19,6 +19,7 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpHeaders;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -26,10 +27,12 @@ import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -62,7 +65,11 @@ class ViewEndpointTest extends TestcontainersSupport {
     @Test
     void testLoginPage() throws Exception {
         mockMvc.perform(get("/login"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("XSRF-TOKEN=")))
+                .andDo(result -> assertThat(result.getResponse().getCookie("XSRF-TOKEN"))
+                        .extracting(cookie -> cookie.getAttribute("SameSite"))
+                        .isEqualTo("Strict"));
     }
 
     @Test
@@ -367,7 +374,7 @@ class ViewEndpointTest extends TestcontainersSupport {
         mockMvc.perform(get("/notification-outbox").with(user(new CustomUserDetails(principal))))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("알림 Outbox 운영")))
-                .andExpect(content().string(containsString("Dead-letter 목록")))
+                .andExpect(content().string(containsString("Dead-letter 채널")))
                 .andExpect(content().string(containsString("/api/v1/notification-outbox/summary")));
     }
 

@@ -41,6 +41,19 @@ class ClassroomApiIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("다른 유치원 반 목록 조회 - 실패 (tenant 경계)")
+    void getClassrooms_Fail_OtherKindergarten() throws Exception {
+        var otherKindergarten = testData.createKindergarten();
+
+        mockMvc.perform(get("/api/v1/classrooms")
+                        .param("kindergartenId", otherKindergarten.getId().toString())
+                        .with(authenticated(teacherMember)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("AP007"));
+    }
+
+    @Test
     @WithMockUser(username = "parent@test.com", roles = {"PARENT"})
     @DisplayName("반 생성 - 실패 (학부모 권한 없음)")
     void createClassroom_Fail_Parent() throws Exception {
