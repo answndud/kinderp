@@ -17,6 +17,19 @@ test('principal can log in and reach the operations dashboard', async ({ page })
   await expect(page.getByRole('link', { name: '대시보드', exact: true }).first()).toBeVisible();
 });
 
+test('principal home uses cached dashboard attendance statistics', async ({ page }) => {
+  const dailyAttendanceRequests = [];
+  const dashboardStatisticsRequests = [];
+  page.on('request', (request) => {
+    if (request.url().includes('/api/v1/attendance/daily')) dailyAttendanceRequests.push(request.url());
+    if (request.url().includes('/api/v1/dashboard/statistics')) dashboardStatisticsRequests.push(request.url());
+  });
+
+  await loginAsPrincipal(page);
+  await expect.poll(() => dashboardStatisticsRequests.length).toBeGreaterThan(0);
+  expect(dailyAttendanceRequests).toHaveLength(0);
+});
+
 test('principal can scan the dashboard action queue and outbox timeline', async ({ page }) => {
   await loginAsPrincipal(page);
 

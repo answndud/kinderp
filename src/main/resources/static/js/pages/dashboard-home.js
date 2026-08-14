@@ -36,6 +36,20 @@
             toDateString(date) {
                 return date.toISOString().slice(0, 10);
             },
+            async loadPrincipalAttendanceRate() {
+                const response = await fetch('/api/v1/dashboard/statistics', { credentials: 'same-origin' });
+                if (!response.ok) return false;
+
+                const payload = await response.json().catch(() => ({}));
+                const data = payload.data || {};
+                const attendanceRate = this.period === 'month'
+                    ? data.attendanceRate30Days
+                    : data.attendanceRate7Days;
+
+                if (!Number.isFinite(attendanceRate)) return false;
+                this.stats.attendanceRate = Math.round(attendanceRate);
+                return true;
+            },
             async loadStats() {
                 if (this.loading) return;
                 this.loading = true;
@@ -61,37 +75,44 @@
                         }).length;
                     }
 
-                    const classroomsRes = await fetch(`/api/v1/classrooms?kindergartenId=${kindergartenId}`, { credentials: 'same-origin' });
-                    if (classroomsRes.ok) {
-                        const classroomsData = await classroomsRes.json().catch(() => ({}));
-                        const classrooms = classroomsData.data || [];
-                        if (classrooms.length > 0) {
-                            let totalPresent = 0;
-                            let totalCount = 0;
+                    let attendanceLoaded = false;
+                    if (me.data.role === 'PRINCIPAL') {
+                        attendanceLoaded = await this.loadPrincipalAttendanceRate();
+                    }
 
-                            for (let dayOffset = 0; dayOffset < rangeDays; dayOffset += 1) {
-                                const date = new Date(startDateObj);
-                                date.setDate(startDateObj.getDate() + dayOffset);
-                                const dateStr = this.toDateString(date);
+                    if (!attendanceLoaded) {
+                        const classroomsRes = await fetch(`/api/v1/classrooms?kindergartenId=${kindergartenId}`, { credentials: 'same-origin' });
+                        if (classroomsRes.ok) {
+                            const classroomsData = await classroomsRes.json().catch(() => ({}));
+                            const classrooms = classroomsData.data || [];
+                            if (classrooms.length > 0) {
+                                let totalPresent = 0;
+                                let totalCount = 0;
 
-                                const responses = await Promise.all(
-                                    classrooms.map(c =>
-                                        fetch(`/api/v1/attendance/daily?date=${dateStr}&classroomId=${c.id}`, { credentials: 'same-origin' })
-                                            .then(resp => resp.ok ? resp.json().catch(() => ({})) : null)
-                                    )
-                                );
+                                for (let dayOffset = 0; dayOffset < rangeDays; dayOffset += 1) {
+                                    const date = new Date(startDateObj);
+                                    date.setDate(startDateObj.getDate() + dayOffset);
+                                    const dateStr = this.toDateString(date);
 
-                                responses.forEach((payload) => {
-                                    if (!payload) return;
-                                    const list = payload.data || [];
-                                    if (list.length === 0) return;
-                                    const present = list.filter(row => row.status === 'PRESENT' || row.status === 'LATE').length;
-                                    totalPresent += present;
-                                    totalCount += list.length;
-                                });
+                                    const responses = await Promise.all(
+                                        classrooms.map(c =>
+                                            fetch(`/api/v1/attendance/daily?date=${dateStr}&classroomId=${c.id}`, { credentials: 'same-origin' })
+                                                .then(resp => resp.ok ? resp.json().catch(() => ({})) : null)
+                                        )
+                                    );
+
+                                    responses.forEach((payload) => {
+                                        if (!payload) return;
+                                        const list = payload.data || [];
+                                        if (list.length === 0) return;
+                                        const present = list.filter(row => row.status === 'PRESENT' || row.status === 'LATE').length;
+                                        totalPresent += present;
+                                        totalCount += list.length;
+                                    });
+                                }
+
+                                this.stats.attendanceRate = totalCount > 0 ? Math.round((totalPresent / totalCount) * 100) : 0;
                             }
-
-                            this.stats.attendanceRate = totalCount > 0 ? Math.round((totalPresent / totalCount) * 100) : 0;
                         }
                     }
 
