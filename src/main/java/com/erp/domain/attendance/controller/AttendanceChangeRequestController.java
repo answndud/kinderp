@@ -6,6 +6,9 @@ import com.erp.domain.attendance.dto.response.AttendanceChangeRequestResponse;
 import com.erp.domain.attendance.service.AttendanceChangeRequestService;
 import com.erp.global.common.ApiResponse;
 import com.erp.global.security.user.CustomUserDetails;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -26,10 +29,21 @@ public class AttendanceChangeRequestController {
 
     @PostMapping
     @PreAuthorize("hasRole('PARENT')")
+    @Operation(
+            summary = "출결 변경 요청 생성",
+            description = "Idempotency-Key를 보내면 같은 키와 payload의 재전송은 기존 요청 ID를 반환합니다.",
+            parameters = @Parameter(
+                    name = "Idempotency-Key",
+                    in = ParameterIn.HEADER,
+                    description = "재전송을 동일 요청으로 묶을 선택 키(최대 100자)",
+                    required = false
+            )
+    )
     public ResponseEntity<ApiResponse<Long>> create(
             @Valid @RequestBody AttendanceChangeRequestCreateRequest request,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long id = attendanceChangeRequestService.create(request, userDetails.getMemberId());
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+        Long id = attendanceChangeRequestService.create(request, userDetails.getMemberId(), idempotencyKey);
         return ResponseEntity.ok(ApiResponse.success(id));
     }
 

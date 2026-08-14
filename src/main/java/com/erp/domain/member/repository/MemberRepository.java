@@ -4,6 +4,8 @@ import com.erp.domain.member.entity.Member;
 import com.erp.domain.member.entity.MemberAuthProvider;
 import com.erp.domain.member.entity.MemberRole;
 import com.erp.domain.member.entity.MemberStatus;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -60,6 +62,16 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
               AND m.id = :id
             """)
     Optional<Member> findByIdWithKindergartenAndSocialAccounts(@Param("id") Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT m
+            FROM Member m
+            LEFT JOIN FETCH m.kindergarten
+            WHERE m.deletedAt IS NULL
+              AND m.id = :id
+            """)
+    Optional<Member> findByIdWithKindergartenForUpdate(@Param("id") Long id);
 
     @Query("""
             SELECT DISTINCT m

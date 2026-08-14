@@ -45,14 +45,27 @@ public class AttendanceChangeRequestService {
     private final DomainAuditLogService domainAuditLogService;
 
     @Transactional
-    public Long create(AttendanceChangeRequestCreateRequest request, Long requesterId) {
-        Member requester = accessPolicyService.getRequester(requesterId);
+    public Long create(AttendanceChangeRequestCreateRequest request, Long requesterId, String idempotencyKey) {
+        Member requester = memberRepository.findByIdWithKindergartenForUpdate(requesterId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
         if (requester.getRole() != MemberRole.PARENT) {
             throw new BusinessException(ErrorCode.ATTENDANCE_CHANGE_REQUEST_ACCESS_DENIED);
         }
 
         Kid kid = kidService.getKid(request.kidId());
         accessPolicyService.validateAttendanceChangeRequestCreateAccess(requester, kid);
+
+        String normalizedIdempotencyKey = normalizeIdempotencyKey(idempotencyKey);
+        if (normalizedIdempotencyKey != null) {
+            var existing = attendanceChangeRequestRepository
+                    .findByRequesterIdAndIdempotencyKey(requesterId, normalizedIdempotencyKey);
+            if (existing.isPresent()) {
+                if (matchesIdempotentPayload(existing.get(), request)) {
+                    return existing.get().getId();
+                }
+                throw new BusinessException(ErrorCode.ATTENDANCE_CHANGE_REQUEST_IDEMPOTENCY_KEY_REUSED);
+            }
+        }
 
         if (attendanceChangeRequestRepository.existsByKidIdAndDateAndStatus(
                 request.kidId(),
@@ -69,7 +82,8 @@ public class AttendanceChangeRequestService {
                 request.status(),
                 request.dropOffTime(),
                 request.pickUpTime(),
-                request.note()
+                request.note(),
+                normalizedIdempotencyKey
         );
         var saved = savePendingRequest(changeRequest);
 
@@ -89,6 +103,29 @@ public class AttendanceChangeRequestService {
         );
 
         return saved.getId();
+    }
+
+    private String normalizeIdempotencyKey(String idempotencyKey) {
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            return null;
+        }
+        String normalized = idempotencyKey.trim();
+        if (normalized.length() > 100) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "Idempotency-Key는 100자 이하여야 합니다");
+        }
+        return normalized;
+    }
+
+    private boolean matchesIdempotentPayload(
+            com.erp.domain.attendance.entity.AttendanceChangeRequest existing,
+            AttendanceChangeRequestCreateRequest request
+    ) {
+        return existing.getKid().getId().equals(request.kidId())
+                && existing.getDate().equals(request.date())
+                && existing.getRequestedStatus() == request.status()
+                && java.util.Objects.equals(existing.getRequestedDropOffTime(), request.dropOffTime())
+                && java.util.Objects.equals(existing.getRequestedPickUpTime(), request.pickUpTime())
+                && java.util.Objects.equals(existing.getNote(), request.note());
     }
 
     private com.erp.domain.attendance.entity.AttendanceChangeRequest savePendingRequest(

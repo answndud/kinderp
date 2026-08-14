@@ -53,6 +53,86 @@ class AttendanceChangeRequestApiIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("같은 Idempotency-Key로 재전송하면 기존 출결 요청 ID를 반환한다")
+    void createAttendanceChangeRequest_IsIdempotent() throws Exception {
+        String requestBody = """
+                {
+                    "kidId": 1,
+                    "date": "2025-01-16",
+                    "status": "ABSENT",
+                    "note": "병원 진료"
+                }
+                """;
+
+        long firstId = objectMapper.readTree(mockMvc.perform(post("/api/v1/attendance-requests")
+                                .with(authenticated(parentMember))
+                                .with(csrf())
+                                .header("Idempotency-Key", "attendance-retry-001")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBody))
+                        .andExpect(status().isOk())
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString())
+                .path("data")
+                .asLong();
+
+        mockMvc.perform(post("/api/v1/attendance-requests")
+                        .with(authenticated(parentMember))
+                        .with(csrf())
+                        .header("Idempotency-Key", "attendance-retry-001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").value(firstId));
+
+        assertThat(attendanceChangeRequestRepository.findByRequesterIdOrderByCreatedAtDesc(parentMember.getId()))
+                .hasSize(1);
+    }
+
+    @Test
+    @DisplayName("Idempotency-Key를 다른 payload에 재사용하면 거부한다")
+    void createAttendanceChangeRequest_Fail_WhenIdempotencyKeyPayloadDiffers() throws Exception {
+        createAttendanceChangeRequestWithKey("attendance-reuse-001", "2025-01-17", "ABSENT");
+
+        mockMvc.perform(post("/api/v1/attendance-requests")
+                        .with(authenticated(parentMember))
+                        .with(csrf())
+                        .header("Idempotency-Key", "attendance-reuse-001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "kidId": 1,
+                                    "date": "2025-01-17",
+                                    "status": "PRESENT",
+                                    "note": "다른 payload"
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("AT008"));
+    }
+
+    @Test
+    @DisplayName("Idempotency-Key가 100자를 초과하면 거부한다")
+    void createAttendanceChangeRequest_Fail_WhenIdempotencyKeyTooLong() throws Exception {
+        mockMvc.perform(post("/api/v1/attendance-requests")
+                        .with(authenticated(parentMember))
+                        .with(csrf())
+                        .header("Idempotency-Key", "k".repeat(101))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "kidId": 1,
+                                    "date": "2025-01-18",
+                                    "status": "ABSENT",
+                                    "note": "잘못된 키"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("C001"));
+    }
+
+    @Test
     @DisplayName("학부모는 다른 유치원 원생의 출결 변경 요청을 생성할 수 없다")
     void createAttendanceChangeRequest_Fail_DifferentKindergartenKid() throws Exception {
         Kindergarten otherKindergarten = testData.createKindergarten();
@@ -192,6 +272,27 @@ class AttendanceChangeRequestApiIntegrationTest extends BaseIntegrationTest {
                 .getResponse()
                 .getContentAsString();
 
+        return objectMapper.readTree(response).path("data").asLong();
+    }
+
+    private long createAttendanceChangeRequestWithKey(String key, String date, String status) throws Exception {
+        String response = mockMvc.perform(post("/api/v1/attendance-requests")
+                        .with(authenticated(parentMember))
+                        .with(csrf())
+                        .header("Idempotency-Key", key)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "kidId": 1,
+                                    "date": "%s",
+                                    "status": "%s",
+                                    "note": "멱등성 테스트"
+                                }
+                                """.formatted(date, status)))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
         return objectMapper.readTree(response).path("data").asLong();
     }
 }

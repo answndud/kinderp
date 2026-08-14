@@ -16,6 +16,8 @@ public interface AttendanceChangeRequestRepository extends JpaRepository<Attenda
 
     boolean existsByKidIdAndDateAndStatus(Long kidId, LocalDate date, AttendanceChangeRequestStatus status);
 
+    Optional<AttendanceChangeRequest> findByRequesterIdAndIdempotencyKey(Long requesterId, String idempotencyKey);
+
     List<AttendanceChangeRequest> findByRequesterIdOrderByCreatedAtDesc(Long requesterId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

@@ -62,6 +62,9 @@ public class AttendanceChangeRequest extends BaseEntity {
     @Column(name = "note", length = 255)
     private String note;
 
+    @Column(name = "idempotency_key", length = 100)
+    private String idempotencyKey;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private AttendanceChangeRequestStatus status;
@@ -84,7 +87,8 @@ public class AttendanceChangeRequest extends BaseEntity {
                                     AttendanceStatus requestedStatus,
                                     LocalTime requestedDropOffTime,
                                     LocalTime requestedPickUpTime,
-                                    String note) {
+                                    String note,
+                                    String idempotencyKey) {
         this.kindergartenId = kindergartenId;
         this.classroomId = classroomId;
         this.kid = kid;
@@ -94,6 +98,7 @@ public class AttendanceChangeRequest extends BaseEntity {
         this.requestedDropOffTime = requestedDropOffTime;
         this.requestedPickUpTime = requestedPickUpTime;
         this.note = note;
+        this.idempotencyKey = idempotencyKey;
         this.status = AttendanceChangeRequestStatus.PENDING;
     }
 
@@ -132,7 +137,8 @@ public class AttendanceChangeRequest extends BaseEntity {
                                                  AttendanceStatus requestedStatus,
                                                  LocalTime requestedDropOffTime,
                                                  LocalTime requestedPickUpTime,
-                                                 String note) {
+                                                 String note,
+                                                 String idempotencyKey) {
         return AttendanceChangeRequest.builder()
                 .kindergartenId(kid.getClassroom().getKindergarten().getId())
                 .classroomId(kid.getClassroom().getId())
@@ -143,7 +149,19 @@ public class AttendanceChangeRequest extends BaseEntity {
                 .requestedDropOffTime(requestedDropOffTime)
                 .requestedPickUpTime(requestedPickUpTime)
                 .note(note)
+                .idempotencyKey(idempotencyKey)
                 .build();
+    }
+
+    public static AttendanceChangeRequest create(Kid kid,
+                                                 Member requester,
+                                                 LocalDate date,
+                                                 AttendanceStatus requestedStatus,
+                                                 LocalTime requestedDropOffTime,
+                                                 LocalTime requestedPickUpTime,
+                                                 String note) {
+        return create(kid, requester, date, requestedStatus, requestedDropOffTime,
+                requestedPickUpTime, note, null);
     }
 
     private void ensurePending() {
