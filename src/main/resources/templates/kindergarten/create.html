@@ -70,7 +70,7 @@
                 </div>
 
                 <div class="pt-4">
-                    <button type="submit" class="min-h-12 w-full rounded-lg bg-emerald-700 px-6 py-3 font-semibold text-white transition-colors hover:bg-emerald-800">
+                    <button type="submit" id="createKindergartenSubmit" class="min-h-12 w-full rounded-lg bg-emerald-700 px-6 py-3 font-semibold text-white transition-colors hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50">
                         유치원 등록하기
                     </button>
                 </div>
@@ -84,40 +84,6 @@
     <!-- Custom JS (UI helpers) -->
     <script th:attr="nonce=${cspNonce}" th:src="@{/js/app.js}"></script>
 
-    <script th:attr="nonce=${cspNonce}">
-        document.getElementById('kindergartenForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const data = {
-                name: document.getElementById('name').value,
-                address: document.getElementById('address').value,
-                phone: document.getElementById('phone').value,
-                openTime: document.getElementById('openTime').value,
-                closeTime: document.getElementById('closeTime').value
-            };
-
-            try {
-                const response = await fetch('/api/v1/kindergartens', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    await UI.success('유치원 등록이 완료되었습니다.');
-                    window.location.href = '/';
-                } else {
-                    await UI.error(result.message || '유치원 등록에 실패했습니다.');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                await UI.error(error.message || '요청 처리 중 오류가 발생했습니다.');
-            }
-        });
-    </script>
+    <script th:attr="nonce=${cspNonce}" th:src="@{/js/pages/kindergarten-create.js}" src="/js/pages/kindergarten-create.js"></script>
 </body>
 </html>
