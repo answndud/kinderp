@@ -373,7 +373,7 @@ class ViewEndpointTest extends TestcontainersSupport {
 
         mockMvc.perform(get("/notification-outbox").with(user(new CustomUserDetails(principal))))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("알림 Outbox 운영")))
+                .andExpect(content().string(containsString("알림 전달 큐(Outbox) 운영")))
                 .andExpect(content().string(containsString("Dead-letter 채널")))
                 .andExpect(content().string(containsString("/api/v1/notification-outbox/summary")));
     }
