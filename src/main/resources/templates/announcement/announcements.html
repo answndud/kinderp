@@ -73,30 +73,6 @@
     <script th:attr="nonce=${cspNonce}" src="/vendor/htmx.min.js"></script>
     <script th:attr="nonce=${cspNonce}" th:src="@{/js/app.js}" src="/js/app.js"></script>
 
-    <script th:attr="nonce=${cspNonce}">
-        // Toggle button styles based on active filter
-        document.addEventListener('htmx:afterSwap', function(evt) {
-            const importantOnly = evt.detail.xhr.responseURL.includes('importantOnly=true');
-
-            const allBtn = document.getElementById('allBtn');
-            const importantBtn = document.getElementById('importantBtn');
-
-            if (importantOnly) {
-                allBtn.classList.remove('bg-primary-100', 'text-primary-700');
-                allBtn.classList.add('bg-gray-100', 'text-gray-700');
-                importantBtn.classList.remove('bg-gray-100', 'text-gray-700');
-                importantBtn.classList.add('bg-yellow-100', 'text-yellow-800');
-                allBtn.setAttribute('aria-pressed', 'false');
-                importantBtn.setAttribute('aria-pressed', 'true');
-            } else {
-                importantBtn.classList.remove('bg-yellow-100', 'text-yellow-800');
-                importantBtn.classList.add('bg-gray-100', 'text-gray-700');
-                allBtn.classList.remove('bg-gray-100', 'text-gray-700');
-                allBtn.classList.add('bg-primary-100', 'text-primary-700');
-                allBtn.setAttribute('aria-pressed', 'true');
-                importantBtn.setAttribute('aria-pressed', 'false');
-            }
-        });
-    </script>
+    <script th:attr="nonce=${cspNonce}" th:src="@{/js/pages/announcement-list.js}" src="/js/pages/announcement-list.js"></script>
 </body>
 </html>
