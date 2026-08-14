@@ -69,23 +69,28 @@
         </div>
 
         <div th:if="${notifications != null and !#lists.isEmpty(notifications)}" th:classappend="${showFilters} ? '' : 'max-h-96 overflow-y-auto'">
-            <div role="button" tabindex="0"
-                    th:each="n : ${notifications}"
-                    class="w-full cursor-pointer text-left px-4 py-4 border-b border-gray-100 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
-                    th:classappend="${n.isRead()} ? 'opacity-70' : 'bg-white'"
-                    th:attr="data-id=${n.id()},data-link=${n.linkUrl()},aria-label=${n.title()}"
-                    data-action="Notifications.open" data-key-action="Notifications.open">
+            <article th:each="n : ${notifications}"
+                     class="border-b border-gray-100 px-4 py-4"
+                     th:classappend="${n.isRead()} ? 'opacity-70' : 'bg-white'"
+                     th:attr="data-id=${n.id()},data-link=${n.linkUrl()}">
                 <div class="flex items-start gap-3">
-                    <span class="mt-1 w-2 h-2 rounded-full"
-                          th:classappend="${n.isRead()} ? 'bg-gray-300' : 'bg-red-500'"></span>
-                    <div class="min-w-0 flex-1">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <span class="rounded-full bg-primary-50 px-2 py-1 text-xs font-semibold text-primary-700"
-                                  th:text="${n.typeDescription() != null ? n.typeDescription() : n.type()}">유형</span>
-                            <div class="text-sm font-medium text-gray-900" th:text="${n.title()}">제목</div>
+                    <div role="button" tabindex="0"
+                         class="min-w-0 flex-1 cursor-pointer text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
+                         th:attr="aria-label=${n.title()}"
+                         data-action="Notifications.open" data-key-action="Notifications.open">
+                        <div class="flex items-start gap-3">
+                            <span class="mt-1 h-2 w-2 shrink-0 rounded-full"
+                                  th:classappend="${n.isRead()} ? 'bg-gray-300' : 'bg-red-500'"></span>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="rounded-full bg-primary-50 px-2 py-1 text-xs font-semibold text-primary-700"
+                                          th:text="${n.typeDescription() != null ? n.typeDescription() : n.type()}">유형</span>
+                                    <div class="text-sm font-medium text-gray-900" th:text="${n.title()}">제목</div>
+                                </div>
+                                <div class="mt-1 text-sm text-gray-600 line-clamp-2" th:text="${n.content()}">내용</div>
+                                <div class="mt-2 text-xs text-gray-500" th:text="${#temporals.format(n.createdAt(), 'yyyy-MM-dd HH:mm')}">시간</div>
+                            </div>
                         </div>
-                        <div class="mt-1 text-sm text-gray-600 line-clamp-2" th:text="${n.content()}">내용</div>
-                        <div class="mt-2 text-xs text-gray-500" th:text="${#temporals.format(n.createdAt(), 'yyyy-MM-dd HH:mm')}">시간</div>
                     </div>
                     <div class="flex flex-col items-end gap-2 text-xs text-gray-500">
                         <button type="button"
@@ -101,7 +106,7 @@
                         </button>
                     </div>
                 </div>
-            </div>
+            </article>
         </div>
 
         <div th:if="${!showFilters}" class="px-4 py-3 text-sm text-gray-600 flex items-center justify-between">
