@@ -677,9 +677,12 @@ ls -la
 
 ```bash
 cd /opt/kindergarten-erp/deploy
+PREFLIGHT_ONLY=1 ./deploy-with-rollback.sh
 SMOKE_URL=https://erp.example.com/login ./deploy-with-rollback.sh
 docker compose --env-file .env.prod -f docker-compose.prod.yml ps
 ```
+
+`PREFLIGHT_ONLY=1`은 Docker/Curl, Compose 파일·환경 파일, Compose config만 검증하고 image pull이나 컨테이너 변경은 수행하지 않습니다. 이 검증이 통과한 뒤에 실제 배포 명령을 실행합니다.
 
 로그 확인:
 

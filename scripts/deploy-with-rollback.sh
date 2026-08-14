@@ -8,6 +8,7 @@ READINESS_URL="${READINESS_URL:-http://127.0.0.1:9091/actuator/health/readiness}
 SMOKE_URL="${SMOKE_URL:-}"
 MAX_ATTEMPTS="${MAX_ATTEMPTS:-30}"
 SLEEP_SECONDS="${SLEEP_SECONDS:-5}"
+PREFLIGHT_ONLY="${PREFLIGHT_ONLY:-0}"
 
 [[ "$MAX_ATTEMPTS" =~ ^[1-9][0-9]*$ ]] || {
     echo "MAX_ATTEMPTS must be a positive integer" >&2
@@ -17,9 +18,36 @@ SLEEP_SECONDS="${SLEEP_SECONDS:-5}"
     echo "SLEEP_SECONDS must be a non-negative integer" >&2
     exit 1
 }
+[[ "$PREFLIGHT_ONLY" =~ ^[01]$ ]] || {
+    echo "PREFLIGHT_ONLY must be 0 or 1" >&2
+    exit 1
+}
 
 compose() {
     docker compose --env-file "$COMPOSE_ENV_FILE" -f "$COMPOSE_FILE" "$@"
+}
+
+validate_preflight() {
+    command -v docker >/dev/null || {
+        echo "docker is required" >&2
+        return 1
+    }
+    command -v curl >/dev/null || {
+        echo "curl is required" >&2
+        return 1
+    }
+    [[ -f "$COMPOSE_FILE" ]] || {
+        echo "Compose file does not exist: $COMPOSE_FILE" >&2
+        return 1
+    }
+    [[ -f "$COMPOSE_ENV_FILE" ]] || {
+        echo "Compose env file does not exist: $COMPOSE_ENV_FILE" >&2
+        return 1
+    }
+    compose config >/dev/null || {
+        echo "Compose configuration is invalid: $COMPOSE_FILE" >&2
+        return 1
+    }
 }
 
 wait_for_readiness() {
@@ -58,6 +86,12 @@ wait_for_deployment() {
 }
 
 validate_smoke_url
+validate_preflight
+
+if [[ "$PREFLIGHT_ONLY" == "1" ]]; then
+    echo "Deployment preflight passed for ${COMPOSE_FILE}."
+    exit 0
+fi
 
 previous_image="$(docker inspect --format '{{.Config.Image}}' kindergarten-erp-app 2>/dev/null || true)"
 

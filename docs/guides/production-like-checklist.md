@@ -35,6 +35,7 @@ PROD_ENV_FILE=.env.prod.example docker compose --env-file deploy/.env.prod.examp
 ALERTMANAGER_WEBHOOK_URL=https://hooks.example.com/alerts docker compose --profile alerting -f docker/docker-compose.monitoring.yml config >/tmp/docker-compose.monitoring-alerting.yml
 docker run --rm -e APP_DOMAIN=erp.example.com -v "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2 caddy validate --config /etc/caddy/Caddyfile
 bash -n scripts/deploy-with-rollback.sh scripts/backup-production.sh scripts/verify-production-backup.sh scripts/restore-production-backup.sh
+PREFLIGHT_ONLY=1 PROD_ENV_FILE=.env.prod.example COMPOSE_ENV_FILE=deploy/.env.prod.example COMPOSE_FILE=deploy/docker-compose.prod.yml ./scripts/deploy-with-rollback.sh
 SMOKE_URL=https://erp.example.com/login \
 COMPOSE_ENV_FILE=deploy/.env.prod \
 COMPOSE_FILE=deploy/docker-compose.prod.yml \
@@ -76,6 +77,7 @@ git diff --check
 | `docker image inspect kindergarten-erp:quality-check --format 'user={{.Config.User}}'` | `user=10001:10001` |
 | `docker run --rm -e APP_DOMAIN=erp.example.com -v "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2 caddy validate --config /etc/caddy/Caddyfile` | 통과 |
 | `bash -n scripts/deploy-with-rollback.sh scripts/backup-production.sh scripts/verify-production-backup.sh scripts/restore-production-backup.sh` | 통과 |
+| `PREFLIGHT_ONLY=1 PROD_ENV_FILE=.env.prod.example COMPOSE_ENV_FILE=deploy/.env.prod.example COMPOSE_FILE=deploy/docker-compose.prod.yml ./scripts/deploy-with-rollback.sh` | 통과 |
 | `./gradlew --no-daemon integrationTest --tests '*ObservabilityIntegrationTest' --tests '*NotificationOutbox*IntegrationTest'` | 32초, 통과 |
 | `./gradlew --no-daemon performanceSmokeTest` | 28초, 통과 |
 | Docker k6 `k6-auth-notepad-dashboard.js` | 15 VU, 30초, 1,068 requests, error 0.00%, 전체 p95 362.13ms / p99 464.86ms |
