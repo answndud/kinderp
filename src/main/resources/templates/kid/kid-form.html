@@ -13,7 +13,7 @@
 <main id="kid-form-page" class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
       th:attr="data-form-mode=${kid != null ? 'edit' : 'create'},data-kid-id=${kid != null ? kid.id : ''},data-kid-classroom-id=${kid != null ? kid.classroomId : ''},data-kindergarten-id=${currentMember?.kindergartenId}">
     <div class="mb-7">
-        <p class="mb-2 text-sm font-semibold text-primary-700">Student Record</p>
+        <p class="mb-2 text-sm font-semibold text-primary-700">원생 기록</p>
         <h1 class="text-3xl font-bold text-gray-900" th:text="${kid != null} ? '원생 정보 수정' : '원생 등록'">원생 등록</h1>
         <p class="mt-3 text-gray-600" th:text="${kid != null} ? '원생의 기본 정보와 반 배정을 수정합니다.' : '새 원생의 기본 정보와 반 배정을 입력해 주세요.'">설명</p>
     </div>
