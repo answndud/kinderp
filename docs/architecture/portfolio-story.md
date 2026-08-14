@@ -71,12 +71,12 @@ Controller의 `@PreAuthorize`, service의 요청자 검증, repository의 tenant
 5. Outbox dead-letter 운영 화면에서 실패 원인과 재시도를 보여준다.
 6. 같은 시나리오의 성능 전후 수치와 배포·복구 증거로 마무리한다.
 
-## 현재 증거와 추가 증거
+## 현재 증거와 남은 보완
 
-| 주장 | 현재 증거 | 개편 후 추가할 증거 |
+| 주장 | 현재 증거 | 외부 환경에서 남은 보완 |
 | --- | --- | --- |
-| tenant·role 경계 | `AccessPolicyService`, API 통합 테스트 | 교차 tenant 자동 검증과 ArchUnit 규칙 |
-| 상태 전이 | 입학·출결 요청 서비스 및 통합 테스트 | 상태 전이 표, 동시 승인 테스트, `@Version` 또는 제약 조건 |
-| 전달 실패 대응 | Notification Outbox, `FOR UPDATE SKIP LOCKED` | idempotency 및 reconciliation 테스트 |
-| 성능 개선 | Notepad/Dashboard 측정값 | 데이터 규모·p95·EXPLAIN·동시 부하 전후 기록 |
-| 운영 가능성 | Docker·runbook·prod safety 테스트 | 실제 HTTPS 배포, rollback, restore drill |
+| tenant·role 경계 | `AccessPolicyService`, 교차 tenant API 통합 테스트, 접근 매트릭스 | 실제 운영 tenant 구성에서 권한 감사 로그와 접근 정책 점검 |
+| 상태 전이 | 입학·출결 요청 서비스, 허용 상태 전이 테스트, 동시 요청·멱등성 검증 | 트래픽 증가 시 workflow 상태 이력 보관 정책 점검 |
+| 전달 실패 대응 | Notification Outbox, `FOR UPDATE SKIP LOCKED`, worker 경쟁 테스트, dead-letter retry 운영 API | 실제 provider sandbox, webhook 수신·rate limit·reconciliation 검증 |
+| 성능 개선 | Notepad/Dashboard query count·응답 시간·k6 p95·EXPLAIN 측정값 | 운영 DB 규모와 실제 HTTPS 경로에서 동일 시나리오 재측정 |
+| 운영 가능성 | Docker·runbook·prod safety·backup checksum·disposable restore·readiness/HTTPS proxy 로컬 검증 | 실제 클라우드 DNS/TLS, 운영 RDS/Redis, 외부 rollback 실행 |

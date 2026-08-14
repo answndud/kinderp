@@ -6,7 +6,7 @@
 
 ## 0. 이 프로젝트의 포지션
 
-TownPet이 레거시 데이터와 서비스 구조를 안전하게 바꾸는 프로젝트라면, Kindergarten ERP는 운영 중 여러 역할이 같은 tenant 데이터를 처리할 때 권한·상태·실패 복구를 통제하는 내부 플랫폼입니다. 면접에서는 기능 목록보다 학부모 요청 → 교사/원장 승인 → 감사 기록 → Outbox 전달/재시도의 닫힌 흐름을 먼저 보여줍니다. 전체 흐름과 추가할 증거는 [`docs/architecture/portfolio-story.md`](../architecture/portfolio-story.md)에 있습니다.
+TownPet이 레거시 데이터와 서비스 구조를 안전하게 바꾸는 프로젝트라면, Kindergarten ERP는 운영 중 여러 역할이 같은 tenant 데이터를 처리할 때 권한·상태·실패 복구를 통제하는 내부 플랫폼입니다. 면접에서는 기능 목록보다 학부모 요청 → 교사/원장 승인 → 감사 기록 → Outbox 전달/재시도의 닫힌 흐름을 먼저 보여줍니다. 전체 흐름과 현재 증거·남은 보완점은 [`docs/architecture/portfolio-story.md`](../architecture/portfolio-story.md)에 있습니다.
 
 ## 1. 5분 설명 루트
 
