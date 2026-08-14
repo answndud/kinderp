@@ -53,7 +53,7 @@ test('principal can scan the dashboard action queue and outbox timeline', async 
   await expect(page.locator('#dashboardStatus')).toContainText('갱신', { timeout: 10_000 });
 
   await page.goto('/notification-outbox');
-  await expect(page.getByRole('heading', { name: 'Outbox Timeline' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '전달 타임라인' })).toBeVisible();
   await expect(page.locator('#statusFilter')).toBeVisible();
   await expect(page.locator('#deadLetterTableBody tr').first()).toBeVisible();
 
