@@ -15,11 +15,11 @@
         <!-- Page Header -->
         <div class="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <p class="mb-2 text-sm font-semibold text-primary-700">Daily Notes</p>
+                <p class="mb-2 text-sm font-semibold text-primary-700">알림장 관리</p>
                 <h1 class="text-3xl font-bold text-gray-900">알림장</h1>
                 <p class="mt-3 text-gray-600" th:text="${currentMember?.role?.name() == 'PARENT' ? '내 아이에게 전달된 알림장을 먼저 확인하세요.' : '반과 원아별 알림장을 확인하고 필요한 내용을 작성하세요.'}">반과 원아별 알림장을 확인하고 필요한 내용을 작성하세요.</p>
             </div>
-            <!-- Create Button (Principal/Teacher only) -->
+            <!-- 원장·교사 전용 작성 버튼 -->
             <a id="createNotepadBtn" href="/notepad/write" class="hidden min-h-11 items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
