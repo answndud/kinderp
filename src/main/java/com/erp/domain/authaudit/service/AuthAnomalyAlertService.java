@@ -44,7 +44,7 @@ public class AuthAnomalyAlertService {
             memberRepository.findByEmail(normalizedEmail)
                     .ifPresent(member -> maybeSendLoginFailureAlert(member, normalizedEmail, normalizeClientIp(clientIp)));
         } catch (Exception ex) {
-            log.warn("Failed to evaluate auth anomaly alert for email={}", normalizedEmail, ex);
+            log.warn("Failed to evaluate auth anomaly alert", ex);
         }
     }
 
@@ -63,7 +63,7 @@ public class AuthAnomalyAlertService {
                         redisTemplate.delete(LOGIN_FAILURE_COUNT_KEY_PREFIX + member.getKindergarten().getId() + ":" + normalizedEmail);
                     });
         } catch (Exception ex) {
-            log.warn("Failed to clear auth anomaly counter for email={}", normalizedEmail, ex);
+            log.warn("Failed to clear auth anomaly counter", ex);
         }
     }
 

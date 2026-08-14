@@ -91,6 +91,51 @@ class AuthApiIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
+        @DisplayName("회원가입 - 같은 IP에서 시간당 10회를 초과하면 차단")
+        void signup_Fail_RateLimited_ByIp() throws Exception {
+            for (int attempt = 0; attempt < 10; attempt++) {
+                String requestBody = """
+                        {
+                            "email": "signup-rate-%d@test.com",
+                            "password": "Test1234!",
+                            "passwordConfirm": "Test1234!",
+                            "name": "가입테스트%d",
+                            "birthDate": "1990-01-01",
+                            "phone": "0101234%04d",
+                            "role": "PARENT"
+                        }
+                        """.formatted(attempt, attempt, attempt);
+
+                mockMvc.perform(post("/api/v1/auth/signup")
+                                .with(csrf())
+                                .with(remoteAddr("198.51.100.120"))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBody))
+                        .andExpect(status().isOk());
+            }
+
+            mockMvc.perform(post("/api/v1/auth/signup")
+                            .with(csrf())
+                            .with(remoteAddr("198.51.100.120"))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {
+                                        "email": "signup-rate-blocked@test.com",
+                                        "password": "Test1234!",
+                                        "passwordConfirm": "Test1234!",
+                                        "name": "차단테스트",
+                                        "birthDate": "1990-01-01",
+                                        "phone": "01099999999",
+                                        "role": "PARENT"
+                                    }
+                                    """))
+                    .andExpect(status().isTooManyRequests())
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                            .header().string("Retry-After", "60"))
+                    .andExpect(jsonPath("$.code").value("A006"));
+        }
+
+        @Test
         @DisplayName("회원가입 - 실패 (중복 이메일)")
         void signup_Fail_DuplicateEmail() throws Exception {
             String requestBody = """
@@ -342,6 +387,8 @@ class AuthApiIntegrationTest extends BaseIntegrationTest {
                             .content(requestBody))
                     .andDo(print())
                     .andExpect(status().isTooManyRequests())
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                            .header().string("Retry-After", "60"))
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.code").value("A006"));
         }
@@ -668,6 +715,23 @@ class AuthApiIntegrationTest extends BaseIntegrationTest {
             assertThat(asStringSet(redisTemplate.opsForSet().members(sessionSetKey)))
                     .doesNotContain(firstSessionId)
                     .contains(secondSessionId);
+        }
+
+        @Test
+        @DisplayName("웹 로그아웃 - refresh session도 함께 폐기한다")
+        void webLogout_Success_RevokesRefreshSession() throws Exception {
+            LoginCookies loginCookies = loginAsParent();
+            String sessionKey = getRefreshSessionKey(loginCookies.refreshCookie());
+
+            assertThat(redisTemplate.opsForValue().get(sessionKey)).isEqualTo(loginCookies.refreshCookie().getValue());
+
+            mockMvc.perform(post("/logout")
+                            .with(csrf())
+                            .cookie(loginCookies.accessCookie(), loginCookies.refreshCookie()))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/login"));
+
+            assertThat(redisTemplate.opsForValue().get(sessionKey)).isNull();
         }
     }
 

@@ -24,7 +24,9 @@ class ContentSecurityPolicyFilterTest {
         String nonce = (String) request.getAttribute(ContentSecurityPolicyFilter.NONCE_ATTRIBUTE);
         assertThat(nonce).isNotBlank();
         assertThat(policy).contains("'nonce-" + nonce + "'");
-        assertThat(policy).doesNotContain("script-src 'self' 'unsafe-eval' 'unsafe-inline'");
+        assertThat(policy).doesNotContain("'unsafe-eval'");
+        assertThat(policy).contains("script-src-attr 'none'");
+        assertThat(policy).doesNotContain("cdn.tailwindcss.com", "unpkg.com", "cdn.jsdelivr.net", "fonts.googleapis.com");
         assertThat(response.getHeader("Content-Security-Policy-Report-Only")).isNull();
     }
 }

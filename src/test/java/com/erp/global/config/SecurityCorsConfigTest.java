@@ -31,5 +31,8 @@ class SecurityCorsConfigTest extends TestcontainersSupport {
         assertThat(configuration.getAllowedOrigins())
                 .containsExactly("https://erp.example.com", "https://admin.example.com");
         assertThat(configuration.getAllowCredentials()).isTrue();
+        assertThat(configuration.getAllowedHeaders())
+                .contains("Content-Type", "X-XSRF-TOKEN", "Idempotency-Key", "HX-Request")
+                .doesNotContain("*");
     }
 }

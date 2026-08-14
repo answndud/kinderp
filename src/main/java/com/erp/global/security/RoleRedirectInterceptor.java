@@ -79,7 +79,7 @@ public class RoleRedirectInterceptor implements HandlerInterceptor {
         // 강제 리다이렉트 로직
         String redirectUrl = shouldForceRedirect(member, uri);
         if (redirectUrl != null) {
-            log.debug("Forcing redirect for member: {} from {} to {}", member.getEmail(), uri, redirectUrl);
+            log.debug("Forcing redirect for memberId={} from={} to={}", member.getId(), uri, redirectUrl);
             response.sendRedirect(redirectUrl);
             return false;
         }

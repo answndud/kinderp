@@ -34,7 +34,7 @@ public class RedirectAuthenticationSuccessHandler implements AuthenticationSucce
                 .orElseThrow(() -> new RuntimeException("Member not found: " + userDetails.getMemberId()));
 
         String redirectUrl = determineRedirectUrl(member);
-        log.info("Login successful for member: {}, redirecting to: {}", member.getEmail(), redirectUrl);
+        log.info("Login successful for memberId={}, redirecting to={}", member.getId(), redirectUrl);
 
         response.sendRedirect(redirectUrl);
     }

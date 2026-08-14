@@ -14,34 +14,29 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthRateLimitService {
 
-    private static final Duration LOGIN_WINDOW = Duration.ofMinutes(10);
-    private static final Duration REFRESH_WINDOW = Duration.ofMinutes(5);
-
-    private static final long LOGIN_IP_LIMIT = 15L;
-    private static final long LOGIN_EMAIL_LIMIT = 5L;
-    private static final long REFRESH_IP_LIMIT = 10L;
-
     private static final String LOGIN_IP_KEY_PREFIX = "rate-limit:auth:login:ip:";
     private static final String LOGIN_EMAIL_KEY_PREFIX = "rate-limit:auth:login:email:";
     private static final String REFRESH_IP_KEY_PREFIX = "rate-limit:auth:refresh:ip:";
+    private static final String SIGNUP_IP_KEY_PREFIX = "rate-limit:auth:signup:ip:";
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final AuthRateLimitProperties properties;
 
     public void validateLoginAllowed(String clientIp, String email) {
-        assertUnderLimit(LOGIN_IP_KEY_PREFIX + normalizeClientIp(clientIp), LOGIN_IP_LIMIT);
-        assertUnderLimit(LOGIN_EMAIL_KEY_PREFIX + normalizeEmail(email), LOGIN_EMAIL_LIMIT);
+        assertUnderLimit(LOGIN_IP_KEY_PREFIX + normalizeClientIp(clientIp), properties.getLoginIpLimit());
+        assertUnderLimit(LOGIN_EMAIL_KEY_PREFIX + normalizeEmail(email), properties.getLoginEmailLimit());
     }
 
     public void recordLoginFailure(String clientIp, String email) {
         consumeSlot(
                 LOGIN_IP_KEY_PREFIX + normalizeClientIp(clientIp),
-                LOGIN_IP_LIMIT,
-                LOGIN_WINDOW
+                properties.getLoginIpLimit(),
+                properties.getLoginWindow()
         );
         consumeSlot(
                 LOGIN_EMAIL_KEY_PREFIX + normalizeEmail(email),
-                LOGIN_EMAIL_LIMIT,
-                LOGIN_WINDOW
+                properties.getLoginEmailLimit(),
+                properties.getLoginWindow()
         );
     }
 
@@ -52,8 +47,16 @@ public class AuthRateLimitService {
     public void validateRefreshAllowed(String clientIp) {
         consumeSlot(
                 REFRESH_IP_KEY_PREFIX + normalizeClientIp(clientIp),
-                REFRESH_IP_LIMIT,
-                REFRESH_WINDOW
+                properties.getRefreshIpLimit(),
+                properties.getRefreshWindow()
+        );
+    }
+
+    public void validateSignupAllowed(String clientIp) {
+        consumeSlot(
+                SIGNUP_IP_KEY_PREFIX + normalizeClientIp(clientIp),
+                properties.getSignupIpLimit(),
+                properties.getSignupWindow()
         );
     }
 

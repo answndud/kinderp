@@ -78,7 +78,7 @@ public class JwtFilter extends GenericFilterBean {
                             httpRequest.getHeader("User-Agent")
                     );
                 }
-                log.debug("JWT 인증 성공: {}", jwtTokenProvider.getEmail(token));
+                log.debug("JWT 인증 성공: memberId={}", memberId);
             } catch (UsernameNotFoundException e) {
                 SecurityContextHolder.clearContext();
                 log.debug("JWT 인증 실패 - 사용자 조회 불가: {}", e.getMessage());

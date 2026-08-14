@@ -130,6 +130,14 @@ app:
       login-failure-threshold: 3
       login-failure-window: 10m
       alert-cooldown: 30m
+    auth-rate-limit:
+      login-window: ${AUTH_RATE_LIMIT_LOGIN_WINDOW:10m}
+      refresh-window: ${AUTH_RATE_LIMIT_REFRESH_WINDOW:5m}
+      signup-window: ${AUTH_RATE_LIMIT_SIGNUP_WINDOW:1h}
+      login-ip-limit: ${AUTH_RATE_LIMIT_LOGIN_IP:15}
+      login-email-limit: ${AUTH_RATE_LIMIT_LOGIN_EMAIL:5}
+      refresh-ip-limit: ${AUTH_RATE_LIMIT_REFRESH_IP:10}
+      signup-ip-limit: ${AUTH_RATE_LIMIT_SIGNUP_IP:10}
     auth-audit-retention:
       enabled: true
       archive-after: 30d

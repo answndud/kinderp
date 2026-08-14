@@ -62,6 +62,7 @@ public enum ErrorCode {
     ATTENDANCE_CHANGE_REQUEST_ALREADY_PENDING(409, "AT005", "같은 날짜의 처리 대기 출결 요청이 이미 있습니다"),
     ATTENDANCE_CHANGE_REQUEST_NOT_PENDING(400, "AT006", "처리 가능한 출결 요청 상태가 아닙니다"),
     ATTENDANCE_CHANGE_REQUEST_ACCESS_DENIED(403, "AT007", "출결 요청 접근 권한이 없습니다"),
+    ATTENDANCE_CHANGE_REQUEST_IDEMPOTENCY_KEY_REUSED(409, "AT008", "멱등 키를 다른 요청에 재사용할 수 없습니다"),
 
     // ========== Notepad ==========
     NOTEPAD_NOT_FOUND(404, "N001", "알림장을 찾을 수 없습니다"),

@@ -63,7 +63,8 @@ public class AuthApiController {
      * 회원가입
      */
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<MemberResponse>> signUp(@Valid @RequestBody SignUpRequest request) {
+    public ResponseEntity<ApiResponse<MemberResponse>> signUp(@Valid @RequestBody SignUpRequest request,
+                                                               HttpServletRequest httpServletRequest) {
         // 비밀번호 확인
         if (!request.getPassword().equals(request.getPasswordConfirm())) {
             return ResponseEntity
@@ -80,7 +81,8 @@ public class AuthApiController {
                 request.getPassword(),
                 request.getName(),
                 request.getPhone(),
-                request.getRole()
+                request.getRole(),
+                clientIpResolver.resolve(httpServletRequest)
         );
 
         // 회원 정보 조회

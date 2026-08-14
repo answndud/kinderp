@@ -47,6 +47,14 @@ public class AccessPolicyService {
         }
     }
 
+    public void validatePrincipalSameKindergarten(Member requester, Long targetKindergartenId) {
+        if (requester == null
+                || requester.getRole() != MemberRole.PRINCIPAL
+                || !belongsToKindergarten(requester, targetKindergartenId)) {
+            throw new BusinessException(ErrorCode.KINDERGARTEN_ACCESS_DENIED);
+        }
+    }
+
     public void validateKidReadAccess(Member requester, Kid kid) {
         if (kid == null) {
             throw new BusinessException(ErrorCode.KID_NOT_FOUND);

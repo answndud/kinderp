@@ -75,8 +75,8 @@ public class AuthAuditLogService {
                     normalizeClientIp(clientIp)
             ));
         } catch (Exception ex) {
-            log.warn("Failed to persist auth audit log eventType={} result={} email={} memberId={}",
-                    eventType, result, email, memberId, ex);
+            log.warn("Failed to persist auth audit log eventType={} result={} memberId={}",
+                    eventType, result, memberId, ex);
         }
     }
 

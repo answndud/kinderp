@@ -45,7 +45,7 @@ public class AuthService {
      * 회원가입
      */
     @Transactional
-    public Long signUp(String email, String password, String name, String phone, String role) {
+    public Long signUp(String email, String password, String name, String phone, String role, String clientIp) {
         if (role == null || role.isBlank()) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "역할은 필수입니다");
         }
@@ -61,6 +61,7 @@ public class AuthService {
             throw new BusinessException(ErrorCode.INVALID_MEMBER_ROLE, "원장 계정은 공개 회원가입으로 만들 수 없습니다");
         }
 
+        authRateLimitService.validateSignupAllowed(clientIp);
         return memberService.signUp(email, password, name, phone, memberRole);
     }
 

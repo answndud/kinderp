@@ -1,17 +1,20 @@
 package com.erp.global.config;
 
 import com.erp.domain.auth.service.AuthSessionRegistryService;
+import com.erp.domain.auth.service.AuthService;
 import com.erp.global.security.ClientIpResolver;
 import com.erp.global.security.CorsProperties;
 import com.erp.global.security.CustomAuthenticationEntryPoint;
 import com.erp.global.security.ManagementSurfaceProperties;
 import com.erp.global.security.jwt.JwtFilter;
+import com.erp.global.security.jwt.JwtProperties;
 import com.erp.global.security.jwt.JwtTokenProvider;
 import com.erp.global.security.oauth2.CustomOAuth2UserService;
 import com.erp.global.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import com.erp.global.security.user.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,6 +31,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +46,8 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final JwtProperties jwtProperties;
+    private final ObjectProvider<AuthService> authServiceProvider;
     private final CustomUserDetailsService userDetailsService;
     private final AuthSessionRegistryService authSessionRegistryService;
     private final ClientIpResolver clientIpResolver;
@@ -51,6 +58,8 @@ public class SecurityConfig {
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     public SecurityConfig(JwtTokenProvider jwtTokenProvider,
+                          JwtProperties jwtProperties,
+                          ObjectProvider<AuthService> authServiceProvider,
                           CustomUserDetailsService userDetailsService,
                           AuthSessionRegistryService authSessionRegistryService,
                           ClientIpResolver clientIpResolver,
@@ -60,6 +69,8 @@ public class SecurityConfig {
                           CustomOAuth2UserService customOAuth2UserService,
                           OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.jwtProperties = jwtProperties;
+        this.authServiceProvider = authServiceProvider;
         this.userDetailsService = userDetailsService;
         this.authSessionRegistryService = authSessionRegistryService;
         this.clientIpResolver = clientIpResolver;
@@ -94,6 +105,17 @@ public class SecurityConfig {
         return new JwtFilter(jwtTokenProvider, userDetailsService, authSessionRegistryService, clientIpResolver);
     }
 
+    @Bean
+    public CookieCsrfTokenRepository csrfTokenRepository() {
+        CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        repository.setCookiePath("/");
+        repository.setCookieCustomizer(cookie -> cookie
+                .sameSite(jwtProperties.getCookieSameSite())
+                .secure(jwtProperties.isCookieSecure())
+                .httpOnly(false));
+        return repository;
+    }
+
     /**
      * CORS 설정
      */
@@ -103,7 +125,17 @@ public class SecurityConfig {
 
         config.setAllowedOrigins(corsProperties.resolveAllowedOrigins());
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedHeaders(List.of(
+                "Accept",
+                "Content-Type",
+                "X-XSRF-TOKEN",
+                "Idempotency-Key",
+                "HX-Request",
+                "HX-Trigger",
+                "HX-Target",
+                "HX-Current-URL",
+                "X-Requested-With"
+        ));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
@@ -126,8 +158,7 @@ public class SecurityConfig {
 
                 // CSRF 보호 (쿠키 기반 JWT 사용)
                 .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .ignoringRequestMatchers("/logout")
+                        .csrfTokenRepository(csrfTokenRepository())
                         .csrfTokenRequestHandler(csrfTokenRequestHandler)
                 )
 
@@ -181,6 +212,9 @@ public class SecurityConfig {
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login")
                         .invalidateHttpSession(true)
+                        .addLogoutHandler((request, response, authentication) ->
+                                authServiceProvider.getObject().logout(
+                                        getCookieValue(request, jwtTokenProvider.getRefreshTokenCookieName()), response))
                         .deleteCookies(
                                 jwtTokenProvider.getAccessTokenCookieName(),
                                 jwtTokenProvider.getRefreshTokenCookieName()
@@ -202,6 +236,19 @@ public class SecurityConfig {
         return http.build();
     }
 
+    private String getCookieValue(HttpServletRequest request, String cookieName) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+        for (Cookie cookie : cookies) {
+            if (cookieName.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
+
     private String[] buildPublicEndpoints() {
         List<String> publicEndpoints = new ArrayList<>(List.of(
                 "/",
@@ -217,6 +264,7 @@ public class SecurityConfig {
                 "/api/v1/auth/refresh",
                 "/css/**",
                 "/js/**",
+                "/vendor/**",
                 "/img/**",
                 "/images/**",
                 "/favicon.ico",

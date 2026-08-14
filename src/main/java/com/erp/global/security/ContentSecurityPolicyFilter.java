@@ -39,10 +39,10 @@ public class ContentSecurityPolicyFilter extends OncePerRequestFilter {
                 + "object-src 'none'; "
                 + "frame-ancestors 'self'; "
                 + "form-action 'self'; "
-                + "script-src 'self' 'unsafe-eval' " + NONCE_SOURCE_PREFIX + nonce + "' "
-                + "https://cdn.tailwindcss.com https://unpkg.com https://cdn.jsdelivr.net; "
-                + "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-                + "font-src 'self' https://fonts.gstatic.com; "
+                + "script-src 'self' " + NONCE_SOURCE_PREFIX + nonce + "'; "
+                + "script-src-attr 'none'; "
+                + "style-src 'self' 'unsafe-inline'; "
+                + "font-src 'self'; "
                 + "img-src 'self' data: https:; "
                 + "connect-src 'self'";
     }

@@ -6,6 +6,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.validation.BindException;
@@ -42,9 +43,11 @@ public class GlobalExceptionHandler {
         } else {
             log.warn("BusinessException: {}", e.getMessage());
         }
-        return ResponseEntity
-                .status(e.getErrorCode().getStatus())
-                .body(ApiResponse.error(e.getErrorCode(), e.getMessage()));
+        ResponseEntity.BodyBuilder response = ResponseEntity.status(e.getErrorCode().getStatus());
+        if (e.getErrorCode() == ErrorCode.AUTH_RATE_LIMITED) {
+            response.header(HttpHeaders.RETRY_AFTER, "60");
+        }
+        return response.body(ApiResponse.error(e.getErrorCode(), e.getMessage()));
     }
 
     /**
