@@ -14,7 +14,8 @@
     <header th:replace="~{fragments/header :: header}"></header>
 
     <!-- Main Content -->
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main id="profile-page" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+          th:attr="data-member-name=${currentMember?.name},data-member-phone=${currentMember?.phone}">
         <!-- Page Header -->
         <div class="mb-8">
             <p class="text-sm font-semibold text-primary-700">Account</p>
@@ -92,72 +93,6 @@
     <!-- Custom JS (UI/Notifications) -->
     <script th:attr="nonce=${cspNonce}" th:src="@{/js/app.js}"></script>
 
-    <script th:attr="nonce=${cspNonce}" th:inline="javascript">
-        async function editProfile() {
-            const currentName = /*[[${currentMember?.name}]]*/ '';
-            const currentPhone = /*[[${currentMember?.phone}]]*/ '';
-
-            const result = await Swal.fire({
-                title: '프로필 수정',
-                html: `
-                    <div class="text-left space-y-3">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">이름 *</label>
-                            <input id="swal-name" class="h-11 w-full px-3 border border-gray-200 rounded-lg" value="${(currentName || '').replaceAll('"', '&quot;')}" />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">전화번호 (선택)</label>
-                            <input id="swal-phone" class="h-11 w-full px-3 border border-gray-200 rounded-lg" value="${(currentPhone || '').replaceAll('"', '&quot;')}" placeholder="예) 01012345678" />
-                        </div>
-                    </div>
-                `,
-                focusConfirm: false,
-                showCancelButton: true,
-                confirmButtonText: '저장',
-                cancelButtonText: '취소',
-                customClass: {
-                    popup: 'rounded-xl',
-                    confirmButton: 'min-h-10 px-4 rounded-lg bg-primary-600 text-white font-medium',
-                    cancelButton: 'min-h-10 px-4 rounded-lg bg-gray-100 text-gray-700 font-medium',
-                },
-                buttonsStyling: false,
-                preConfirm: () => {
-                    const name = document.getElementById('swal-name').value;
-                    const phone = document.getElementById('swal-phone').value;
-
-                    if (!name || name.trim() === '') {
-                        Swal.showValidationMessage('이름을 입력해 주세요.');
-                        return false;
-                    }
-
-                    return {
-                        name: name.trim(),
-                        phone: phone && phone.trim() !== '' ? phone.trim() : null
-                    };
-                }
-            });
-
-            if (!result.isConfirmed) return;
-
-            try {
-                const response = await fetch('/api/v1/members/profile', {
-                    method: 'PATCH',
-                    credentials: 'same-origin',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(result.value)
-                });
-
-                const payload = await response.json().catch(() => ({}));
-                if (!response.ok) {
-                    throw new Error(payload.message || '수정 중 오류가 발생했습니다.');
-                }
-
-                await UI.success('프로필을 수정했습니다.');
-                location.reload();
-            } catch (e) {
-                await UI.error(e.message);
-            }
-        }
-    </script>
+    <script th:attr="nonce=${cspNonce}" th:src="@{/js/pages/profile.js}" src="/js/pages/profile.js"></script>
 </body>
 </html>

@@ -88,7 +88,7 @@
 
                 <!-- Preview Section -->
                 <div class="border-t border-gray-200 pt-6">
-                    <button type="button" id="previewBtn" class="text-sm text-primary-600 hover:text-primary-700 font-medium mb-4">
+                    <button type="button" id="previewBtn" aria-controls="previewArea" aria-expanded="false" class="text-sm text-primary-600 hover:text-primary-700 font-medium mb-4">
                         <span class="flex items-center gap-1">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -116,44 +116,6 @@
         </div>
     </main>
 
-    <script th:attr="nonce=${cspNonce}">
-        // Preview functionality
-        document.getElementById('previewBtn').addEventListener('click', function() {
-            const previewArea = document.getElementById('previewArea');
-            const previewContent = document.getElementById('previewContent');
-            const content = document.getElementById('content').value;
-
-            if (previewArea.classList.contains('hidden')) {
-                previewContent.textContent = content || '내용이 없습니다.';
-                previewArea.classList.remove('hidden');
-                this.innerHTML = `
-                    <span class="flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                        미리보기 닫기
-                    </span>
-                `;
-            } else {
-                previewArea.classList.add('hidden');
-                this.innerHTML = `
-                    <span class="flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                        </svg>
-                        미리보기
-                    </span>
-                `;
-            }
-        });
-
-        // Auto-resize textarea
-        const textarea = document.getElementById('content');
-        textarea.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
-    </script>
+    <script th:attr="nonce=${cspNonce}" th:src="@{/js/pages/announcement-editor.js}" src="/js/pages/announcement-editor.js"></script>
 </body>
 </html>

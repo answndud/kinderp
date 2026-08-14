@@ -12,7 +12,8 @@
 
 <header th:replace="~{fragments/header :: header}"></header>
 
-<main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+<main id="notepad-write-page" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
+      th:attr="data-kindergarten-id=${currentMember?.kindergartenId}">
     <div class="mb-7">
         <a href="/notepad" class="inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 mb-4">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,109 +93,6 @@
 <script th:attr="nonce=${cspNonce}" src="/vendor/sweetalert2.all.min.js"></script>
 <script th:attr="nonce=${cspNonce}" th:src="@{/js/app.js}"></script>
 
-<script th:attr="nonce=${cspNonce}" th:inline="javascript">
-    document.addEventListener('DOMContentLoaded', async function() {
-        const targetType = document.getElementById('targetType');
-        const classroomSelect = document.getElementById('classroomId');
-        const kidSelect = document.getElementById('kidId');
-        const targetSummary = document.getElementById('targetSummary');
-
-        let kindergartenId = /*[[${currentMember?.kindergartenId}]]*/ null;
-
-        const fetchList = async (url) => {
-            const response = await fetch(url, { credentials: 'same-origin' });
-            if (!response.ok) return [];
-            const result = await response.json().catch(() => ({}));
-            return result.data || [];
-        };
-
-        const ensureKindergartenId = async () => {
-            if (kindergartenId) return kindergartenId;
-            const response = await fetch('/api/v1/members/me', { credentials: 'same-origin' });
-            if (!response.ok) return null;
-            const result = await response.json().catch(() => ({}));
-            kindergartenId = result?.data?.kindergartenId || null;
-            return kindergartenId;
-        };
-
-        const setOptions = (select, placeholderLabel, items) => {
-            select.innerHTML = '';
-            const placeholder = document.createElement('option');
-            placeholder.value = '';
-            placeholder.textContent = placeholderLabel;
-            select.appendChild(placeholder);
-
-            (items || []).forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.id;
-                option.textContent = item.name;
-                select.appendChild(option);
-            });
-        };
-
-        const loadClassrooms = async () => {
-            const id = await ensureKindergartenId();
-            if (!id) return [];
-            return fetchList(`/api/v1/classrooms?kindergartenId=${id}`);
-        };
-
-        const loadKidsByClassroom = async (classroomId) => {
-            if (!classroomId) return [];
-            return fetchList(`/api/v1/kids?classroomId=${classroomId}`);
-        };
-
-        const updateTargetSummary = () => {
-            const type = targetType.value;
-            if (type === 'GLOBAL') {
-                targetSummary.textContent = '전체 학부모에게 알림이 발송됩니다.';
-            } else if (type === 'CLASSROOM') {
-                const selected = classroomSelect.options[classroomSelect.selectedIndex];
-                targetSummary.textContent = selected && selected.value
-                    ? `${selected.textContent} 반 학부모에게 발송됩니다.`
-                    : '반을 선택하면 해당 반 학부모에게 발송됩니다.';
-            } else {
-                const selected = kidSelect.options[kidSelect.selectedIndex];
-                targetSummary.textContent = selected && selected.value
-                    ? `${selected.textContent} 학부모에게 발송됩니다.`
-                    : '원생을 선택하면 해당 원생 학부모에게 발송됩니다.';
-            }
-        };
-
-        const updateTargetInputs = () => {
-            const type = targetType.value;
-            if (type === 'GLOBAL') {
-                classroomSelect.disabled = true;
-                kidSelect.disabled = true;
-                classroomSelect.value = '';
-                kidSelect.value = '';
-            } else if (type === 'CLASSROOM') {
-                classroomSelect.disabled = false;
-                kidSelect.disabled = true;
-                kidSelect.value = '';
-            } else {
-                classroomSelect.disabled = false;
-                kidSelect.disabled = false;
-            }
-            updateTargetSummary();
-        };
-
-        try {
-            const classrooms = await loadClassrooms();
-            setOptions(classroomSelect, classrooms.length ? '반을 선택하세요' : '등록된 반이 없습니다', classrooms);
-        } catch (error) {
-            console.error('반 목록 로드 실패:', error);
-        }
-
-        targetType.addEventListener('change', updateTargetInputs);
-        classroomSelect.addEventListener('change', async () => {
-            const kids = await loadKidsByClassroom(classroomSelect.value);
-            setOptions(kidSelect, kids.length ? '원생을 선택하세요' : '등록된 원생이 없습니다', kids);
-            updateTargetInputs();
-        });
-        kidSelect.addEventListener('change', updateTargetSummary);
-
-        updateTargetInputs();
-    });
-</script>
+<script th:attr="nonce=${cspNonce}" th:src="@{/js/pages/notepad-write.js}" src="/js/pages/notepad-write.js"></script>
 </body>
 </html>
