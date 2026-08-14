@@ -1,6 +1,5 @@
 package com.erp.domain.kindergarten.entity;
 
-import com.erp.domain.member.entity.Member;
 import com.erp.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -79,10 +78,4 @@ public class Kindergarten extends BaseEntity {
         this.closeTime = closeTime;
     }
 
-    /**
-     * 원장 교사 설정
-     */
-    public void setPrincipal(Member principal) {
-        // 추후 구현
-    }
 }
