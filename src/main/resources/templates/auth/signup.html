@@ -5,93 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>회원가입 - 유치원 ERP</title>
 
-    <!-- Tailwind CSS -->
-    <script th:attr="nonce=${cspNonce}" src="https://cdn.tailwindcss.com"></script>
-    <script th:attr="nonce=${cspNonce}">
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#F3FBF7',
-                            100: '#E2F5EB',
-                            200: '#C7EBD9',
-                            300: '#A4DEC2',
-                            400: '#79CCA5',
-                            500: '#56B88C',
-                            600: '#3F9C73',
-                            700: '#327D5E',
-                            800: '#26624A',
-                            900: '#1D4D3A',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        .role-radio:checked + label {
-            border-color: #56B88C;
-            background-color: #F3FBF7;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/app.css}" href="/css/app.css">
     <link rel="stylesheet" th:href="@{/css/custom.css}" href="/css/custom.css">
 </head>
 <body class="auth-screen bg-gray-50 min-h-screen flex items-center justify-center p-4 sm:p-6"
-      x-data="{
-          email: '',
-          password: '',
-          passwordConfirm: '',
-          name: '',
-          phone: '',
-          role: 'PARENT',
-          isLoading: false,
-          error: '',
-          errors: {},
-          passwordsMatch() {
-              return this.password === this.passwordConfirm && this.password.length > 0;
-          },
-          async handleSubmit() {
-              this.isLoading = true;
-              this.error = '';
-              this.errors = {};
-
-              try {
-                  const response = await fetch('/api/v1/auth/signup', {
-                      method: 'POST',
-                      headers: {
-                          'Content-Type': 'application/json'
-                      },
-                      body: JSON.stringify({
-                          email: this.email,
-                          password: this.password,
-                          passwordConfirm: this.passwordConfirm,
-                          name: this.name,
-                          phone: this.phone,
-                          role: this.role
-                      })
-                  });
-
-                  const data = await response.json();
-
-                   if (data.success) {
-                       await UI.success('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
-                       window.location.href = '/login';
-                   } else {
-                      if (data.data && typeof data.data === 'object') {
-                          this.errors = data.data;
-                      } else {
-                          this.error = data.message || '회원가입에 실패했습니다';
-                      }
-                  }
-              } catch (e) {
-                  this.error = '서버 오류가 발생했습니다';
-              } finally {
-                  this.isLoading = false;
-              }
-          }
-      }">
+      x-data="signupForm">
 
     <!-- Signup Container -->
     <div class="auth-shell auth-shell-signup w-full max-w-4xl">
@@ -111,7 +29,7 @@
         <!-- Signup Card -->
         <div class="auth-card bg-white rounded-xl border border-gray-200 p-6 sm:p-8">
             <!-- Error Alert -->
-            <div x-show="error" x-cloak
+            <div x-show="error" x-cloak role="alert"
                  class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
                 <div class="flex items-center gap-3">
                     <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -166,7 +84,7 @@
                 <div class="grid grid-cols-1 gap-4 mb-4 sm:grid-cols-3">
                     <div>
                         <label for="name" class="block mb-1.5 text-sm font-medium text-gray-700">이름</label>
-                        <input type="text" id="name" name="name" required
+                        <input type="text" id="name" name="name" autocomplete="name" required
                                x-model="name"
                                class="h-11 px-3 block w-full border border-gray-200 rounded-lg text-sm focus:border-primary-500 focus:ring-primary-500"
                                placeholder="홍길동">
@@ -174,7 +92,7 @@
                     </div>
                     <div>
                         <label for="email" class="block mb-1.5 text-sm font-medium text-gray-700">이메일</label>
-                        <input type="email" id="email" name="email" required
+                        <input type="email" id="email" name="email" autocomplete="email" required
                                x-model="email"
                                class="h-11 px-3 block w-full border border-gray-200 rounded-lg text-sm focus:border-primary-500 focus:ring-primary-500"
                                placeholder="example@email.com">
@@ -194,7 +112,7 @@
                 <div class="grid grid-cols-1 gap-4 mb-4 sm:grid-cols-2">
                     <div>
                         <label for="password" class="block mb-1.5 text-sm font-medium text-gray-700">비밀번호</label>
-                        <input type="password" id="password" name="password" required
+                        <input type="password" id="password" name="password" autocomplete="new-password" required
                                x-model="password"
                                class="h-11 px-3 block w-full border border-gray-200 rounded-lg text-sm focus:border-primary-500 focus:ring-primary-500"
                                placeholder="8자 이상">
@@ -203,7 +121,7 @@
                     <div>
                         <label for="passwordConfirm" class="block mb-1.5 text-sm font-medium text-gray-700">비밀번호 확인</label>
                         <div class="relative">
-                            <input type="password" id="passwordConfirm" name="passwordConfirm" required
+                            <input type="password" id="passwordConfirm" name="passwordConfirm" autocomplete="new-password" required
                                    x-model="passwordConfirm"
                                    class="h-11 px-3 pr-8 block w-full border rounded-lg text-sm focus:ring-primary-500"
                                    :class="passwordsMatch() ? 'border-green-400 focus:border-green-500' : (passwordConfirm ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-primary-500')"
@@ -222,8 +140,8 @@
 
                 <!-- Terms -->
                 <div class="mb-5 rounded-lg bg-gray-50 px-3 py-2">
-                    <label class="flex min-h-12 items-center gap-3 cursor-pointer">
-                        <input type="checkbox" required class="h-8 w-8 flex-shrink-0 border-gray-300 rounded text-primary-600 focus:ring-primary-500">
+                    <label for="termsAgreement" class="flex min-h-12 items-center gap-3 cursor-pointer">
+                        <input type="checkbox" id="termsAgreement" required class="h-8 w-8 flex-shrink-0 border-gray-300 rounded text-primary-600 focus:ring-primary-500">
                         <span class="text-sm text-gray-600">
                             서비스 이용 및 개인정보 처리 기준에 동의합니다.
                         </span>
@@ -282,13 +200,66 @@
     </div>
 
     <!-- HTMX -->
-    <script th:attr="nonce=${cspNonce}" src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script th:attr="nonce=${cspNonce}" src="/vendor/htmx.min.js"></script>
+
+    <script th:attr="nonce=${cspNonce}">
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('signupForm', () => ({
+                email: '',
+                password: '',
+                passwordConfirm: '',
+                name: '',
+                phone: '',
+                role: 'PARENT',
+                isLoading: false,
+                error: '',
+                errors: {},
+                passwordsMatch() {
+                    return this.password === this.passwordConfirm && this.password.length > 0;
+                },
+                async handleSubmit() {
+                    this.isLoading = true;
+                    this.error = '';
+                    this.errors = {};
+
+                    try {
+                        const response = await fetch('/api/v1/auth/signup', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: this.email,
+                                password: this.password,
+                                passwordConfirm: this.passwordConfirm,
+                                name: this.name,
+                                phone: this.phone,
+                                role: this.role
+                            })
+                        });
+                        const data = await response.json();
+
+                        if (data.success) {
+                            await UI.success('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
+                            window.location.href = '/login';
+                        } else if (data.data && typeof data.data === 'object') {
+                            this.errors = data.data;
+                        } else {
+                            this.error = data.message || '회원가입에 실패했습니다';
+                        }
+                    } catch (e) {
+                        this.error = '서버 오류가 발생했습니다';
+                    } finally {
+                        this.isLoading = false;
+                    }
+                }
+            }));
+        });
+    </script>
 
     <!-- Alpine.js -->
-    <script th:attr="nonce=${cspNonce}" defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.0/dist/cdn.min.js"></script>
+    <script th:attr="nonce=${cspNonce}" defer src="/vendor/alpine.min.js"></script>
 
     <!-- SweetAlert2 -->
-    <script th:attr="nonce=${cspNonce}" src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script th:attr="nonce=${cspNonce}" src="/vendor/sweetalert2.all.min.js"></script>
 
     <!-- Custom JS (UI helpers) -->
     <script th:attr="nonce=${cspNonce}" th:src="@{/js/app.js}"></script>

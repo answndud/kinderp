@@ -298,6 +298,11 @@ a:focus-visible {
     font-weight: 600;
 }
 
+.role-radio:checked + label {
+    border-color: var(--primary-300);
+    background-color: var(--surface-tint);
+}
+
 .ops-action-index {
     color: var(--primary-500);
     font-size: 0.75rem;

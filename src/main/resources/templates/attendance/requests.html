@@ -4,37 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>출결 변경 요청 - 유치원 ERP</title>
-
-    <script th:attr="nonce=${cspNonce}" src="https://cdn.tailwindcss.com"></script>
-    <script th:attr="nonce=${cspNonce}">
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#F3FBF7',
-                            100: '#E2F5EB',
-                            200: '#C7EBD9',
-                            300: '#A4DEC2',
-                            400: '#79CCA5',
-                            500: '#56B88C',
-                            600: '#3F9C73',
-                            700: '#327D5E',
-                            800: '#26624A',
-                            900: '#1D4D3A'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Pretendard', 'Noto Sans KR', sans-serif; }
     </style>
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <link rel="stylesheet" th:href="@{/css/app.css}" href="/css/app.css">
     <link rel="stylesheet" th:href="@{/css/custom.css}" href="/css/custom.css">
 </head>
 <body class="bg-gray-50">
@@ -76,18 +51,18 @@
                 <form id="createRequestForm" class="space-y-4">
                     <div>
                         <label for="kidId" class="block text-sm font-medium text-gray-700 mb-1">원생</label>
-                        <select id="kidId" name="kidId" class="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200">
+                        <select id="kidId" name="kidId" required class="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200">
                             <option value="">원생을 선택하세요</option>
                         </select>
                     </div>
                     <div>
                         <label for="requestDate" class="block text-sm font-medium text-gray-700 mb-1">날짜</label>
-                        <input id="requestDate" name="date" type="date"
+                        <input id="requestDate" name="date" type="date" required
                                class="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200">
                     </div>
                     <div>
                         <label for="requestStatus" class="block text-sm font-medium text-gray-700 mb-1">요청 상태</label>
-                        <select id="requestStatus" name="status" class="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200">
+                        <select id="requestStatus" name="status" required class="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200">
                             <option th:each="status : ${attendanceStatuses}" th:value="${status.name()}"
                                     th:text="${status.description}">출석</option>
                         </select>
@@ -98,7 +73,7 @@
                                   placeholder="예: 병원 진료로 결석 처리 부탁드립니다"
                                   class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"></textarea>
                     </div>
-                    <button type="submit" class="min-h-11 w-full rounded-lg bg-primary-600 px-4 py-3 text-sm font-semibold text-white hover:bg-primary-700">
+                    <button id="createRequestSubmit" type="submit" class="min-h-11 w-full rounded-lg bg-primary-600 px-4 py-3 text-sm font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60">
                         요청 제출
                     </button>
                 </form>
@@ -153,9 +128,9 @@
             </div>
 
             <div id="requestSuccessBanner"
-                 class="hidden rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"></div>
+                 class="hidden rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700" role="status" aria-live="polite"></div>
             <div id="requestErrorBanner"
-                 class="hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+                 class="hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert"></div>
 
             <div class="md:overflow-hidden md:rounded-xl md:border md:border-gray-200 md:bg-white">
                 <div class="flex items-center justify-between gap-3 px-1 pb-4 md:border-b md:border-gray-200 md:px-6 md:py-4">
@@ -165,15 +140,16 @@
                             최근 요청부터 확인할 수 있습니다.
                         </p>
                     </div>
-                    <div id="requestLoadingIndicator" class="hidden text-sm font-medium text-primary-700">불러오는 중...</div>
+                    <div id="requestLoadingIndicator" class="hidden text-sm font-medium text-primary-700" role="status" aria-live="polite">불러오는 중...</div>
                 </div>
 
-                <div id="requestMobileList" class="space-y-3 md:hidden">
+                <div id="requestMobileList" class="space-y-3 md:hidden" role="region" aria-label="출결 요청 목록" aria-live="polite" aria-busy="true">
                     <div class="px-2 py-8 text-center text-sm leading-6 text-gray-500">요청을 불러오는 중입니다.</div>
                 </div>
 
                 <div class="hidden overflow-x-auto md:block">
                     <table class="min-w-full divide-y divide-gray-200">
+                        <caption class="sr-only">출결 변경 요청 목록</caption>
                         <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">생성 시각</th>
@@ -184,7 +160,7 @@
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">처리</th>
                         </tr>
                         </thead>
-                        <tbody id="requestTableBody" class="divide-y divide-gray-100 bg-white">
+                        <tbody id="requestTableBody" class="divide-y divide-gray-100 bg-white" aria-live="polite">
                         <tr>
                             <td colspan="6" class="px-6 py-12 text-center text-sm text-gray-500">요청을 불러오는 중입니다.</td>
                         </tr>
@@ -213,6 +189,8 @@
         const errorBanner = document.getElementById('requestErrorBanner');
         const requestCountValue = document.getElementById('requestCountValue');
         const kidSelect = document.getElementById('kidId');
+        const createRequestSubmit = document.getElementById('createRequestSubmit');
+        let pendingSubmission = null;
 
         if (isParent) {
             loadMyKids();
@@ -223,6 +201,7 @@
             event.preventDefault();
             hideBanner(successBanner);
             hideBanner(errorBanner);
+            createRequestSubmit?.setAttribute('disabled', 'disabled');
 
             const body = {
                 kidId: Number(document.getElementById('kidId').value),
@@ -230,19 +209,32 @@
                 status: document.getElementById('requestStatus').value,
                 note: document.getElementById('requestNote').value || null
             };
+            const payloadFingerprint = JSON.stringify(body);
+            if (!pendingSubmission || pendingSubmission.payloadFingerprint !== payloadFingerprint) {
+                pendingSubmission = {
+                    payloadFingerprint,
+                    key: createIdempotencyKey()
+                };
+            }
 
             const response = await apiRequest('/api/v1/attendance-requests', {
                 method: 'POST',
-                body: JSON.stringify(body)
+                body: payloadFingerprint,
+                headers: {
+                    'Idempotency-Key': pendingSubmission.key
+                }
             });
 
             if (!response.success) {
                 showBanner(errorBanner, response.message || '요청 생성에 실패했습니다.');
+                createRequestSubmit?.removeAttribute('disabled');
                 return;
             }
 
             createForm.reset();
+            pendingSubmission = null;
             showBanner(successBanner, '출결 변경 요청이 등록되었습니다.');
+            createRequestSubmit?.removeAttribute('disabled');
             loadRequests();
         });
 
@@ -283,7 +275,15 @@
             }
 
             if (action === 'reject') {
-                const reason = window.prompt('거절 사유를 입력하세요.');
+                const promptResult = await UI.promptTextarea({
+                    title: '출결 변경 요청 거절',
+                    label: '거절 사유',
+                    placeholder: '보호자가 확인할 수 있는 사유를 입력하세요.',
+                    confirmText: '거절 처리',
+                    cancelText: '취소',
+                    required: true
+                });
+                const reason = promptResult?.isConfirmed ? promptResult.value?.trim() : '';
                 if (!reason) {
                     return;
                 }
@@ -313,11 +313,13 @@
 
         async function loadRequests() {
             setLoading(true);
+            requestMobileList.setAttribute('aria-busy', 'true');
             hideBanner(errorBanner);
 
             const url = isParent ? '/api/v1/attendance-requests/my' : buildPendingUrl();
             const response = await apiRequest(url);
             setLoading(false);
+            requestMobileList.setAttribute('aria-busy', 'false');
 
             if (!response.success) {
                 requestTableBody.innerHTML = emptyRow('요청을 불러오지 못했습니다.');
@@ -357,18 +359,30 @@
         async function apiRequest(url, options = {}) {
             const headers = {
                 'Accept': 'application/json',
-                ...(options.body ? { 'Content-Type': 'application/json' } : {})
+                ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+                ...(options.headers || {})
             };
             if (csrfToken && csrfHeader && options.method && options.method !== 'GET') {
                 headers[csrfHeader] = csrfToken;
             }
 
-            const response = await fetch(url, {
-                credentials: 'same-origin',
-                ...options,
-                headers
-            });
-            return response.json();
+            try {
+                const response = await fetch(url, {
+                    credentials: 'same-origin',
+                    ...options,
+                    headers
+                });
+                return await response.json();
+            } catch (error) {
+                return { success: false, message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도하세요.' };
+            }
+        }
+
+        function createIdempotencyKey() {
+            if (window.crypto?.randomUUID) {
+                return window.crypto.randomUUID();
+            }
+            return `attendance-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
         }
 
         function handleActionResponse(response, successMessage) {
@@ -454,15 +468,15 @@
         function renderActions(request) {
             if (isParent) {
                 if (request.status === 'PENDING') {
-                    return `<button data-action="cancel" data-id="${request.id}" class="min-h-11 rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">요청 취소</button>`;
+                    return `<button type="button" data-action="cancel" data-id="${request.id}" class="min-h-11 rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">요청 취소</button>`;
                 }
                 return '<span class="text-sm text-gray-400">처리 완료</span>';
             }
 
             return `
                 <div class="grid grid-cols-2 gap-2 md:flex md:flex-wrap">
-                    <button data-action="approve" data-id="${request.id}" class="min-h-11 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700">승인</button>
-                    <button data-action="reject" data-id="${request.id}" class="min-h-11 rounded-lg border border-amber-200 px-4 py-2 text-sm font-semibold text-amber-700 hover:bg-amber-50">거절</button>
+                    <button type="button" data-action="approve" data-id="${request.id}" class="min-h-11 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700">승인</button>
+                    <button type="button" data-action="reject" data-id="${request.id}" class="min-h-11 rounded-lg border border-amber-200 px-4 py-2 text-sm font-semibold text-amber-700 hover:bg-amber-50">거절</button>
                 </div>
             `;
         }
@@ -537,5 +551,7 @@
         }
     });
 </script>
+<script th:attr="nonce=${cspNonce}" src="/vendor/sweetalert2.all.min.js"></script>
+<script th:attr="nonce=${cspNonce}" th:src="@{/js/app.js}"></script>
 </body>
 </html>
