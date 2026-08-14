@@ -5,15 +5,15 @@
 For further reference, please consider the following sections:
 
 * [Official Gradle documentation](https://docs.gradle.org)
-* [Spring Boot Gradle Plugin Reference Guide](https://docs.spring.io/spring-boot/3.5.9/gradle-plugin)
-* [Create an OCI image](https://docs.spring.io/spring-boot/3.5.9/gradle-plugin/packaging-oci-image.html)
-* [Spring Data JPA](https://docs.spring.io/spring-boot/3.5.9/reference/data/sql.html#data.sql.jpa-and-spring-data)
-* [Spring Data Redis (Access+Driver)](https://docs.spring.io/spring-boot/3.5.9/reference/data/nosql.html#data.nosql.redis)
-* [OAuth2 Client](https://docs.spring.io/spring-boot/3.5.9/reference/web/spring-security.html#web.security.oauth2.client)
-* [Spring Security](https://docs.spring.io/spring-boot/3.5.9/reference/web/spring-security.html)
-* [Thymeleaf](https://docs.spring.io/spring-boot/3.5.9/reference/web/servlet.html#web.servlet.spring-mvc.template-engines)
-* [Validation](https://docs.spring.io/spring-boot/3.5.9/reference/io/validation.html)
-* [Spring Web](https://docs.spring.io/spring-boot/3.5.9/reference/web/servlet.html)
+* [Spring Boot Gradle Plugin Reference Guide](https://docs.spring.io/spring-boot/3.5.14/gradle-plugin)
+* [Create an OCI image](https://docs.spring.io/spring-boot/3.5.14/gradle-plugin/packaging-oci-image.html)
+* [Spring Data JPA](https://docs.spring.io/spring-boot/3.5.14/reference/data/sql.html#data.sql.jpa-and-spring-data)
+* [Spring Data Redis (Access+Driver)](https://docs.spring.io/spring-boot/3.5.14/reference/data/nosql.html#data.nosql.redis)
+* [OAuth2 Client](https://docs.spring.io/spring-boot/3.5.14/reference/web/spring-security.html#web.security.oauth2.client)
+* [Spring Security](https://docs.spring.io/spring-boot/3.5.14/reference/web/spring-security.html)
+* [Thymeleaf](https://docs.spring.io/spring-boot/3.5.14/reference/web/servlet.html#web.servlet.spring-mvc.template-engines)
+* [Validation](https://docs.spring.io/spring-boot/3.5.14/reference/io/validation.html)
+* [Spring Web](https://docs.spring.io/spring-boot/3.5.14/reference/web/servlet.html)
 
 ### Guides
 
@@ -36,4 +36,3 @@ The following guides illustrate how to use some features concretely:
 These additional references should also help you:
 
 * [Gradle Build Scans – insights for your project's build](https://scans.gradle.com#gradle)
-

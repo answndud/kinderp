@@ -9,7 +9,7 @@
 | 평가 기준 | 공고가 실제로 확인하려는 것 | 제출에서 보여줄 방식 |
 | --- | --- | --- |
 | 문제 해결력 | 요구사항을 그대로 구현하지 않고, 본질적 문제로 다시 정의하는가 | 유치원 ERP를 CRUD가 아니라 role/tenant, 상태 전이, 감사, 알림 실패 대응 문제로 재구성한 과정 |
-| 실행력 | 아이디어가 아니라 작동하는 결과물을 만들었는가 | Spring Boot 3.5.9, Java 21, MySQL, Redis, Flyway, QueryDSL 기반 저장소와 테스트/CI 링크 |
+| 실행력 | 아이디어가 아니라 작동하는 결과물을 만들었는가 | Spring Boot 3.5.14, Java 21, MySQL, Redis, Flyway, QueryDSL 기반 저장소와 테스트/CI 링크 |
 | 성장·문제 해결 방식 | 낯선 요구사항을 학습하고 스스로 쪼개 개선하는가 | AI를 보조 수단으로 활용하되 설계 선택과 검증은 직접 책임진 과정 |
 | 복잡한 요구사항 구조화 | 고객/현장 요구를 기술 문제로 나누고 우선순위를 정하는가 | 원장/교사/학부모 권한, 입학 신청 review workflow, outbox 운영 API, audit 조사 흐름 |
 | 검증 책임 | AI가 낸 답을 그대로 믿지 않고 직접 확인하는가 | Testcontainers 통합 테스트, performance smoke, CI quick/heavy 분리, production-like checklist |

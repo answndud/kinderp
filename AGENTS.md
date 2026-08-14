@@ -8,7 +8,7 @@
 - 프로젝트: Kindergarten ERP (유치원 운영 관리 시스템)
 - 주요 사용자: 원장(PRINCIPAL), 교사(TEACHER), 학부모(PARENT)
 - 철학: **Simple is Best**
-- 기술: Java 21, Spring Boot 3.5.9, JPA, QueryDSL, Security, JWT, Flyway
+- 기술: Java 21, Spring Boot 3.5.14, JPA, QueryDSL, Security, JWT, Flyway
 - DB/Infra: MySQL 8, Redis
 - 화면: Thymeleaf + HTMX + Alpine.js + Tailwind(로컬 빌드)
 - 아키텍처: `domain/{controller,service,repository,entity,dto}` + `global/*`

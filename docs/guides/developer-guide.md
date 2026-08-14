@@ -14,7 +14,7 @@
 - 아키텍처: `domain/{controller,service,repository,entity,dto}` + `global/*`
 - 기술 스택:
   - Java 21
-  - Spring Boot 3.5.9
+  - Spring Boot 3.5.14
   - Spring Data JPA + QueryDSL
   - Spring Security + JWT(HTTP-only cookie)
   - MySQL 8, Redis

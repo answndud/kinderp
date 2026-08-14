@@ -16,7 +16,7 @@ Spring Boot 프로젝트를 처음 시작할 때 가장 흔한 실수는 두 가
 그리고 더 중요한 질문도 같이 다룹니다.
 
 - 왜 프로젝트 이름은 `settings.gradle`에 따로 두는가?
-- 왜 Java 21, Spring Boot 3.5.9, Gradle 조합으로 시작했는가?
+- 왜 Java 21, Spring Boot 3.5.14, Gradle 조합으로 시작했는가?
 - 왜 `build.gradle`은 시간이 지나면서 점점 커지게 되는가?
 - 왜 나중에는 `fastTest`, `integrationTest`, `performanceSmokeTest` 같은 태스크까지 붙였는가?
 
@@ -221,7 +221,7 @@ public class ErpApplication {
 ```groovy
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.5.9'
+    id 'org.springframework.boot' version '3.5.14'
     id 'io.spring.dependency-management' version '1.1.7'
 }
 ```

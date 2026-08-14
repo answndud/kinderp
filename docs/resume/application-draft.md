@@ -32,7 +32,7 @@ AI를 사용했지만, 최종 기준은 항상 저장소의 실제 결과였습�
 대표 포트폴리오는 Kindergarten ERP입니다.
 
 - 저장소: `[GitHub URL 입력]`
-- 주요 기술: Java 21, Spring Boot 3.5.9, JPA, QueryDSL, Spring Security, JWT, Redis, MySQL 8, Flyway, Thymeleaf, HTMX, Alpine.js
+- 주요 기술: Java 21, Spring Boot 3.5.14, JPA, QueryDSL, Spring Security, JWT, Redis, MySQL 8, Flyway, Thymeleaf, HTMX, Alpine.js
 - 핵심 문제: 유치원 운영에서 역할별 권한, 유치원 tenant 경계, 입학 신청 workflow, 출석/알림/audit 운영 흐름을 안전하게 처리하는 것
 - 운영 관점: HTTP-only cookie JWT, Redis refresh/session revoke, audit log, notification outbox retry/dead-letter, Prometheus/Grafana, readiness, startup safety validator
 - 검증 관점: API 통합 테스트, Spring Security 테스트, Testcontainers, performance smoke, CI quick/heavy 분리, production-like dry-run checklist

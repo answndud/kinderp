@@ -3,7 +3,7 @@
 > 유치원 운영 ERP를 주제로, 인증/권한/상태 전이/감사/관측성을 끝까지 다룬 Spring Boot 백엔드 포트폴리오입니다.
 
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.9-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.14-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue.svg)](https://www.mysql.com/)
 [![Redis](https://img.shields.io/badge/Redis-7.x-red.svg)](https://redis.io/)
 [![Backend CI](https://github.com/answndud/Kindergarten_ERP/actions/workflows/ci.yml/badge.svg)](https://github.com/answndud/Kindergarten_ERP/actions/workflows/ci.yml)
@@ -25,7 +25,7 @@
 | 프로젝트 성격 | 다중 테넌트 내부 운영 플랫폼 포트폴리오 |
 | 포트폴리오에서 강조한 역량 | 권한·workflow 정합성, 동시성, 실패 복구, 성능 측정, 운영 관측성 |
 | 핵심 사용자 | `PRINCIPAL`, `TEACHER`, `PARENT` |
-| 핵심 기술 | Java 21, Spring Boot 3.5.9, MySQL 8, Redis, JPA, QueryDSL |
+| 핵심 기술 | Java 21, Spring Boot 3.5.14, MySQL 8, Redis, JPA, QueryDSL |
 | 실행 프로필 | `local`, `demo`, `prod` |
 | 최근 운영 개선 | 입력 오류 500 방지, 인증 rate-limit/`Retry-After`, graceful shutdown, production Compose resource/log guardrail, Notification Outbox 운영면, `Backend CI` `5m 28s -> 1분대` |
 | 바로 볼 문서 | [`PLAN.md`](./PLAN.md), [`docs/guides/developer-guide.md`](./docs/guides/developer-guide.md), [`docs/guides/env-contract.md`](./docs/guides/env-contract.md), [`docs/guides/deployment-guide.md`](./docs/guides/deployment-guide.md) |

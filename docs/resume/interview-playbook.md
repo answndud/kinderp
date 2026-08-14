@@ -4,7 +4,7 @@
 
 ## 1. 30초 자기소개
 
-저는 Java와 Spring Boot로 복잡한 백엔드 요구사항을 데이터 모델과 API로 구조화하고, 성능·보안·운영 관점에서 검증하는 개발자 지망생입니다. 대표 프로젝트로 Java 21, Spring Boot 3.5.9 기반 Kindergarten ERP를 만들었고, 단순 CRUD보다 원장/교사/학부모 권한 경계, 유치원 tenant 격리, JWT cookie와 Redis 세션 revoke, 입학 신청 상태 전이, audit log, notification outbox dead-letter 재처리 같은 운영형 문제를 구현했습니다. AI는 문제 분해와 누락 점검에 활용했지만, 최종 구조 선택과 검증은 직접 책임졌습니다.
+저는 Java와 Spring Boot로 복잡한 백엔드 요구사항을 데이터 모델과 API로 구조화하고, 성능·보안·운영 관점에서 검증하는 개발자 지망생입니다. 대표 프로젝트로 Java 21, Spring Boot 3.5.14 기반 Kindergarten ERP를 만들었고, 단순 CRUD보다 원장/교사/학부모 권한 경계, 유치원 tenant 격리, JWT cookie와 Redis 세션 revoke, 입학 신청 상태 전이, audit log, notification outbox dead-letter 재처리 같은 운영형 문제를 구현했습니다. AI는 문제 분해와 누락 점검에 활용했지만, 최종 구조 선택과 검증은 직접 책임졌습니다.
 
 ## 2. 3분 프로젝트 설명
 
