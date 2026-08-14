@@ -94,6 +94,8 @@ if [[ "$PREFLIGHT_ONLY" == "1" ]]; then
 fi
 
 previous_image="$(docker inspect --format '{{.Config.Image}}' kindergarten-erp-app 2>/dev/null || true)"
+previous_version="$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' kindergarten-erp-app 2>/dev/null \
+    | sed -n 's/^APP_VERSION=//p' | head -n 1 || true)"
 
 compose pull
 compose up -d
@@ -111,7 +113,7 @@ if [[ -z "$previous_image" ]]; then
     exit 1
 fi
 
-APP_IMAGE="$previous_image" compose up -d
+APP_IMAGE="$previous_image" APP_VERSION="${previous_version:-unknown}" compose up -d
 if ! wait_for_deployment; then
     echo "Rollback also failed readiness; manual recovery is required." >&2
     compose ps >&2 || true
@@ -119,5 +121,5 @@ if ! wait_for_deployment; then
     exit 1
 fi
 
-echo "Rollback restored ${previous_image}; the new release was not promoted." >&2
+echo "Rollback restored ${previous_image} with APP_VERSION=${previous_version:-unknown}; the new release was not promoted." >&2
 exit 1

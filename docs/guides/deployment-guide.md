@@ -686,6 +686,8 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml ps
 
 CD는 이미지 태그와 동일한 commit SHA를 `APP_VERSION`으로 주입합니다. 배포 후 인증된 management surface의 `/actuator/info`에서 `info.app.version`을 확인하면 실행 중인 이미지와 소스 커밋을 대조할 수 있습니다.
 
+Readiness 또는 smoke가 실패해 롤백할 때는 기존 컨테이너의 `APP_VERSION`도 함께 복원합니다. 버전 추적 정보가 실패한 신규 릴리스의 SHA로 남지 않도록 하는 동작입니다.
+
 로그 확인:
 
 ```bash
