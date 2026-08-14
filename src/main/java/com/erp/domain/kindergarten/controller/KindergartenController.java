@@ -5,10 +5,12 @@ import com.erp.domain.kindergarten.dto.response.KindergartenResponse;
 import com.erp.domain.kindergarten.entity.Kindergarten;
 import com.erp.domain.kindergarten.service.KindergartenService;
 import com.erp.global.common.ApiResponse;
+import com.erp.global.security.user.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,16 +31,18 @@ public class KindergartenController {
     @PostMapping
     @PreAuthorize("hasRole('PRINCIPAL')")
     public ResponseEntity<ApiResponse<KindergartenResponse>> create(
-            @Valid @RequestBody KindergartenRequest request) {
+            @Valid @RequestBody KindergartenRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long id = kindergartenService.register(
                 request.getName(),
                 request.getAddress(),
                 request.getPhone(),
                 request.getOpenTime(),
-                request.getCloseTime()
+                request.getCloseTime(),
+                userDetails.getMemberId()
         );
 
-        Kindergarten kindergarten = kindergartenService.getKindergarten(id);
+        Kindergarten kindergarten = kindergartenService.getKindergartenForRequester(id, userDetails.getMemberId());
 
         return ResponseEntity
                 .ok(ApiResponse.success(KindergartenResponse.from(kindergarten), "유치원이 등록되었습니다"));
@@ -49,8 +53,10 @@ public class KindergartenController {
      */
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<KindergartenResponse>> getKindergarten(@PathVariable Long id) {
-        Kindergarten kindergarten = kindergartenService.getKindergarten(id);
+    public ResponseEntity<ApiResponse<KindergartenResponse>> getKindergarten(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Kindergarten kindergarten = kindergartenService.getKindergartenForRequester(id, userDetails.getMemberId());
 
         return ResponseEntity
                 .ok(ApiResponse.success(KindergartenResponse.from(kindergarten)));
@@ -61,8 +67,9 @@ public class KindergartenController {
      */
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<List<KindergartenResponse>>> getAllKindergartens() {
-        List<Kindergarten> kindergartens = kindergartenService.getAllKindergartens();
+    public ResponseEntity<ApiResponse<List<KindergartenResponse>>> getAllKindergartens(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        List<Kindergarten> kindergartens = kindergartenService.getKindergartensForRequester(userDetails.getMemberId());
 
         List<KindergartenResponse> responses = kindergartens.stream()
                 .map(KindergartenResponse::from)
@@ -79,10 +86,12 @@ public class KindergartenController {
     @PreAuthorize("hasRole('PRINCIPAL')")
     public ResponseEntity<ApiResponse<KindergartenResponse>> updateKindergarten(
             @PathVariable Long id,
-            @Valid @RequestBody KindergartenRequest request) {
+            @Valid @RequestBody KindergartenRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        kindergartenService.updateKindergarten(
+        kindergartenService.updateKindergartenForRequester(
                 id,
+                userDetails.getMemberId(),
                 request.getName(),
                 request.getAddress(),
                 request.getPhone(),
@@ -90,7 +99,7 @@ public class KindergartenController {
                 request.getCloseTime()
         );
 
-        Kindergarten kindergarten = kindergartenService.getKindergarten(id);
+        Kindergarten kindergarten = kindergartenService.getKindergartenForRequester(id, userDetails.getMemberId());
 
         return ResponseEntity
                 .ok(ApiResponse.success(KindergartenResponse.from(kindergarten), "유치원 정보가 수정되었습니다"));
@@ -101,8 +110,10 @@ public class KindergartenController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('PRINCIPAL')")
-    public ResponseEntity<ApiResponse<Void>> deleteKindergarten(@PathVariable Long id) {
-        kindergartenService.deleteKindergarten(id);
+    public ResponseEntity<ApiResponse<Void>> deleteKindergarten(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        kindergartenService.deleteKindergartenForRequester(id, userDetails.getMemberId());
 
         return ResponseEntity
                 .ok(ApiResponse.success(null, "유치원이 삭제되었습니다"));

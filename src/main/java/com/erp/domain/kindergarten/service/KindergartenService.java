@@ -2,6 +2,10 @@ package com.erp.domain.kindergarten.service;
 
 import com.erp.domain.kindergarten.entity.Kindergarten;
 import com.erp.domain.kindergarten.repository.KindergartenRepository;
+import com.erp.domain.member.entity.Member;
+import com.erp.domain.member.entity.MemberRole;
+import com.erp.domain.member.repository.MemberRepository;
+import com.erp.global.security.access.AccessPolicyService;
 import com.erp.global.exception.BusinessException;
 import com.erp.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -19,16 +23,27 @@ import java.util.List;
 public class KindergartenService {
 
     private final KindergartenRepository kindergartenRepository;
+    private final MemberRepository memberRepository;
+    private final AccessPolicyService accessPolicyService;
 
     /**
      * 유치원 등록
      */
     @Transactional
     public Long register(String name, String address, String phone,
-                         String openTime, String closeTime) {
+                         String openTime, String closeTime, Long principalId) {
         // 유치원명 중복 확인 (선택)
         if (kindergartenRepository.existsByName(name)) {
             throw new BusinessException(ErrorCode.KINDERGARTEN_ALREADY_EXISTS);
+        }
+
+        Member principal = memberRepository.findById(principalId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        if (principal.getRole() != MemberRole.PRINCIPAL) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+        if (principal.getKindergarten() != null) {
+            throw new BusinessException(ErrorCode.ALREADY_ASSIGNED_TO_KINDERGARTEN);
         }
 
         // 시간 변환
@@ -40,6 +55,8 @@ public class KindergartenService {
 
         // 저장
         Kindergarten saved = kindergartenRepository.save(kindergarten);
+        principal.assignKindergarten(saved);
+        memberRepository.save(principal);
 
         return saved.getId();
     }
@@ -52,11 +69,25 @@ public class KindergartenService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.KINDERGARTEN_NOT_FOUND));
     }
 
+    public Kindergarten getKindergartenForRequester(Long id, Long requesterId) {
+        Member requester = accessPolicyService.getRequester(requesterId);
+        accessPolicyService.validateSameKindergarten(requester, id);
+        return getKindergarten(id);
+    }
+
     /**
      * 전체 유치원 조회
      */
     public List<Kindergarten> getAllKindergartens() {
         return kindergartenRepository.findAllByOrderByNameAsc();
+    }
+
+    public List<Kindergarten> getKindergartensForRequester(Long requesterId) {
+        Member requester = accessPolicyService.getRequester(requesterId);
+        if (requester.getKindergarten() == null) {
+            return getAllKindergartens();
+        }
+        return List.of(requester.getKindergarten());
     }
 
     /**
@@ -75,6 +106,14 @@ public class KindergartenService {
         kindergarten.update(name, address, phone, open, close);
     }
 
+    @Transactional
+    public void updateKindergartenForRequester(Long id, Long requesterId, String name, String address,
+                                               String phone, String openTime, String closeTime) {
+        Member requester = accessPolicyService.getRequester(requesterId);
+        accessPolicyService.validatePrincipalSameKindergarten(requester, id);
+        updateKindergarten(id, name, address, phone, openTime, closeTime);
+    }
+
     /**
      * 유치원 삭제
      */
@@ -82,6 +121,13 @@ public class KindergartenService {
     public void deleteKindergarten(Long id) {
         Kindergarten kindergarten = getKindergarten(id);
         kindergartenRepository.delete(kindergarten);
+    }
+
+    @Transactional
+    public void deleteKindergartenForRequester(Long id, Long requesterId) {
+        Member requester = accessPolicyService.getRequester(requesterId);
+        accessPolicyService.validatePrincipalSameKindergarten(requester, id);
+        deleteKindergarten(id);
     }
 
     /**
