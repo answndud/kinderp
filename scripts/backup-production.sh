@@ -19,6 +19,21 @@ fi
 : "${MYSQL_PASSWORD:?MYSQL_PASSWORD is required}"
 : "${REDIS_PASSWORD:?REDIS_PASSWORD is required}"
 
+case "$BACKUP_DIR" in
+    /*) ;;
+    *)
+        echo "BACKUP_DIR must be an absolute path" >&2
+        exit 1
+        ;;
+esac
+
+normalized_backup_dir="${BACKUP_DIR%/}"
+if [[ -z "$normalized_backup_dir" || "$normalized_backup_dir" == "/" ]]; then
+    echo "BACKUP_DIR must not be the filesystem root" >&2
+    exit 1
+fi
+BACKUP_DIR="$normalized_backup_dir"
+
 MYSQL_PORT="${MYSQL_PORT:-3306}"
 MYSQLDUMP_BIN="${MYSQLDUMP_BIN:-mysqldump}"
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.prod.yml}"
