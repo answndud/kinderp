@@ -91,6 +91,7 @@ test('principal can scan the dashboard action queue and outbox timeline', async 
   const notificationCenter = page.getByRole('main').locator('#notification-center-list');
   await expect(notificationCenter).toBeVisible();
   await expect(notificationCenter.locator('button button')).toHaveCount(0);
+  await expect(notificationCenter.locator('[role="button"] button')).toHaveCount(0);
 
   await page.goto('/notepad');
   await expect(page.getByRole('heading', { name: '알림장' })).toBeVisible();
