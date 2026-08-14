@@ -18,6 +18,7 @@ public class CacheConfig {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager("dashboardStatistics");
         cacheManager.setCaffeine(
                 Caffeine.newBuilder()
+                        .recordStats()
                         .expireAfterWrite(60, TimeUnit.SECONDS)
                         .maximumSize(500)
         );

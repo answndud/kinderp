@@ -5,6 +5,7 @@ import com.erp.domain.attendance.entity.Attendance;
 import com.erp.domain.attendance.service.AttendanceService;
 import com.erp.global.security.user.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,6 +22,7 @@ import java.util.List;
  */
 @Controller
 @RequiredArgsConstructor
+@Slf4j
 public class AttendanceViewController {
 
     private final AttendanceService attendanceService;
@@ -117,7 +119,8 @@ public class AttendanceViewController {
             redirectAttributes.addFlashAttribute("message", "출석이 등록되었습니다.");
             return "redirect:/attendance/" + attendanceId;
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "출석 등록에 실패했습니다: " + e.getMessage());
+            log.error("출석 등록 중 예외 발생", e);
+            redirectAttributes.addFlashAttribute("error", "출석 등록에 실패했습니다. 잠시 후 다시 시도해 주세요.");
             return "redirect:/attendance/write";
         }
     }
@@ -138,7 +141,8 @@ public class AttendanceViewController {
             redirectAttributes.addFlashAttribute("message", "출석 정보가 수정되었습니다.");
             return "redirect:/attendance/" + id;
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "출석 수정에 실패했습니다: " + e.getMessage());
+            log.error("출석 수정 중 예외 발생", e);
+            redirectAttributes.addFlashAttribute("error", "출석 수정에 실패했습니다. 잠시 후 다시 시도해 주세요.");
             return "redirect:/attendance/" + id + "/edit";
         }
     }
@@ -158,7 +162,8 @@ public class AttendanceViewController {
             redirectAttributes.addFlashAttribute("message", "출석 정보가 삭제되었습니다.");
             return "redirect:/attendance";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "출석 삭제에 실패했습니다: " + e.getMessage());
+            log.error("출석 삭제 중 예외 발생", e);
+            redirectAttributes.addFlashAttribute("error", "출석 삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.");
             return "redirect:/attendance/" + id;
         }
     }
@@ -183,7 +188,8 @@ public class AttendanceViewController {
             attendanceService.recordDropOff(kidId, date, request, userDetails.getMemberId());
             redirectAttributes.addFlashAttribute("message", "등원이 기록되었습니다.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "등원 기록에 실패했습니다: " + e.getMessage());
+            log.error("등원 기록 중 예외 발생", e);
+            redirectAttributes.addFlashAttribute("error", "등원 기록에 실패했습니다. 잠시 후 다시 시도해 주세요.");
         }
         return "redirect:/attendance/daily?classroomId=" + classroomId + "&date=" + date;
     }
@@ -208,7 +214,8 @@ public class AttendanceViewController {
             attendanceService.recordPickUp(kidId, date, request, userDetails.getMemberId());
             redirectAttributes.addFlashAttribute("message", "하원이 기록되었습니다.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "하원 기록에 실패했습니다: " + e.getMessage());
+            log.error("하원 기록 중 예외 발생", e);
+            redirectAttributes.addFlashAttribute("error", "하원 기록에 실패했습니다. 잠시 후 다시 시도해 주세요.");
         }
         return "redirect:/attendance/daily?classroomId=" + classroomId + "&date=" + date;
     }
@@ -230,7 +237,8 @@ public class AttendanceViewController {
             attendanceService.markAbsent(kidId, date, note, userDetails.getMemberId());
             redirectAttributes.addFlashAttribute("message", "결석 처리되었습니다.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "결석 처리에 실패했습니다: " + e.getMessage());
+            log.error("결석 처리 중 예외 발생", e);
+            redirectAttributes.addFlashAttribute("error", "결석 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.");
         }
         return "redirect:/attendance/daily?classroomId=" + classroomId + "&date=" + date;
     }

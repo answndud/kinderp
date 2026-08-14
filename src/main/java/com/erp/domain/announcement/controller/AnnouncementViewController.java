@@ -153,7 +153,7 @@ public class AnnouncementViewController {
             return "redirect:/announcement/" + announcementId;
         } catch (Exception e) {
             log.error("공지사항 작성 중 예외 발생", e);
-            redirectAttributes.addFlashAttribute("error", "공지사항 작성에 실패했습니다: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "공지사항 작성에 실패했습니다. 잠시 후 다시 시도해 주세요.");
             return "redirect:/announcement/write";
         }
     }
@@ -193,7 +193,7 @@ public class AnnouncementViewController {
             return "redirect:/announcement/" + id;
         } catch (Exception e) {
             log.error("공지사항 수정 중 예외 발생", e);
-            redirectAttributes.addFlashAttribute("error", "공지사항 수정에 실패했습니다: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "공지사항 수정에 실패했습니다. 잠시 후 다시 시도해 주세요.");
             return "redirect:/announcement/" + id + "/edit";
         }
     }
@@ -213,7 +213,7 @@ public class AnnouncementViewController {
             redirectAttributes.addFlashAttribute("message", "공지사항이 삭제되었습니다.");
             return "redirect:/announcements";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "공지사항 삭제에 실패했습니다: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "공지사항 삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.");
             return "redirect:/announcement/" + id;
         }
     }
@@ -232,7 +232,7 @@ public class AnnouncementViewController {
             announcementService.toggleImportant(id, userDetails.getMemberId());
             redirectAttributes.addFlashAttribute("message", "중요 공지 설정이 변경되었습니다.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "중요 공지 설정 변경에 실패했습니다: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "중요 공지 설정 변경에 실패했습니다. 잠시 후 다시 시도해 주세요.");
         }
         return "redirect:/announcement/" + id;
     }

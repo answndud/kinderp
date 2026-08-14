@@ -23,12 +23,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
  * 알림장 뷰 컨트롤러
  */
 @Controller
+@Slf4j
 public class NotepadViewController {
 
     private final NotepadService notepadService;
@@ -164,7 +166,8 @@ public class NotepadViewController {
             redirectAttributes.addFlashAttribute("message", "알림장이 작성되었습니다.");
             return "redirect:/notepad/" + notepadId;
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "알림장 작성에 실패했습니다: " + e.getMessage());
+            log.error("알림장 작성 중 예외 발생", e);
+            redirectAttributes.addFlashAttribute("error", "알림장 작성에 실패했습니다. 잠시 후 다시 시도해 주세요.");
             return "redirect:/notepad/write";
         }
     }
@@ -185,7 +188,8 @@ public class NotepadViewController {
             redirectAttributes.addFlashAttribute("message", "알림장이 수정되었습니다.");
             return "redirect:/notepad/" + id;
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "알림장 수정에 실패했습니다: " + e.getMessage());
+            log.error("알림장 수정 중 예외 발생", e);
+            redirectAttributes.addFlashAttribute("error", "알림장 수정에 실패했습니다. 잠시 후 다시 시도해 주세요.");
             return "redirect:/notepad/" + id + "/edit";
         }
     }
@@ -205,7 +209,8 @@ public class NotepadViewController {
             redirectAttributes.addFlashAttribute("message", "알림장이 삭제되었습니다.");
             return "redirect:/notepad";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "알림장 삭제에 실패했습니다: " + e.getMessage());
+            log.error("알림장 삭제 중 예외 발생", e);
+            redirectAttributes.addFlashAttribute("error", "알림장 삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.");
             return "redirect:/notepad/" + id;
         }
     }
