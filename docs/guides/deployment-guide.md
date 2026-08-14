@@ -764,6 +764,7 @@ Repository Secrets에 아래 값을 넣습니다.
 | `DEPLOY_HOST` | EC2 Elastic IP 또는 도메인 |
 | `DEPLOY_USER` | 보통 `ubuntu` |
 | `DEPLOY_SSH_KEY` | `.pem` 파일 내용 |
+| `DEPLOY_KNOWN_HOSTS` | `ssh-keyscan -H <host>`를 운영자가 별도 검증한 뒤 저장한 서버 host key 한 줄 이상 |
 | `DEPLOY_PATH` | `/opt/kindergarten-erp/deploy` |
 | `GHCR_USERNAME` | GitHub username |
 | `GHCR_READ_TOKEN` | 서버에서 GHCR 이미지를 pull할 때 사용할 token |
@@ -773,6 +774,7 @@ Repository Secrets에 아래 값을 넣습니다.
 
 - `GHCR_READ_TOKEN`은 `read:packages` 권한이 있는 GitHub PAT로 준비합니다.
 - 운영 서버에서는 이 토큰으로 `docker login ghcr.io`를 수행한 뒤 이미지를 pull합니다.
+- `DEPLOY_KNOWN_HOSTS`는 CI에서 매번 `ssh-keyscan`으로 새로 신뢰하지 않습니다. 서버 콘솔 또는 신뢰된 경로에서 host key fingerprint를 확인한 뒤 전체 known_hosts 라인을 secret으로 저장합니다.
 - 실제 배포 workflow는 `deploy/docker-compose.prod.yml`, `deploy/Caddyfile`도 서버로 동기화합니다.
 
 ### 19.2 배포 전략
@@ -1240,12 +1242,13 @@ jobs:
       - name: Configure SSH key
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
         run: |
           mkdir -p ~/.ssh
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
 
       - name: Sync deploy assets
         env:
@@ -1253,8 +1256,10 @@ jobs:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
-          ssh "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$DEPLOY_PATH'"
-          scp deploy/docker-compose.prod.yml deploy/Caddyfile \
+          ssh -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$DEPLOY_PATH'"
+          scp -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            deploy/docker-compose.prod.yml deploy/Caddyfile \
             scripts/deploy-with-rollback.sh scripts/backup-production.sh scripts/verify-production-backup.sh \
             scripts/restore-production-backup.sh \
             "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
@@ -1269,7 +1274,8 @@ jobs:
           SMOKE_URL: ${{ secrets.DEPLOY_SMOKE_URL }}
           IMAGE_TAG: ghcr.io/${{ github.repository_owner }}/kindergarten-erp:${{ github.sha }}
         run: |
-          ssh "$DEPLOY_USER@$DEPLOY_HOST" \
+          ssh -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
             "export APP_IMAGE='$IMAGE_TAG' GHCR_USERNAME='$GHCR_USERNAME' GHCR_READ_TOKEN='$GHCR_READ_TOKEN' SMOKE_URL='$SMOKE_URL'; \
              cd '$DEPLOY_PATH'; \
              chmod 700 ./deploy-with-rollback.sh ./backup-production.sh ./verify-production-backup.sh ./restore-production-backup.sh; \
