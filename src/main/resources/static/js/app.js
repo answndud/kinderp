@@ -7,6 +7,19 @@ const CSRF_COOKIE_NAME = 'XSRF-TOKEN';
 const CSRF_HEADER_NAME = 'X-XSRF-TOKEN';
 const CSRF_UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
+window.AppLog = window.AppLog || Object.freeze({
+    error(...args) {
+        if (document.documentElement?.dataset.debug === 'true') {
+            console.error(...args);
+        }
+    },
+    warn(...args) {
+        if (document.documentElement?.dataset.debug === 'true') {
+            console.warn(...args);
+        }
+    }
+});
+
 function getCookieValue(name) {
     const cookiePrefix = `${name}=`;
     const cookies = document.cookie ? document.cookie.split(';') : [];
@@ -125,7 +138,7 @@ document.addEventListener('DOMContentLoaded', applyActiveNavLinks);
 document.addEventListener('htmx:afterSwap', applyActiveNavLinks);
 
 document.addEventListener('htmx:responseError', function (evt) {
-    console.error('HTMX Error:', evt.detail.xhr);
+    window.AppLog.error('HTMX Error:', evt.detail.xhr);
     // 에러 처리 (예: 토스트 메시지 표시)
 });
 
@@ -200,7 +213,7 @@ async function dispatchDataAction(element, event) {
 
     const resolved = resolveAction(action);
     if (!resolved || typeof resolved.handler !== 'function') {
-        console.warn(`Unknown data-action: ${action}`);
+        window.AppLog.warn(`Unknown data-action: ${action}`);
         return;
     }
 
@@ -210,7 +223,7 @@ async function dispatchDataAction(element, event) {
         if (window.UI?.error) {
             await window.UI.error(error.message || '요청 처리 중 오류가 발생했습니다.');
         } else {
-            console.error(error);
+            window.AppLog.error(error);
         }
     }
 }

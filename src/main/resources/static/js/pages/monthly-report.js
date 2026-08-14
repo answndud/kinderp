@@ -107,7 +107,7 @@
             body.innerHTML = report.kids.map(renderTableRow).join('');
             cards.innerHTML = report.kids.map(renderMonthlyCard).join('');
         } catch (error) {
-            console.error('월간 리포트 조회 실패:', error);
+            window.AppLog?.error('월간 리포트 조회 실패:', error);
             setErrorState('월간 리포트를 불러오지 못했습니다. 잠시 후 다시 조회해 주세요.');
         } finally {
             setBusy(false);
@@ -126,7 +126,7 @@
             const data = await response.json().catch(() => ({}));
             return Array.isArray(data.data) ? data.data : (data.data?.content || []);
         } catch (error) {
-            console.error('반 목록 로드 실패:', error);
+            window.AppLog?.error('반 목록 로드 실패:', error);
             return [];
         }
     };

@@ -156,7 +156,7 @@
                         }).length;
                     }
                 } catch (error) {
-                    console.error('대시보드 통계 로드 실패:', error);
+                    window.AppLog?.error('대시보드 통계 로드 실패:', error);
                 } finally {
                     this.loading = false;
                 }

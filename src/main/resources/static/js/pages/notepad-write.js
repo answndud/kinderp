@@ -69,7 +69,7 @@
             const classrooms = await loadClassrooms();
             setOptions(classroomSelect, classrooms.length ? '반을 선택하세요' : '등록된 반이 없습니다', classrooms);
         } catch (error) {
-            console.error('반 목록 로드 실패:', error);
+            window.AppLog?.error('반 목록 로드 실패:', error);
             setOptions(classroomSelect, '반 목록을 불러오지 못했습니다', []);
         }
         updateTargetInputs();
@@ -81,7 +81,7 @@
             const kids = await loadKids();
             setOptions(kidSelect, kids.length ? '원생을 선택하세요' : '등록된 원생이 없습니다', kids);
         } catch (error) {
-            console.error('원생 목록 로드 실패:', error);
+            window.AppLog?.error('원생 목록 로드 실패:', error);
             setOptions(kidSelect, '원생 목록을 불러오지 못했습니다', []);
         }
         updateTargetInputs();
