@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/app.css}" href="/css/app.css">
     <link rel="stylesheet" th:href="@{/css/custom.css}" href="/css/custom.css">
 </head>
 <body>
@@ -10,7 +11,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="h-16 flex items-center justify-between gap-4">
                 <a href="/" class="flex items-center gap-3 group">
-                    <span class="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-lg group-hover:shadow-xl">
+                    <span class="w-10 h-10 rounded-xl bg-primary-700 flex items-center justify-center shadow-sm group-hover:shadow-md">
                         <img th:src="@{/img/logo.svg}" src="/img/logo.svg" alt="KinderCare" class="w-full h-full object-contain" />
                     </span>
                     <div class="hidden sm:block leading-tight">
@@ -30,7 +31,7 @@
 
                 <div class="hidden md:flex items-center gap-2" th:if="${#authentication == null or #authentication.name == 'anonymousUser'}">
                     <a href="/login" class="px-4 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50">로그인</a>
-                    <a href="/signup" class="px-5 py-2.5 rounded-lg text-sm font-semibold bg-gradient-primary text-white">회원가입</a>
+                    <a href="/signup" class="px-5 py-2.5 rounded-lg text-sm font-semibold bg-primary-700 text-white hover:bg-primary-800">회원가입</a>
                 </div>
 
                 <div class="hidden md:flex items-center gap-2" th:if="${#authentication != null and #authentication.name != 'anonymousUser'}">
@@ -50,7 +51,7 @@
                         </button>
 
                         <div id="headerNotificationPanel" class="hidden absolute right-0 mt-2 z-50">
-                            <div id="notification-list"
+                            <div id="header-notification-list"
                                  hx-get="/notifications/fragments/list?limit=10&unreadOnly=true"
                                  hx-trigger="load, notifications-changed from:body"
                                  hx-swap="outerHTML"></div>
@@ -61,7 +62,7 @@
                         <button type="button"
                                 id="headerUserBtn"
                                 class="flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-gray-50">
-                            <span class="w-9 h-9 rounded-full bg-gradient-primary flex items-center justify-center text-xs font-bold text-white"
+                            <span class="w-9 h-9 rounded-full bg-primary-700 flex items-center justify-center text-xs font-bold text-white"
                                   th:text="${#strings.toUpperCase(#strings.substring(currentMember?.name ?: 'U', 0, 1))}">U</span>
                             <div class="text-left leading-tight">
                                 <p class="text-sm font-semibold text-gray-900" th:text="${currentMember?.name ?: #authentication.name}">사용자</p>
@@ -131,69 +132,12 @@
             </form>
             <div class="flex items-center gap-2 px-4 pt-2" th:if="${#authentication == null or #authentication.name == 'anonymousUser'}">
                 <a href="/login" class="app-nav-link">로그인</a>
-                <a href="/signup" class="px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-primary text-white">회원가입</a>
+                <a href="/signup" class="px-4 py-2 rounded-lg text-sm font-semibold bg-primary-700 text-white hover:bg-primary-800">회원가입</a>
             </div>
         </div>
     </header>
-    <script th:attr="nonce=${cspNonce}">
-        document.addEventListener('DOMContentLoaded', () => {
-            const mobileBtn = document.getElementById('headerMobileBtn');
-            const mobilePanel = document.getElementById('headerMobilePanel');
-            const userBtn = document.getElementById('headerUserBtn');
-            const userPanel = document.getElementById('headerUserPanel');
-            const notificationBtn = document.getElementById('headerNotificationBtn');
-            const notificationPanel = document.getElementById('headerNotificationPanel');
-
-            const closePanel = (panel) => {
-                if (panel) panel.classList.add('hidden');
-            };
-
-            const togglePanel = (panel) => {
-                if (!panel) return;
-                panel.classList.toggle('hidden');
-            };
-
-            if (mobileBtn) {
-                mobileBtn.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    togglePanel(mobilePanel);
-                });
-            }
-
-            if (userBtn) {
-                userBtn.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    closePanel(notificationPanel);
-                    togglePanel(userPanel);
-                });
-            }
-
-            if (notificationBtn) {
-                notificationBtn.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    closePanel(userPanel);
-                    togglePanel(notificationPanel);
-                    if (window.htmx && notificationPanel && !notificationPanel.classList.contains('hidden')) {
-                        htmx.trigger(document.body, 'notifications-changed');
-                    }
-                });
-            }
-
-            document.addEventListener('click', (event) => {
-                if (userPanel && userBtn && !userPanel.contains(event.target) && !userBtn.contains(event.target)) {
-                    closePanel(userPanel);
-                }
-
-                if (notificationPanel && notificationBtn && !notificationPanel.contains(event.target) && !notificationBtn.contains(event.target)) {
-                    closePanel(notificationPanel);
-                }
-
-                if (mobilePanel && mobileBtn && !mobilePanel.contains(event.target) && !mobileBtn.contains(event.target)) {
-                    closePanel(mobilePanel);
-                }
-            });
-        });
-    </script>
+    <script th:attr="nonce=${cspNonce}" src="/js/notifications.js"></script>
+    <script th:attr="nonce=${cspNonce}" src="/js/header.js"></script>
 </th:block>
 </body>
 </html>
