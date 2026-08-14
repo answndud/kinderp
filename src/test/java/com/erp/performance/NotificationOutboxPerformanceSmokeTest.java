@@ -10,7 +10,7 @@ import com.erp.domain.notification.entity.NotificationType;
 import com.erp.domain.notification.repository.NotificationOutboxRepository;
 import com.erp.domain.notification.repository.NotificationRepository;
 import com.erp.domain.notification.service.NotificationOutboxOpsService;
-import com.erp.domain.notification.service.channel.NotificationChannel;
+import com.erp.domain.notification.entity.NotificationChannel;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import java.time.LocalDateTime;
@@ -26,8 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("성능 스모크 - 알림 Outbox 운영 콘솔")
 @Tag("performance")
 class NotificationOutboxPerformanceSmokeTest extends BaseIntegrationTest {
-
-    private static final int BULK_OUTBOX_COUNT = 80;
 
     @Autowired
     private NotificationRepository notificationRepository;
@@ -47,12 +45,13 @@ class NotificationOutboxPerformanceSmokeTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Outbox timeline 상태/채널 필터는 예상 쿼리 예산 안에 들어온다")
     void outboxTimeline_StaysWithinQueryBudget() {
-        seedOutboxTimeline();
+        seedOutboxTimeline(80);
 
         Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
         statistics.setStatisticsEnabled(true);
 
         Measurement statusChannel = readCommitted(() -> measure(statistics, () -> notificationOutboxOpsService.getTimeline(
+                principalMember.getKindergarten().getId(),
                 0,
                 20,
                 NotificationDeliveryStatus.DEAD_LETTER,
@@ -60,6 +59,7 @@ class NotificationOutboxPerformanceSmokeTest extends BaseIntegrationTest {
                 null
         )));
         Measurement keyword = readCommitted(() -> measure(statistics, () -> notificationOutboxOpsService.getTimeline(
+                principalMember.getKindergarten().getId(),
                 0,
                 20,
                 NotificationDeliveryStatus.DEAD_LETTER,
@@ -76,7 +76,33 @@ class NotificationOutboxPerformanceSmokeTest extends BaseIntegrationTest {
         assertTrue(keyword.queryCount <= 2, "outbox keyword timeline should stay within page + count budget");
     }
 
-    private void seedOutboxTimeline() {
+    @Test
+    @DisplayName("대규모 Outbox fixture에서도 timeline 쿼리 예산은 일정하다")
+    void outboxTimeline_StaysWithinQueryBudgetForLargeFixture() {
+        seedOutboxTimeline(1_000);
+
+        Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        statistics.setStatisticsEnabled(true);
+
+        Measurement largeTimeline = readCommitted(() -> measure(statistics, () -> notificationOutboxOpsService.getTimeline(
+                principalMember.getKindergarten().getId(),
+                0,
+                20,
+                NotificationDeliveryStatus.DEAD_LETTER,
+                NotificationChannel.EMAIL,
+                null
+        )));
+
+        System.out.printf("[PERF] outbox-large-fixture - rows=%d, queries=%d, elapsedMs=%d%n",
+                1_000,
+                largeTimeline.queryCount,
+                largeTimeline.elapsedMs);
+
+        assertTrue(largeTimeline.queryCount <= 2,
+                "outbox timeline should keep a fixed page + count query budget for a large fixture");
+    }
+
+    private void seedOutboxTimeline(int bulkCount) {
         writeCommitted(() -> {
             String token = Long.toString(System.nanoTime());
             Member receiver = testData.createTestMember(
@@ -87,7 +113,7 @@ class NotificationOutboxPerformanceSmokeTest extends BaseIntegrationTest {
             );
             memberRepository.save(receiver);
             LocalDateTime now = LocalDateTime.now();
-            for (int i = 0; i < BULK_OUTBOX_COUNT; i++) {
+            for (int i = 0; i < bulkCount; i++) {
                 Notification notification = notificationRepository.save(Notification.createWithLink(
                         receiver,
                         NotificationType.SYSTEM,

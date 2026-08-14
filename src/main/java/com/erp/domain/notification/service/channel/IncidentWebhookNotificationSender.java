@@ -1,6 +1,7 @@
 package com.erp.domain.notification.service.channel;
 
 import com.erp.domain.notification.config.NotificationDeliveryProperties;
+import com.erp.domain.notification.entity.NotificationChannel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

@@ -6,7 +6,13 @@ import com.erp.domain.notification.dto.response.NotificationOutboxSummaryRespons
 import com.erp.domain.notification.entity.NotificationDeliveryStatus;
 import com.erp.domain.notification.entity.NotificationOutbox;
 import com.erp.domain.notification.repository.NotificationOutboxRepository;
-import com.erp.domain.notification.service.channel.NotificationChannel;
+import com.erp.domain.notification.entity.NotificationChannel;
+import com.erp.domain.domainaudit.entity.DomainAuditAction;
+import com.erp.domain.domainaudit.entity.DomainAuditTargetType;
+import com.erp.domain.domainaudit.service.DomainAuditLogService;
+import com.erp.domain.member.entity.Member;
+import com.erp.domain.member.entity.MemberRole;
+import com.erp.global.security.access.AccessPolicyService;
 import com.erp.global.exception.BusinessException;
 import com.erp.global.exception.ErrorCode;
 import java.time.LocalDateTime;
@@ -30,14 +36,21 @@ public class NotificationOutboxOpsService {
 
     private final NotificationOutboxRepository notificationOutboxRepository;
     private final NotificationDeliveryProperties deliveryProperties;
+    private final AccessPolicyService accessPolicyService;
+    private final DomainAuditLogService domainAuditLogService;
 
-    public NotificationOutboxSummaryResponse getSummary() {
+    public NotificationOutboxSummaryResponse getSummary(Long kindergartenId) {
         Map<String, Long> statusCounts = Arrays.stream(NotificationDeliveryStatus.values())
-                .collect(Collectors.toMap(Enum::name, notificationOutboxRepository::countByStatus));
+                .collect(Collectors.toMap(
+                        Enum::name,
+                        status -> notificationOutboxRepository
+                                .countByNotificationReceiverKindergartenIdAndStatus(kindergartenId, status)
+                ));
         Map<String, Long> deadLetterCountsByChannel = Arrays.stream(NotificationChannel.values())
                 .collect(Collectors.toMap(
                         Enum::name,
-                        channel -> notificationOutboxRepository.countByStatusAndChannel(
+                        channel -> notificationOutboxRepository.countByNotificationReceiverKindergartenIdAndStatusAndChannel(
+                                kindergartenId,
                                 NotificationDeliveryStatus.DEAD_LETTER,
                                 channel
                         )
@@ -47,6 +60,7 @@ public class NotificationOutboxOpsService {
     }
 
     public Page<NotificationOutboxItemResponse> getTimeline(
+            Long kindergartenId,
             int page,
             int size,
             NotificationDeliveryStatus status,
@@ -60,16 +74,28 @@ public class NotificationOutboxOpsService {
                 safeSize,
                 Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"))
         );
-        return notificationOutboxRepository.searchTimeline(status, channel, normalizeKeyword(keyword), pageRequest)
+        return notificationOutboxRepository.searchTimeline(
+                        kindergartenId,
+                        status,
+                        channel,
+                        normalizeKeyword(keyword),
+                        pageRequest
+                )
                 .map(NotificationOutboxItemResponse::from);
     }
 
-    public Page<NotificationOutboxItemResponse> getDeadLetters(int page, int size, NotificationChannel channel) {
+    public Page<NotificationOutboxItemResponse> getDeadLetters(
+            Long kindergartenId,
+            int page,
+            int size,
+            NotificationChannel channel
+    ) {
         int safePage = Math.max(page, 0);
         int safeSize = Math.min(Math.max(size, 1), MAX_DEAD_LETTER_LIMIT);
         PageRequest pageRequest = PageRequest.of(safePage, safeSize);
         if (channel != null) {
-            return notificationOutboxRepository.findByStatusAndChannelOrderByDeadLetteredAtDescIdDesc(
+            return notificationOutboxRepository.findByNotificationReceiverKindergartenIdAndStatusAndChannelOrderByDeadLetteredAtDescIdDesc(
+                            kindergartenId,
                             NotificationDeliveryStatus.DEAD_LETTER,
                             channel,
                             pageRequest
@@ -77,7 +103,8 @@ public class NotificationOutboxOpsService {
                     .map(NotificationOutboxItemResponse::from);
         }
 
-        return notificationOutboxRepository.findByStatusOrderByDeadLetteredAtDescIdDesc(
+        return notificationOutboxRepository.findByNotificationReceiverKindergartenIdAndStatusOrderByDeadLetteredAtDescIdDesc(
+                        kindergartenId,
                         NotificationDeliveryStatus.DEAD_LETTER,
                         pageRequest
                 )
@@ -92,14 +119,33 @@ public class NotificationOutboxOpsService {
     }
 
     @Transactional
-    public NotificationOutboxItemResponse retryDeadLetter(Long outboxId) {
-        NotificationOutbox outbox = notificationOutboxRepository.findById(outboxId)
+    public NotificationOutboxItemResponse retryDeadLetter(Long kindergartenId, Long outboxId, Long reviewerId) {
+        Member reviewer = accessPolicyService.getRequester(reviewerId);
+        if (reviewer.getRole() != MemberRole.PRINCIPAL) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+        accessPolicyService.validateSameKindergarten(reviewer, kindergartenId);
+
+        NotificationOutbox outbox = notificationOutboxRepository
+                .findByIdAndNotificationReceiverKindergartenId(outboxId, kindergartenId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND));
         if (outbox.getStatus() != NotificationDeliveryStatus.DEAD_LETTER) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "dead-letter 상태의 outbox만 재시도할 수 있습니다");
         }
 
         outbox.resetDeadLetterForRetry(LocalDateTime.now(), deliveryProperties.getMaxAttempts());
+        domainAuditLogService.record(
+                reviewer,
+                kindergartenId,
+                DomainAuditAction.NOTIFICATION_OUTBOX_RETRIED,
+                DomainAuditTargetType.NOTIFICATION_OUTBOX,
+                outbox.getId(),
+                reviewer.getName() + "이(가) 알림 outbox를 재시도했습니다.",
+                Map.of(
+                        "channel", outbox.getChannel().name(),
+                        "attemptCount", outbox.getAttemptCount()
+                )
+        );
         return NotificationOutboxItemResponse.from(outbox);
     }
 }

@@ -8,7 +8,9 @@ import com.erp.domain.notification.entity.NotificationOutbox;
 import com.erp.domain.notification.entity.NotificationType;
 import com.erp.domain.notification.repository.NotificationOutboxRepository;
 import com.erp.domain.notification.repository.NotificationRepository;
-import com.erp.domain.notification.service.channel.NotificationChannel;
+import com.erp.domain.notification.entity.NotificationChannel;
+import com.erp.domain.member.entity.MemberRole;
+import com.erp.domain.kindergarten.entity.Kindergarten;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -53,6 +55,40 @@ class NotificationOutboxOpsApiIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.content[0].id").value(outboxId))
                 .andExpect(jsonPath("$.data.content[0].status").value("DEAD_LETTER"));
+    }
+
+    @Test
+    @DisplayName("원장은 다른 유치원의 outbox를 조회하거나 재시도할 수 없다")
+    void principalCannotReadOtherKindergartenOutbox() throws Exception {
+        Kindergarten otherKindergarten = testData.createKindergarten();
+        Member otherPrincipal = createMemberInKindergarten(
+                "other-outbox-principal@test.com",
+                "다른 유치원 원장",
+                MemberRole.PRINCIPAL,
+                otherKindergarten
+        );
+        Member otherParent = createMemberInKindergarten(
+                "other-outbox-parent@test.com",
+                "다른 유치원 학부모",
+                MemberRole.PARENT,
+                otherKindergarten
+        );
+        Long otherOutboxId = createDeadLetterOutboxFor(otherParent);
+
+        mockMvc.perform(get("/api/v1/notification-outbox")
+                        .with(authenticated(principalMember)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[?(@.id == %d)]".formatted(otherOutboxId)).doesNotExist());
+
+        mockMvc.perform(post("/api/v1/notification-outbox/{outboxId}/retry", otherOutboxId)
+                        .with(authenticated(principalMember))
+                        .with(csrf()))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(get("/api/v1/notification-outbox/summary")
+                        .with(authenticated(otherPrincipal)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.statusCounts.DEAD_LETTER").value(1));
     }
 
     @Test
@@ -128,6 +164,12 @@ class NotificationOutboxOpsApiIntegrationTest extends BaseIntegrationTest {
         assertThat(outbox.getStatus()).isEqualTo(NotificationDeliveryStatus.PENDING);
         assertThat(outbox.getDeadLetteredAt()).isNull();
         assertThat(outbox.canRetry()).isTrue();
+        Integer auditCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM domain_audit_log WHERE target_type = 'NOTIFICATION_OUTBOX' AND target_id = ?",
+                Integer.class,
+                outboxId
+        );
+        assertThat(auditCount).isEqualTo(1);
     }
 
     private Long createDeadLetterOutbox() {
@@ -151,6 +193,21 @@ class NotificationOutboxOpsApiIntegrationTest extends BaseIntegrationTest {
         LocalDateTime now = LocalDateTime.now();
         outbox.markProcessing(now.minusMinutes(1));
         outbox.markDeadLetter(now, errorMessage);
+        return notificationOutboxRepository.saveAndFlush(outbox).getId();
+    }
+
+    private Long createDeadLetterOutboxFor(Member receiver) {
+        Notification notification = notificationRepository.save(Notification.createWithLink(
+                receiver,
+                NotificationType.SYSTEM,
+                "다른 유치원 전송 실패 알림",
+                "tenant scope 테스트",
+                "/notifications"
+        ));
+        NotificationOutbox outbox = NotificationOutbox.create(notification, NotificationChannel.APP, 1);
+        LocalDateTime now = LocalDateTime.now();
+        outbox.markProcessing(now.minusMinutes(1));
+        outbox.markDeadLetter(now, "other tenant timeout");
         return notificationOutboxRepository.saveAndFlush(outbox).getId();
     }
 

@@ -1,6 +1,7 @@
 package com.erp.domain.notification.service.channel;
 
 import com.erp.domain.notification.config.NotificationDeliveryProperties;
+import com.erp.domain.notification.entity.NotificationChannel;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +46,7 @@ public class EmailNotificationSender implements NotificationChannelSender {
             helper.setSubject(subject);
             helper.setText(body, false);
             mailSender.send(message);
-            log.debug("Email notification dispatched. receiverId={}, email={}", payload.receiverId(), payload.receiverEmail());
+            log.debug("Email notification dispatched. receiverId={}", payload.receiverId());
         } catch (MessagingException e) {
             throw new IllegalStateException("Email notification failed: " + e.getMessage(), e);
         }

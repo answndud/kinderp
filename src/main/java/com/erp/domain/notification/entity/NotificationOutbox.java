@@ -1,7 +1,6 @@
 package com.erp.domain.notification.entity;
 
 import com.erp.domain.member.entity.Member;
-import com.erp.domain.notification.service.channel.NotificationChannel;
 import com.erp.domain.notification.service.channel.NotificationDeliveryPayload;
 import com.erp.global.common.BaseEntity;
 import jakarta.persistence.Column;
@@ -36,7 +35,8 @@ import lombok.NoArgsConstructor;
                 @Index(name = "idx_notification_outbox_status_next_attempt", columnList = "status, next_attempt_at, id"),
                 @Index(name = "idx_notification_outbox_processing_started", columnList = "status, processing_started_at, id"),
                 @Index(name = "idx_notification_outbox_notification_id", columnList = "notification_id"),
-                @Index(name = "idx_notification_outbox_timeline", columnList = "status, channel, created_at, id")
+                @Index(name = "idx_notification_outbox_timeline", columnList = "status, channel, created_at, id"),
+                @Index(name = "idx_notification_outbox_dead_letter_timeline", columnList = "status, channel, dead_lettered_at, id")
         }
 )
 @Getter

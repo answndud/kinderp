@@ -1,4 +1,4 @@
-package com.erp.domain.notification.service.channel;
+package com.erp.domain.notification.entity;
 
 public enum NotificationChannel {
     EMAIL,

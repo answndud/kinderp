@@ -1,5 +1,6 @@
 package com.erp.domain.notification.service.channel;
 
+import com.erp.domain.notification.entity.NotificationChannel;
 import java.util.List;
 
 public interface NotificationChannelSender {

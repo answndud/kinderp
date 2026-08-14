@@ -3,7 +3,7 @@ package com.erp.domain.notification.dto.response;
 import com.erp.domain.notification.entity.NotificationDeliveryStatus;
 import com.erp.domain.notification.entity.NotificationOutbox;
 import com.erp.domain.notification.entity.NotificationType;
-import com.erp.domain.notification.service.channel.NotificationChannel;
+import com.erp.domain.notification.entity.NotificationChannel;
 import java.time.LocalDateTime;
 
 public record NotificationOutboxItemResponse(

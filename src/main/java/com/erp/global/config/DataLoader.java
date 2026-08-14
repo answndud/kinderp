@@ -43,7 +43,7 @@ import com.erp.domain.notification.entity.NotificationOutbox;
 import com.erp.domain.notification.entity.NotificationType;
 import com.erp.domain.notification.repository.NotificationOutboxRepository;
 import com.erp.domain.notification.repository.NotificationRepository;
-import com.erp.domain.notification.service.channel.NotificationChannel;
+import com.erp.domain.notification.entity.NotificationChannel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;

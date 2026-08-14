@@ -8,7 +8,7 @@ import com.erp.domain.notification.entity.NotificationDeliveryStatus;
 import com.erp.domain.notification.entity.NotificationOutbox;
 import com.erp.domain.notification.repository.NotificationOutboxRepository;
 import com.erp.domain.notification.service.NotificationDispatchService;
-import com.erp.domain.notification.service.channel.NotificationChannel;
+import com.erp.domain.notification.entity.NotificationChannel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;

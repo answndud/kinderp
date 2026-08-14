@@ -2,7 +2,7 @@ package com.erp.domain.notification.repository;
 
 import com.erp.domain.notification.entity.NotificationDeliveryStatus;
 import com.erp.domain.notification.entity.NotificationOutbox;
-import com.erp.domain.notification.service.channel.NotificationChannel;
+import com.erp.domain.notification.entity.NotificationChannel;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -10,8 +10,10 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import jakarta.persistence.LockModeType;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -51,7 +53,13 @@ public interface NotificationOutboxRepository extends JpaRepository<Notification
             """, nativeQuery = true)
     List<Long> claimStaleProcessingIds(@Param("staleBefore") LocalDateTime staleBefore, @Param("limit") int limit);
 
-    long countByStatus(NotificationDeliveryStatus status);
+    long countByNotificationReceiverKindergartenIdAndStatus(Long kindergartenId, NotificationDeliveryStatus status);
+
+    long countByNotificationReceiverKindergartenIdAndStatusAndChannel(
+            Long kindergartenId,
+            NotificationDeliveryStatus status,
+            NotificationChannel channel
+    );
 
     long countByStatusAndChannel(NotificationDeliveryStatus status, NotificationChannel channel);
 
@@ -59,18 +67,23 @@ public interface NotificationOutboxRepository extends JpaRepository<Notification
 
     List<NotificationOutbox> findByNotificationIdOrderByIdAsc(Long notificationId);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<NotificationOutbox> findByIdAndNotificationReceiverKindergartenId(Long id, Long kindergartenId);
+
     List<NotificationOutbox> findByIdIn(Collection<Long> ids);
 
     Optional<NotificationOutbox> findByNotificationIdAndChannel(Long notificationId, NotificationChannel channel);
 
     List<NotificationOutbox> findByChannelOrderByIdAsc(NotificationChannel channel);
 
-    Page<NotificationOutbox> findByStatusOrderByDeadLetteredAtDescIdDesc(
+    Page<NotificationOutbox> findByNotificationReceiverKindergartenIdAndStatusOrderByDeadLetteredAtDescIdDesc(
+            Long kindergartenId,
             NotificationDeliveryStatus status,
             Pageable pageable
     );
 
-    Page<NotificationOutbox> findByStatusAndChannelOrderByDeadLetteredAtDescIdDesc(
+    Page<NotificationOutbox> findByNotificationReceiverKindergartenIdAndStatusAndChannelOrderByDeadLetteredAtDescIdDesc(
+            Long kindergartenId,
             NotificationDeliveryStatus status,
             NotificationChannel channel,
             Pageable pageable
@@ -79,7 +92,8 @@ public interface NotificationOutboxRepository extends JpaRepository<Notification
     @Query(value = """
             SELECT outbox
             FROM NotificationOutbox outbox
-            WHERE (:status IS NULL OR outbox.status = :status)
+            WHERE outbox.notification.receiver.kindergarten.id = :kindergartenId
+              AND (:status IS NULL OR outbox.status = :status)
               AND (:channel IS NULL OR outbox.channel = :channel)
               AND (
                     :keyword IS NULL
@@ -93,7 +107,8 @@ public interface NotificationOutboxRepository extends JpaRepository<Notification
             countQuery = """
             SELECT COUNT(outbox)
             FROM NotificationOutbox outbox
-            WHERE (:status IS NULL OR outbox.status = :status)
+            WHERE outbox.notification.receiver.kindergarten.id = :kindergartenId
+              AND (:status IS NULL OR outbox.status = :status)
               AND (:channel IS NULL OR outbox.channel = :channel)
               AND (
                     :keyword IS NULL
@@ -105,6 +120,7 @@ public interface NotificationOutboxRepository extends JpaRepository<Notification
               )
             """)
     Page<NotificationOutbox> searchTimeline(
+            @Param("kindergartenId") Long kindergartenId,
             @Param("status") NotificationDeliveryStatus status,
             @Param("channel") NotificationChannel channel,
             @Param("keyword") String keyword,

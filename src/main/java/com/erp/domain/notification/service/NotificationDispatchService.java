@@ -4,7 +4,7 @@ import com.erp.domain.notification.config.NotificationDeliveryProperties;
 import com.erp.domain.notification.entity.Notification;
 import com.erp.domain.notification.entity.NotificationOutbox;
 import com.erp.domain.notification.repository.NotificationOutboxRepository;
-import com.erp.domain.notification.service.channel.NotificationChannel;
+import com.erp.domain.notification.entity.NotificationChannel;
 import com.erp.domain.notification.service.channel.NotificationChannelSender;
 import com.erp.domain.notification.service.channel.NotificationChannelSenderRegistry;
 import java.time.Duration;

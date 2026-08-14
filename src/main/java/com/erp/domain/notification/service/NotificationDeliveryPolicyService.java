@@ -3,7 +3,7 @@ package com.erp.domain.notification.service;
 import com.erp.domain.notification.config.NotificationDeliveryProperties;
 import com.erp.domain.notification.entity.Notification;
 import com.erp.domain.notification.entity.NotificationType;
-import com.erp.domain.notification.service.channel.NotificationChannel;
+import com.erp.domain.notification.entity.NotificationChannel;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
