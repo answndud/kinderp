@@ -39,6 +39,8 @@
 
 ## Architecture
 
+- `docs/architecture/rework-history-2026-08-14.md`
+  - 이번 개편 작업의 기능 추가·수정·삭제·검증·잔여 범위 상세 기록
 - `docs/architecture/portfolio-story.md`
   - TownPet과의 차별화, 대표 업무 흐름, 설계 결정, 면접 시연 순서, 현재 증거와 남은 보완점
 - `docs/architecture/workflow-state-machine.md`
