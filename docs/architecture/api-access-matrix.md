@@ -26,7 +26,7 @@
 | 반 관리 | `/api/v1/classrooms/**` | staff / 인증 조회 | 교실의 kindergarten과 요청자 소속 비교; 담임 배정은 원장 | `ClassroomApiIntegrationTest` |
 | 원생 | `/api/v1/kids/**` | staff / 부모 조회 | staff tenant, 부모-자녀 관계, classroom 소속 검증 | `KidApiIntegrationTest` |
 | 출결 | `/api/v1/attendance/**` | staff 변경, 인증 조회 | 원생·교실 tenant와 요청자 비교; 부모는 본인 자녀 범위 | `AttendanceApiIntegrationTest` |
-| 출결 변경 요청 | `/api/v1/attendance-change-requests/**` | 부모 생성/취소, staff 처리 | requester/child ownership, staff tenant, 상태 전이, idempotency key | `AttendanceChangeRequestApiIntegrationTest` |
+| 출결 변경 요청 | `/api/v1/attendance-requests/**` | 부모 생성/취소, staff 처리 | requester/child ownership, staff tenant, 상태 전이, idempotency key | `AttendanceChangeRequestApiIntegrationTest` |
 | 알림장 | `/api/v1/notepads/**` | staff 작성, 인증 조회, 부모 읽음 | writer/child/classroom/tenant 접근 정책 | `NotepadApiIntegrationTest` |
 | 공지 | `/api/v1/announcements/**` | staff 작성·변경, 인증 조회 | writer와 대상 kindergarten 동일성, 조회 tenant | `AnnouncementApiIntegrationTest` |
 | 알림 | `/api/v1/notifications/**` | 생성: staff, 나머지 인증 | 수신자 본인 조회·변경; 생성자는 같은 tenant staff | `NotificationApiIntegrationTest` |

@@ -171,9 +171,9 @@ docker compose --env-file docker/.env -f docker/docker-compose.yml down
 ## 5. 현재 사용 시 알아둘 점
 
 - 대시보드는 원장 전용입니다.
-- 식단(Phase 11), 출석 통계 리포트 고도화(Phase 12)는 설계 문서 중심이며 일부는 구현 예정입니다.
-- `kindergarten/select` 는 안내 성격이 남아 있는 화면입니다.
-- URL이 단수/복수(`notepad/notepads`, `announcement/announcements`)가 혼용되는 구간이 있어 링크를 직접 입력할 때 주의가 필요합니다.
+- 식단 기능은 현재 범위에 포함되지 않습니다.
+- 출석 월간 리포트는 `/attendance/monthly`에서 원장·교사가 조회할 수 있습니다.
+- `/kindergarten/select`는 아직 유치원에 배정되지 않은 교사가 선택 흐름을 시작하는 화면이며, 실제 접근 가능 여부는 역할·승인 상태에 따라 달라집니다.
 
 ---
 

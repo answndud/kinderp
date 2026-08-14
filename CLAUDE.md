@@ -1,275 +1,51 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+이 저장소의 에이전트 작업 기준은 루트 [`AGENTS.md`](AGENTS.md)와 [`PLAN.md`](PLAN.md)입니다. 이 파일은 Claude Code가 같은 기준을 빠르게 찾도록 현재 상태만 요약합니다.
 
-## Project Overview
+## 현재 기술 기준
 
-**Kindergarten ERP** is a management system for kindergarten operations targeting three user roles:
-- **Principal** (원장): Overall management and approvals
-- **Teacher** (교사): Daily operations (attendance, notepads, schedules)
-- **Parent** (학부모): View notepads and attendance records
+- Java 21, Spring Boot 3.5.x, JPA/QueryDSL, Spring Security, JWT, Flyway
+- MySQL 8, Redis
+- Thymeleaf + HTMX + Alpine.js(CSP build) + 저장소 로컬 Tailwind 빌드 자산
+- domain 기반 패키지: `controller`, `service`, `repository`, `entity`, `dto`
+- 역할: `PRINCIPAL`, `TEACHER`, `PARENT`
+- API prefix: `/api/v1/**`
+- OSIV OFF, 기본 batch fetch size 100
 
-The project follows a "Simple is Best" philosophy - focused on core functionality with clean, intuitive UI.
+## 시작 전 필수 확인
 
-## Development Commands
-
-### Building & Running
 ```bash
-# Build (skip tests)
-./gradlew build -x test
-
-# Run application
-./gradlew bootRun
-
-# Run with specific profile
-./gradlew bootRun --args='--spring.profiles.active=local'
+sed -n '1,220p' PLAN.md
+sed -n '1,220p' docs/guides/developer-guide.md
+sed -n '1,180p' docs/guides/env-contract.md
 ```
 
-### Testing
+작업 시작 전에 `PLAN.md`에 목표·대상 파일·검증 명령·완료 조건을 반영합니다. 기존 dirty 변경은 사용자 소유로 보고 기능 단위로만 stage합니다.
+
+## 실행·검증
+
 ```bash
-# Run all tests
-./gradlew test
-
-# Run specific test class
-./gradlew test --tests "*MemberServiceTest"
-
-# Run with coverage
-./gradlew test jacocoTestReport
+cp docker/.env.example docker/.env
+docker compose --env-file docker/.env -f docker/docker-compose.yml up -d
+./gradlew --no-daemon clean build
+./gradlew --no-daemon integrationTest
+./gradlew --no-daemon performanceSmokeTest
+npm run frontend:build
+npm run accessibility:templates
+npm run security:inline-handlers
+npm run security:view-errors
+npm run docs:links
 ```
 
-## docs
-- 기능 구현하면서 주요 기능 추가될 때마다 @docs/00_project에 설명 마크다운 파일 작성
-- 기술 도입 이유, 면접 예상 질문, 사용된 라이브러리 정리 등 초보자 입장에서 작성
+`local`/`demo`는 로컬 시연용이고, `prod`는 seed·Swagger·app-port management 노출을 허용하지 않는 fail-closed 계약을 유지합니다. 운영 설정 변경은 `deploy/`, `Dockerfile`, `scripts/`와 env contract를 함께 확인합니다.
 
-### Database (Flyway Migrations)
-```bash
-# Flyway migrations run automatically on startup
-# To clean and rebuild (local only):
-./gradlew clean flywayClean flywayMigrate
-```
+## 구현 규칙
 
-### Docker Setup
-```bash
-# Note: docker-compose.yml needs to be created - currently missing
-# Intended setup:
-cd docker
-docker-compose up -d    # Start MySQL + Redis
-docker-compose down     # Stop containers
-```
+- Controller에서 받은 member ID를 service까지 전달하고, service에서 role·tenant·소유권·상태를 다시 검증합니다.
+- 쓰기 service는 `@Transactional`, 조회 기본값은 `@Transactional(readOnly = true)`입니다.
+- OSIV OFF이므로 View/Controller가 lazy loading에 의존하지 않습니다.
+- 비즈니스 오류는 `BusinessException(ErrorCode)`로 반환하고, View flash message에 예외 원문을 노출하지 않습니다.
+- 새 endpoint는 URL 권한과 service/method 권한, 성공·실패·교차 tenant 테스트를 함께 확인합니다.
+- 변경은 `apply_patch`로 수행하고 강제 push·rebase·`--no-verify`는 사용하지 않습니다.
 
-## Architecture
-
-### Technology Stack
-- **Java 17** with Spring Boot 3.5.9
-- **Spring Data JPA** with QueryDSL 5.0.0 for dynamic queries
-- **Spring Security** + JWT (jjwt 0.12.6) for stateless authentication
-- **MySQL 8.0** as primary database
-- **Redis** for caching and token management
-- **Flyway** for database migrations
-- **Thymeleaf** for server-side rendering
-- **HTMX** for dynamic hypermedia-driven interactions
-- **Alpine.js** for lightweight client-side reactivity
-- **Tailwind CSS** for utility-first styling (v3.4 via CDN)
-
-### Package Structure (Domain-Driven Design)
-```
-com.erp/
-├── ErpApplication.java          # Main entry point
-├── global/                      # Cross-cutting concerns
-│   ├── config/                  # Configuration classes
-│   ├── security/                # JWT, Security utilities
-│   ├── exception/               # Exception handling
-│   ├── common/                  # Shared classes (BaseEntity, ApiResponse)
-│   └── util/                    # Utilities
-└── domain/                      # Business domains (each follows same pattern)
-    ├── auth/                    # Authentication (signup, login, token refresh)
-    ├── member/                  # Member management
-    ├── kindergarten/            # Kindergarten entity
-    ├── classroom/               # Class management
-    ├── kid/                     # Student management
-    ├── attendance/              # Attendance tracking
-    ├── notepad/                 # Daily notepads
-    └── announcement/            # Announcements
-```
-
-Each domain package contains: `controller/`, `service/`, `repository/`, `entity/`, `dto/`
-
-### Configuration Profiles
-- `local`: Local development (application-local.yml)
-- `prod`: Production environment (application-prod.yml)
-- Default profile: `local` (set in application.yml)
-
-### Key Application Properties
-- Server port: `8080`
-- Database: MySQL on `localhost:3306/erp_db`
-- JWT secret: Must be set via `JWT_SECRET` environment variable (256-bit minimum)
-- JWT access token validity: 15 minutes
-- JWT refresh token validity: 7 days
-
-### Domain Model Hierarchy
-```
-KINDERGARTEN (1:N) CLASSROOM (1:N) KID (1:N) ATTENDANCE
-                                  (N:M)
-                                  MEMBER (Parents, Teachers)
-```
-
-Key relationships:
-- **Member**: Users with roles (PRINCIPAL, TEACHER, USER/parent)
-- **Classroom**: Has many kids, assigned teachers
-- **Kid**: Students linked to classroom and parents
-- **Attendance**: Daily attendance records per kid
-
-### Security Architecture
-- **Stateless JWT**: Tokens stored in cookies, no server session
-- **Role-based access**: Four roles - ADMIN, PRINCIPAL, TEACHER, USER
-- **Authorization flow**:
-  1. Login via `/api/v1/auth/login` (email/password) or OAuth2
-  2. JWT generated and stored in HTTP-only cookie
-  3. Subsequent requests validated via JWT filter
-  4. SecurityContext populated with authentication
-
-### API Design Patterns
-- RESTful APIs under `/api/v1/`
-- Separate controllers for API (`*ApiController`) and views (`*ViewController`)
-- Standard response format: `ApiResponse<T>` with success/error
-- QueryDSL for complex queries (especially filtering/pagination)
-
-### Frontend Architecture (HTMX + Alpine + Tailwind)
-- **HTMX**: Server-driven UI updates via HTML over HTTP
-  - Use `hx-get`, `hx-post`, `hx-put`, `hx-delete` for REST calls
-  - `hx-swap` for controlling response insertion (innerHTML, outerHTML, beforeend, etc.)
-  - `hx-target` for specifying where to swap content
-  - `hx-trigger` for custom event triggers
-- **Alpine.js**: Client-side state and interactivity
-  - `x-data` for component state
-  - `x-show`, `x-if` for conditional rendering
-  - `x-for` for loops
-  - `x-model` for two-way binding
-  - `@click`, `@submit` for event handling
-- **Tailwind CSS**: Utility-first styling via CDN
-  - Use `<script src="https://cdn.tailwindcss.com"></script>` in templates
-  - Configure theme colors in `tailwind.config` object if needed
-- **Thymeleaf Integration**:
-  - Server-side templates with `th:fragment` for reusable components
-  - HTMX can swap Thymeleaf fragments dynamically
-  - Use `th:replace` or `th:insert` for partial updates
-
-### Database Conventions
-- Flyway migrations in `src/main/resources/db/migration/`
-- Naming: `V{version}__{description}.sql`
-- OSIV disabled (`open-in-view: false`) for performance
-- Batch fetch size: 100 (reduces N+1 queries)
-- Soft delete pattern: `deleted_at` timestamp (not hardcoded `delete_flag`)
-
-## Development Notes
-
-### Current Project State
-This is a **new project scaffold** with:
-- Package structure defined but entities not yet implemented
-- Configuration files ready
-- Docker directory exists but `docker-compose.yml` is missing
-- Comprehensive planning documentation in `docs/`
-
-### Important Patterns from Documentation
-1. **Controller Separation**: Split `*ApiController` (REST) from `*ViewController` (Thymeleaf)
-2. **DTO Naming**: Use `*Request` for input, `*Response` for output
-3. **Entity Naming**: Singular form (Member, Kid, not Members, Kids)
-4. **Repository Pattern**: Interface + Impl for QueryDSL custom queries
-5. **Exception Handling**: Global handler with `BusinessException` and `ErrorCode`
-
-### Environment Variables
-```bash
-# Required for JWT
-export JWT_SECRET="your-256-bit-secret-key-here-must-be-at-least-32-characters"
-
-# Database (defaults in application-local.yml)
-export DB_USERNAME=root
-export DB_PASSWORD=root
-
-# Redis (optional)
-export REDIS_PASSWORD=
-```
-
-## Git workflow (mandatory)
-중요 기능(사용자 가치 단위) 완료 시에는 반드시 /commitpush 를 실행해
-"요약 → 메시지 후보 → 승인 후 add/commit/push" 절차로만 커밋/푸시한다.
-
-### Testing Strategy
-- Unit tests for each service layer
-- Integration tests for authentication flows
-- Test coverage reports via JaCoCo plugin
-
-### Reference Documentation
-- `docs/project_plan.md`: Overall development plan
-- `docs/project_idea.md`: Detailed implementation guide
-- `docs/project_summary.md`: Analysis of reference project (AiBayo)
-- `docs/springboot_tutorial.md`: Spring Boot patterns and best practices
-- `docs/phase/`: **Design decision logs for portfolio interviews**
-
-## Design Decision Documentation
-
-This project is for **backend developer portfolio interviews**. Every technical decision must be documented for interview preparation.
-
-### Documentation Structure
-Create decision logs in `docs/phase/` for each feature/phase:
-
-```
-docs/phase/
-├── phase0_setup.md           # Project setup decisions
-├── phase1_auth.md            # Authentication & JWT decisions
-├── phase2_kindergarten.md    # Kindergarten & Classroom decisions
-├── phase3_kid.md             # Kid & Parent decisions
-├── phase4_attendance.md      # Attendance decisions
-├── phase5_notepad.md         # Notepad decisions
-└── phase6_announcement.md    # Announcement decisions
-```
-
-### Decision Log Template (Korean)
-
-```markdown
-# [기능명] 기술 선택 및 구현 결정
-
-## 개요
-- 기능: [간단한 설명]
-- 목표: [해결하려는 문제]
-
-## 기술/라이브러리 선택
-
-### [기술명]
-**결정**: [선택한 기술]
-
-**이유**:
-1. [이유 1]
-2. [이유 2]
-3. [이유 3]
-
-**대안 고려**:
-- [대안]: [채택하지 않은 이유]
-
-**변경 이력**:
-- 2024-XX-XX: 초기 채택
-- 2024-XX-XX: [변경사유]로 [이전기술] → [새기술]
-```
-
-
-
-
-### When to Document
-- Before implementing: Write decision rationale
-- After implementation: Update with actual outcomes
-- When changing: Record change reason in "변경 이력"
-
-### Interview Preparation
-These logs directly answer interview questions like:
-- "Why did you choose X over Y?"
-- "What trade-offs did you consider?"
-- "How would you improve this if you could restart?"
-
-## Test Commands
-- Full Test: `./gradlew test`
-- Single Test: `./gradlew test --tests <test-class>`
-
-### Stability & Backward Compatibility
-- Prioritize "Extension over Modification". Avoid breaking existing API contracts (Endpoints, Request/Response formats).
-- Ensure that newly added dependencies do not conflict with existing Spring Boot starters.
-- Always maintain existing error handling and logging patterns.
+세부 규칙과 커밋 절차는 `AGENTS.md`를 우선합니다.
