@@ -8,6 +8,8 @@ Usage:
   restore-production-backup.sh BACKUP_DIR \
     --mysql-container NAME --redis-container NAME \
     --mysql-database NAME --mysql-user NAME \
+    [--mysql-assert-query SQL --mysql-assert-expected VALUE] \
+    [--redis-assert-key KEY --redis-assert-expected VALUE] \
     [--redis-rdb-path PATH] --confirm-disposable
 
 Required environment variables:
@@ -28,6 +30,10 @@ redis_container=""
 mysql_database=""
 mysql_user=""
 redis_rdb_path="/data/dump.rdb"
+mysql_assert_query=""
+mysql_assert_expected=""
+redis_assert_key=""
+redis_assert_expected=""
 confirmed=0
 
 while [[ $# -gt 0 ]]; do
@@ -46,6 +52,22 @@ while [[ $# -gt 0 ]]; do
             ;;
         --mysql-user)
             mysql_user="${2:-}"
+            shift 2
+            ;;
+        --mysql-assert-query)
+            mysql_assert_query="${2:-}"
+            shift 2
+            ;;
+        --mysql-assert-expected)
+            mysql_assert_expected="${2:-}"
+            shift 2
+            ;;
+        --redis-assert-key)
+            redis_assert_key="${2:-}"
+            shift 2
+            ;;
+        --redis-assert-expected)
+            redis_assert_expected="${2:-}"
             shift 2
             ;;
         --redis-rdb-path)
@@ -70,6 +92,22 @@ done
     exit 1
 }
 [[ -n "$mysql_container" && -n "$redis_container" && -n "$mysql_database" && -n "$mysql_user" ]] || usage
+[[ -z "$mysql_assert_query" || -n "$mysql_assert_expected" ]] || {
+    echo "--mysql-assert-expected is required with --mysql-assert-query" >&2
+    exit 1
+}
+[[ -z "$mysql_assert_expected" || -n "$mysql_assert_query" ]] || {
+    echo "--mysql-assert-query is required with --mysql-assert-expected" >&2
+    exit 1
+}
+[[ -z "$redis_assert_key" || -n "$redis_assert_expected" ]] || {
+    echo "--redis-assert-expected is required with --redis-assert-key" >&2
+    exit 1
+}
+[[ -z "$redis_assert_expected" || -n "$redis_assert_key" ]] || {
+    echo "--redis-assert-key is required with --redis-assert-expected" >&2
+    exit 1
+}
 [[ "$backup_dir" = /* && "$backup_dir" != "/" ]] || {
     echo "BACKUP_DIR must be an absolute path other than /" >&2
     exit 1
@@ -111,6 +149,17 @@ echo "Restoring MySQL logical dump into $mysql_container..."
 docker exec -i -e MYSQL_PWD="$MYSQL_PASSWORD" "$mysql_container" \
     mysql --user="$mysql_user" --host=127.0.0.1 "$mysql_database" < "$backup_dir/mysql.sql"
 
+if [[ -n "$mysql_assert_query" ]]; then
+    mysql_assert_actual="$(docker exec -e MYSQL_PWD="$MYSQL_PASSWORD" "$mysql_container" \
+        mysql --batch --skip-column-names --user="$mysql_user" --host=127.0.0.1 \
+        "$mysql_database" --execute="$mysql_assert_query")"
+    [[ "$mysql_assert_actual" == "$mysql_assert_expected" ]] || {
+        echo "MySQL restore assertion failed: expected '$mysql_assert_expected', got '$mysql_assert_actual'" >&2
+        exit 1
+    }
+    echo "MySQL restore assertion passed."
+fi
+
 echo "Restoring Redis RDB into $redis_container..."
 docker exec -e REDISCLI_AUTH="$REDIS_PASSWORD" "$redis_container" \
     redis-cli --no-auth-warning ping >/dev/null
@@ -119,5 +168,15 @@ docker cp "$backup_dir/redis.rdb" "$redis_container:$redis_rdb_path"
 docker start "$redis_container" >/dev/null
 docker exec -e REDISCLI_AUTH="$REDIS_PASSWORD" "$redis_container" \
     redis-cli --no-auth-warning ping >/dev/null
+
+if [[ -n "$redis_assert_key" ]]; then
+    redis_assert_actual="$(docker exec -e REDISCLI_AUTH="$REDIS_PASSWORD" "$redis_container" \
+        redis-cli --no-auth-warning --raw get "$redis_assert_key")"
+    [[ "$redis_assert_actual" == "$redis_assert_expected" ]] || {
+        echo "Redis restore assertion failed for key '$redis_assert_key': expected '$redis_assert_expected', got '$redis_assert_actual'" >&2
+        exit 1
+    }
+    echo "Redis restore assertion passed."
+fi
 
 echo "Disposable restore completed: MySQL and Redis are healthy."

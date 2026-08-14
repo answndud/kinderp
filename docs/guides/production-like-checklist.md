@@ -102,7 +102,7 @@ git diff --check
 - rollback 대상 image tag와 DB forward-fix 전략
 - `scripts/backup-production.sh`로 MySQL/Redis backup artifact 생성
 - `scripts/verify-production-backup.sh`로 checksum 검증
-- `scripts/restore-production-backup.sh`로 disposable MySQL/Redis 복구와 데이터 assertion 검증
+- `scripts/restore-production-backup.sh`로 disposable MySQL/Redis 복구 후 `--mysql-assert-*`/`--redis-assert-*` 옵션을 사용한 데이터 assertion 검증
 - disposable MySQL/Redis에 복원하는 local restore drill
 - 운영 backup은 별도 암호화 object storage로 복제하고 restore drill을 월 1회 수행
 - 배포 후 장애는 correlation ID와 `/actuator/health/readiness`를 함께 확인
