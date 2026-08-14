@@ -5,39 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>홈 - 유치원 ERP</title>
 
-    <script th:attr="nonce=${cspNonce}" src="https://cdn.tailwindcss.com"></script>
-    <script th:attr="nonce=${cspNonce}">
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#edf7f1',
-                            100: '#d8f0df',
-                            300: '#7ec09a',
-                            500: '#2d8a62',
-                            700: '#1f5a41'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
+    <link rel="stylesheet" th:href="@{/css/app.css}" href="/css/app.css">
     <link rel="stylesheet" th:href="@{/css/custom.css}" href="/css/custom.css">
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
 <header th:replace="~{fragments/header :: header}"></header>
 
-<main class="app-main" th:if="${currentMember != null}" x-data="dashboardStats()" x-init="init()">
-    <section class="app-surface p-6 md:p-8 section-enter overflow-hidden relative">
-        <div class="absolute -top-24 -right-20 w-64 h-64 rounded-full bg-primary-100/70 blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-20 -left-16 w-56 h-56 rounded-full bg-amber-100/70 blur-3xl pointer-events-none"></div>
-
-        <div class="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+<main class="app-main" th:if="${currentMember != null}" x-data="dashboardStats" x-init="init">
+    <section class="home-brief section-enter">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div>
                 <div class="flex items-center gap-3 mb-3">
-                    <span class="w-12 h-12 rounded-xl bg-gradient-primary p-2 shadow-sm">
+                    <span class="w-12 h-12 rounded-xl bg-primary-700 p-2 shadow-sm">
                         <img th:src="@{/img/logo.svg}" src="/img/logo.svg" alt="KinderCare" class="w-full h-full object-contain" />
                     </span>
                     <div>
@@ -56,7 +35,7 @@
                 </div>
             </div>
 
-            <div class="w-full lg:w-72 p-4 rounded-2xl bg-white/75 border border-gray-200 shadow-sm">
+            <div class="home-period w-full lg:w-72">
                 <p class="text-xs text-gray-500 mb-2">측정 기간</p>
                 <div class="flex gap-2">
                     <button type="button"
@@ -78,43 +57,43 @@
     </section>
 
     <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 mt-5 section-enter">
-        <a href="/kids" class="app-surface p-4 hover:-translate-y-0.5">
+        <a href="/kids" class="home-stat">
             <p class="text-xs text-gray-500">원아 관리</p>
             <div class="mt-3 flex items-end justify-between">
                 <p class="text-2xl font-bold text-gray-900">이동</p>
-                <span class="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center text-pink-600">👧</span>
+                <span class="text-sm font-semibold text-primary-700" aria-hidden="true">↗</span>
             </div>
         </a>
 
-        <a href="/attendance" class="app-surface p-4 hover:-translate-y-0.5">
+        <a href="/attendance" class="home-stat">
             <p class="text-xs text-gray-500">출석률</p>
             <div class="mt-3 flex items-end justify-between">
                 <p class="text-2xl font-bold text-gray-900"><span x-text="stats.attendanceRate">0</span>%</p>
-                <span class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700">✓</span>
+                <span class="text-sm font-semibold text-primary-700" aria-hidden="true">↗</span>
             </div>
         </a>
 
-        <a href="/applications/pending" class="app-surface p-4 hover:-translate-y-0.5">
+        <a href="/applications/pending" class="home-stat">
             <p class="text-xs text-gray-500">승인 대기</p>
             <div class="mt-3 flex items-end justify-between">
                 <p class="text-2xl font-bold text-gray-900" x-text="stats.applicationsPending">0</p>
-                <span class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700">⏳</span>
+                <span class="text-sm font-semibold text-primary-700" aria-hidden="true">↗</span>
             </div>
         </a>
 
-        <a href="/notepad" class="app-surface p-4 hover:-translate-y-0.5">
+        <a href="/notepad" class="home-stat">
             <p class="text-xs text-gray-500">새 알림장</p>
             <div class="mt-3 flex items-end justify-between">
                 <p class="text-2xl font-bold text-gray-900" x-text="stats.notepads">0</p>
-                <span class="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center text-primary-700">📝</span>
+                <span class="text-sm font-semibold text-primary-700" aria-hidden="true">↗</span>
             </div>
         </a>
 
-        <a href="/announcements" class="app-surface p-4 hover:-translate-y-0.5">
+        <a href="/announcements" class="home-stat">
             <p class="text-xs text-gray-500">공지사항</p>
             <div class="mt-3 flex items-end justify-between">
                 <p class="text-2xl font-bold text-gray-900" x-text="stats.announcements">0</p>
-                <span class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-700">📢</span>
+                <span class="text-sm font-semibold text-primary-700" aria-hidden="true">↗</span>
             </div>
         </a>
     </section>
@@ -162,7 +141,7 @@
         <h1 class="mt-3 text-3xl md:text-5xl font-bold text-gray-900 leading-tight">유치원 운영을 더 단순하게</h1>
         <p class="mt-4 text-gray-600 max-w-2xl">회원가입 후 역할별 워크플로우에 맞춰 출결, 알림장, 공지, 승인 관리를 한 곳에서 처리할 수 있습니다.</p>
         <div class="mt-7 flex flex-wrap gap-3">
-            <a href="/login" class="px-5 py-3 rounded-xl text-sm font-semibold bg-gradient-primary text-white">로그인</a>
+            <a href="/login" class="px-5 py-3 rounded-xl text-sm font-semibold bg-primary-700 text-white hover:bg-primary-800">로그인</a>
             <a href="/signup" class="px-5 py-3 rounded-xl text-sm font-semibold bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">회원가입</a>
         </div>
     </section>
@@ -170,140 +149,11 @@
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
-<script th:attr="nonce=${cspNonce}" src="https://unpkg.com/htmx.org@1.9.10"></script>
-<script th:attr="nonce=${cspNonce}" defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.0/dist/cdn.min.js"></script>
-<script th:attr="nonce=${cspNonce}" src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:attr="nonce=${cspNonce}" src="/vendor/htmx.min.js"></script>
+<script th:attr="nonce=${cspNonce}" defer src="/vendor/alpine.min.js"></script>
+<script th:attr="nonce=${cspNonce}" src="/vendor/sweetalert2.all.min.js"></script>
 <script th:attr="nonce=${cspNonce}" th:src="@{/js/app.js}"></script>
 
-<script th:attr="nonce=${cspNonce}">
-    function dashboardStats() {
-        return {
-            period: 'week',
-            loading: false,
-            stats: {
-                notepads: 0,
-                attendanceRate: 0,
-                applicationsPending: 0,
-                announcements: 0
-            },
-            async init() {
-                await this.loadStats();
-                document.body.addEventListener('dashboard-stats-changed', () => {
-                    this.loadStats();
-                });
-            },
-            async setPeriod(value) {
-                if (this.period === value || this.loading) return;
-                this.period = value;
-                await this.loadStats();
-            },
-            getRangeDays() {
-                return this.period === 'month' ? 30 : 7;
-            },
-            getKstBaseDate(date = new Date()) {
-                const formatter = new Intl.DateTimeFormat('en-CA', {
-                    timeZone: 'Asia/Seoul',
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit'
-                });
-                const [year, month, day] = formatter.format(date).split('-').map(Number);
-                return new Date(Date.UTC(year, month - 1, day));
-            },
-            toDateString(date) {
-                return date.toISOString().slice(0, 10);
-            },
-            async loadStats() {
-                if (this.loading) return;
-                this.loading = true;
-                try {
-                    const meRes = await fetch('/api/v1/members/me', { credentials: 'same-origin' });
-                    if (!meRes.ok) return;
-                    const me = await meRes.json().catch(() => ({}));
-                    if (!me.success || !me.data || !me.data.kindergartenId) return;
-
-                    const kindergartenId = me.data.kindergartenId;
-                    const nowKst = this.getKstBaseDate();
-                    const endDate = this.toDateString(nowKst);
-                    const rangeDays = this.getRangeDays();
-                    const startDateObj = new Date(nowKst);
-                    startDateObj.setDate(startDateObj.getDate() - (rangeDays - 1));
-                    const startDate = this.toDateString(startDateObj);
-
-                    const notepadsRes = await fetch('/api/v1/notepads?page=0&size=200', { credentials: 'same-origin' });
-                    if (notepadsRes.ok) {
-                        const payload = await notepadsRes.json().catch(() => ({}));
-                        this.stats.notepads = (payload.data?.content || []).filter(item => {
-                            return item.createdAt && item.createdAt.slice(0, 10) >= startDate && item.createdAt.slice(0, 10) <= endDate;
-                        }).length;
-                    }
-
-                    const classroomsRes = await fetch(`/api/v1/classrooms?kindergartenId=${kindergartenId}`, { credentials: 'same-origin' });
-                    if (classroomsRes.ok) {
-                        const classroomsData = await classroomsRes.json().catch(() => ({}));
-                        const classrooms = classroomsData.data || [];
-                        if (classrooms.length > 0) {
-                            let totalPresent = 0;
-                            let totalCount = 0;
-
-                            for (let dayOffset = 0; dayOffset < rangeDays; dayOffset += 1) {
-                                const date = new Date(startDateObj);
-                                date.setDate(startDateObj.getDate() + dayOffset);
-                                const dateStr = this.toDateString(date);
-
-                                const responses = await Promise.all(
-                                    classrooms.map(c =>
-                                        fetch(`/api/v1/attendance/daily?date=${dateStr}&classroomId=${c.id}`, { credentials: 'same-origin' })
-                                            .then(resp => resp.ok ? resp.json().catch(() => ({})) : null)
-                                    )
-                                );
-
-                                responses.forEach((payload) => {
-                                    if (!payload) return;
-                                    const list = payload.data || [];
-                                    if (list.length === 0) return;
-                                    const present = list.filter(row => row.status === 'PRESENT' || row.status === 'LATE').length;
-                                    totalPresent += present;
-                                    totalCount += list.length;
-                                });
-                            }
-
-                            this.stats.attendanceRate = totalCount > 0 ? Math.round((totalPresent / totalCount) * 100) : 0;
-                        }
-                    }
-
-                    this.stats.applicationsPending = 0;
-                    if (me.data.role === 'PRINCIPAL' || me.data.role === 'TEACHER') {
-                        const kidRes = await fetch(`/api/v1/kid-applications/pending?kindergartenId=${kindergartenId}`, { credentials: 'same-origin' });
-                        if (kidRes.ok) {
-                            const kidData = await kidRes.json().catch(() => ({}));
-                            this.stats.applicationsPending = (kidData.data || []).length;
-                        }
-                    }
-
-                    if (me.data.role === 'PRINCIPAL') {
-                        const teacherRes = await fetch(`/api/v1/kindergarten-applications/pending?kindergartenId=${kindergartenId}`, { credentials: 'same-origin' });
-                        if (teacherRes.ok) {
-                            const teacherData = await teacherRes.json().catch(() => ({}));
-                            this.stats.applicationsPending += (teacherData.data || []).length;
-                        }
-                    }
-
-                    const annRes = await fetch(`/api/v1/announcements?kindergartenId=${kindergartenId}&page=0&size=200`, { credentials: 'same-origin' });
-                    if (annRes.ok) {
-                        const payload = await annRes.json().catch(() => ({}));
-                        this.stats.announcements = (payload.data?.content || []).filter(item => {
-                            return item.createdAt && item.createdAt.slice(0, 10) >= startDate && item.createdAt.slice(0, 10) <= endDate;
-                        }).length;
-                    }
-                } catch (error) {
-                    console.error('대시보드 통계 로드 실패:', error);
-                } finally {
-                    this.loading = false;
-                }
-            }
-        };
-    }
-</script>
+<script th:attr="nonce=${cspNonce}" th:src="@{/js/pages/dashboard-home.js}" src="/js/pages/dashboard-home.js"></script>
 </body>
 </html>
