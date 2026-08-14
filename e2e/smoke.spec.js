@@ -43,6 +43,18 @@ test('parent home uses scoped dashboard attendance summary', async ({ page }) =>
   expect(dailyAttendanceRequests).toHaveLength(0);
 });
 
+test('browser product time utility keeps Seoul timezone semantics', async ({ page }) => {
+  await page.goto('/login');
+
+  const result = await page.evaluate(() => ({
+    dateInput: window.AppTime.todayInputValue(new Date('2026-08-14T15:30:00Z')),
+    parsedTimestamp: window.AppTime.parse('2026-08-14T23:30:00').toISOString()
+  }));
+
+  expect(result.dateInput).toBe('2026-08-15');
+  expect(result.parsedTimestamp).toBe('2026-08-14T14:30:00.000Z');
+});
+
 test('principal can scan the dashboard action queue and outbox timeline', async ({ page }) => {
   await loginAsPrincipal(page);
 
