@@ -10,7 +10,8 @@
 <body class="bg-gray-50">
 <header th:replace="~{fragments/header :: header}"></header>
 
-<main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+<main id="kid-form-page" class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
+      th:attr="data-form-mode=${kid != null ? 'edit' : 'create'},data-kid-id=${kid != null ? kid.id : ''},data-kid-classroom-id=${kid != null ? kid.classroomId : ''},data-kindergarten-id=${currentMember?.kindergartenId}">
     <div class="mb-7">
         <p class="mb-2 text-sm font-semibold text-primary-700">Student Record</p>
         <h1 class="text-3xl font-bold text-gray-900" th:text="${kid != null} ? '원생 정보 수정' : '원생 등록'">원생 등록</h1>
@@ -71,113 +72,6 @@
 <script th:attr="nonce=${cspNonce}" src="/vendor/sweetalert2.all.min.js"></script>
 <script th:attr="nonce=${cspNonce}" th:src="@{/js/app.js}" src="/js/app.js"></script>
 
-<script th:attr="nonce=${cspNonce}" th:inline="javascript">
-    const formMode = /*[[${kid != null}]]*/ false ? 'edit' : 'create';
-    const kidData = /*[[${kid}]]*/ null;
-    let kindergartenId = /*[[${currentMember?.kindergartenId}]]*/ null;
-
-    async function ensureKindergartenId() {
-        if (kindergartenId) return kindergartenId;
-        const response = await fetch('/api/v1/members/me', { credentials: 'same-origin' });
-        if (!response.ok) return null;
-        const payload = await response.json().catch(() => ({}));
-        kindergartenId = payload?.data?.kindergartenId || null;
-        return kindergartenId;
-    }
-
-    async function loadClassrooms() {
-        const id = await ensureKindergartenId();
-        const select = document.getElementById('classroomId');
-        if (!id) {
-            select.innerHTML = '<option value="">소속 유치원이 없습니다</option>';
-            return;
-        }
-
-        const response = await fetch(`/api/v1/classrooms?kindergartenId=${id}`, { credentials: 'same-origin' });
-        const payload = await response.json().catch(() => ({}));
-        const classrooms = payload.data || [];
-
-        select.innerHTML = '<option value="">반을 선택하세요</option>' + classrooms
-            .map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`)
-            .join('');
-
-        if (kidData && kidData.classroomId) {
-            select.value = String(kidData.classroomId);
-        }
-    }
-
-    function collectFormData() {
-        const name = document.getElementById('name').value.trim();
-        const birthDate = document.getElementById('birthDate').value;
-        const admissionDate = document.getElementById('admissionDate').value;
-        const gender = document.getElementById('gender').value;
-        const classroomId = document.getElementById('classroomId').value;
-
-        if (!name || !birthDate || !admissionDate || !gender || !classroomId) {
-            throw new Error('모든 필수 값을 입력해 주세요.');
-        }
-
-        return {
-            name,
-            birthDate,
-            admissionDate,
-            gender,
-            classroomId: Number(classroomId)
-        };
-    }
-
-    function escapeHtml(value) {
-        return String(value ?? '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    }
-
-    async function submitKidForm(event) {
-        event.preventDefault();
-
-        try {
-            const body = collectFormData();
-            const url = formMode === 'edit' ? `/api/v1/kids/${kidData.id}` : '/api/v1/kids';
-            const method = formMode === 'edit' ? 'PUT' : 'POST';
-
-            const response = await fetch(url, {
-                method,
-                credentials: 'same-origin',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-
-            const payload = await response.json().catch(() => ({}));
-            if (!response.ok || payload.success === false) {
-                throw new Error(payload.message || '요청 처리에 실패했습니다.');
-            }
-
-            await UI.success(formMode === 'edit' ? '원생 정보가 수정되었습니다.' : '원생이 등록되었습니다.');
-            if (formMode === 'edit') {
-                window.location.href = `/kids/${kidData.id}`;
-                return;
-            }
-            window.location.href = '/kids';
-        } catch (error) {
-            await UI.error(error.message || '요청 처리 중 오류가 발생했습니다.');
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', async () => {
-        await loadClassrooms();
-
-        if (!kidData) {
-            const admission = document.getElementById('admissionDate');
-            if (admission && !admission.value) {
-                admission.valueAsDate = new Date();
-            }
-        }
-
-        document.getElementById('kid-form').addEventListener('submit', submitKidForm);
-    });
-</script>
+<script th:attr="nonce=${cspNonce}" th:src="@{/js/pages/kid-form.js}" src="/js/pages/kid-form.js"></script>
 </body>
 </html>
