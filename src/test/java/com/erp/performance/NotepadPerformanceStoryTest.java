@@ -59,6 +59,27 @@ class NotepadPerformanceStoryTest extends BaseIntegrationTest {
                 "optimized path must use fewer queries than legacy path");
     }
 
+    @Test
+    @DisplayName("대규모 알림장 fixture에서도 최적화 경로 쿼리 예산은 일정하다")
+    void optimizedReadCountFlow_StaysWithinQueryBudgetForLargeFixture() {
+        prepareNotepads(1_000);
+
+        Pageable pageable = PageRequest.of(0, 20, Sort.by("createdAt").descending());
+        Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        statistics.setStatisticsEnabled(true);
+
+        Measurement optimized = measure(statistics,
+                () -> notepadService.getClassroomNotepads(classroom.getId(), pageable, teacherMember.getId()));
+
+        System.out.printf("[PERF] notepad-large-fixture - rows=%d, queries=%d, elapsedMs=%d%n",
+                1_001,
+                optimized.queryCount,
+                optimized.elapsedMs);
+
+        assertTrue(optimized.queryCount <= 5,
+                "optimized notepad path should keep a fixed query budget for a large fixture");
+    }
+
     private void prepareNotepads(int additionalCount) {
         List<Notepad> created = new ArrayList<>();
         for (int i = 0; i < additionalCount; i++) {

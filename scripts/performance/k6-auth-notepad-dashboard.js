@@ -8,6 +8,7 @@ const notepadErrors = new Rate('notepad_list_errors');
 const dashboardErrors = new Rate('dashboard_stats_errors');
 
 export const options = {
+  summaryTrendStats: ['avg', 'min', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
   scenarios: {
     notepad_list: {
       executor: 'constant-vus',
@@ -29,20 +30,32 @@ export const options = {
 };
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
-const PARENT_EMAIL = __ENV.PARENT_EMAIL || 'parent@test.com';
-const PARENT_PASSWORD = __ENV.PARENT_PASSWORD || 'test1234';
+const PARENT_EMAIL = __ENV.PARENT_EMAIL || 'parent1@test.com';
+const PARENT_PASSWORD = __ENV.PARENT_PASSWORD || 'test1234!';
 const PRINCIPAL_EMAIL = __ENV.PRINCIPAL_EMAIL || 'principal@test.com';
-const PRINCIPAL_PASSWORD = __ENV.PRINCIPAL_PASSWORD || 'test1234';
+const PRINCIPAL_PASSWORD = __ENV.PRINCIPAL_PASSWORD || 'test1234!';
 const CLASSROOM_ID = __ENV.CLASSROOM_ID || '1';
 
 function loginAndGetCookies(email, password) {
+  const csrfResponse = http.get(`${BASE_URL}/login`);
+  const csrfCookie = csrfResponse.cookies['XSRF-TOKEN']?.[0]?.value;
+
+  check(csrfResponse, {
+    'login page status is 200': (r) => r.status === 200,
+    'csrf cookie is present': () => Boolean(csrfCookie),
+  });
+
   const loginBody = JSON.stringify({
     email,
     password,
   });
 
   const res = http.post(`${BASE_URL}/api/v1/auth/login`, loginBody, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-XSRF-TOKEN': csrfCookie,
+    },
+    cookies: { 'XSRF-TOKEN': csrfCookie },
   });
 
   check(res, {

@@ -8,6 +8,7 @@ import com.erp.domain.attendance.service.AttendanceService;
 import com.erp.domain.announcement.service.AnnouncementService;
 import com.erp.domain.dashboard.service.DashboardService;
 import com.erp.domain.kid.entity.Kid;
+import com.erp.domain.kid.entity.Gender;
 import com.erp.domain.member.entity.MemberRole;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -22,6 +23,7 @@ import org.springframework.cache.CacheManager;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -119,6 +121,37 @@ class DashboardPerformanceStoryTest extends BaseIntegrationTest {
 
         assertTrue(after.totalAnnouncements() > before.totalAnnouncements(),
                 "announcement write should evict dashboard cache and refresh totalAnnouncements");
+    }
+
+    @Test
+    @DisplayName("대규모 원생 fixture에서도 대시보드 집계 쿼리 예산은 일정하다")
+    void dashboardStatistics_StaysWithinQueryBudgetForLargeFixture() {
+        List<Kid> created = new ArrayList<>();
+        for (int i = 0; i < 1_000; i++) {
+            created.add(Kid.create(
+                    classroom,
+                    "대규모 성능 원생 " + i,
+                    LocalDate.of(2020, 1, 1),
+                    Gender.MALE,
+                    LocalDate.now()
+            ));
+        }
+        kidRepository.saveAll(created);
+        entityManager.flush();
+        entityManager.clear();
+        clearDashboardCache();
+
+        Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        statistics.setStatisticsEnabled(true);
+        Measurement optimized = measure(statistics, () -> dashboardService.getDashboardStatistics(kindergarten));
+
+        System.out.printf("[PERF] dashboard-large-fixture - rows=%d, queries=%d, elapsedMs=%d%n",
+                1_001,
+                optimized.queryCount,
+                optimized.elapsedMs);
+
+        assertTrue(optimized.queryCount <= 5,
+                "optimized dashboard path should keep a fixed query budget for a large fixture");
     }
 
     private void legacyDashboardStatistics(Long kindergartenId) {
