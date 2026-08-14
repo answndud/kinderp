@@ -68,9 +68,10 @@ compose() {
 redis_container="$(compose ps -q "$REDIS_SERVICE")"
 [[ -n "$redis_container" ]] || { echo "Redis container is not running" >&2; exit 1; }
 redis_path="/tmp/erp-backup-$stamp.rdb"
-compose exec -T "$REDIS_SERVICE" redis-cli \
+compose exec -T \
+    -e REDISCLI_AUTH="$REDIS_PASSWORD" \
+    "$REDIS_SERVICE" redis-cli \
     --no-auth-warning \
-    -a "$REDIS_PASSWORD" \
     --rdb "$redis_path" >/dev/null
 docker cp "$redis_container:$redis_path" "$staging_dir/redis.rdb"
 compose exec -T "$REDIS_SERVICE" rm -f "$redis_path" >/dev/null
