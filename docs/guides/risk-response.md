@@ -30,6 +30,7 @@
 | outbox 화면을 교사가 열 수 있는가 | 낮음 | `ViewEndpointTest.testNotificationOutboxPageForTeacherForbidden` | 프론트 링크 숨김만으로 판단하지 말고 서버 권한 테스트 유지 필요 |
 | README CI 최신 시간이 낡을 수 있는가 | 완화됨 | README에서 고정 최신값 제거, 배지/Actions 기준으로 변경 | 대표 개선값은 archive와 실제 run history가 어긋나면 재측정 필요 |
 | 클라우드 미배포가 약점으로 보일 수 있는가 | 중간 | README와 이 문서에서 미배포를 명시 | 비용 문제가 해결되면 최소 1회 실제 배포 smoke가 가장 강한 보완책 |
+| CI가 잘못된 배포 서버로 SSH 연결할 수 있는가 | 낮음 | CD가 운영 검증 후 저장한 `DEPLOY_KNOWN_HOSTS`만 사용하고 `StrictHostKeyChecking=yes`를 강제 | 서버 교체 시 fingerprint 확인 후 secret을 함께 갱신 |
 
 ## 3. 면접 답변 원칙
 
