@@ -34,7 +34,7 @@ docker compose --env-file docker/.env.example -f docker/docker-compose.yml confi
 PROD_ENV_FILE=.env.prod.example docker compose --env-file deploy/.env.prod.example -f deploy/docker-compose.prod.yml config >/tmp/docker-compose.prod.yml
 ALERTMANAGER_WEBHOOK_URL=https://hooks.example.com/alerts docker compose --profile alerting -f docker/docker-compose.monitoring.yml config >/tmp/docker-compose.monitoring-alerting.yml
 docker run --rm -e APP_DOMAIN=erp.example.com -v "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2 caddy validate --config /etc/caddy/Caddyfile
-bash -n scripts/deploy-with-rollback.sh scripts/backup-production.sh scripts/verify-production-backup.sh
+bash -n scripts/deploy-with-rollback.sh scripts/backup-production.sh scripts/verify-production-backup.sh scripts/restore-production-backup.sh
 SMOKE_URL=https://erp.example.com/login \
 COMPOSE_ENV_FILE=deploy/.env.prod \
 COMPOSE_FILE=deploy/docker-compose.prod.yml \
@@ -75,7 +75,7 @@ git diff --check
 | `docker build --tag kindergarten-erp:quality-check .` | 통과 |
 | `docker image inspect kindergarten-erp:quality-check --format 'user={{.Config.User}}'` | `user=10001:10001` |
 | `docker run --rm -e APP_DOMAIN=erp.example.com -v "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2 caddy validate --config /etc/caddy/Caddyfile` | 통과 |
-| `bash -n scripts/deploy-with-rollback.sh scripts/backup-production.sh scripts/verify-production-backup.sh` | 통과 |
+| `bash -n scripts/deploy-with-rollback.sh scripts/backup-production.sh scripts/verify-production-backup.sh scripts/restore-production-backup.sh` | 통과 |
 | `./gradlew --no-daemon integrationTest --tests '*ObservabilityIntegrationTest' --tests '*NotificationOutbox*IntegrationTest'` | 32초, 통과 |
 | `./gradlew --no-daemon performanceSmokeTest` | 28초, 통과 |
 | Docker k6 `k6-auth-notepad-dashboard.js` | 15 VU, 30초, 1,068 requests, error 0.00%, 전체 p95 362.13ms / p99 464.86ms |
@@ -100,6 +100,7 @@ git diff --check
 - rollback 대상 image tag와 DB forward-fix 전략
 - `scripts/backup-production.sh`로 MySQL/Redis backup artifact 생성
 - `scripts/verify-production-backup.sh`로 checksum 검증
+- `scripts/restore-production-backup.sh`로 disposable MySQL/Redis 복구와 데이터 assertion 검증
 - disposable MySQL/Redis에 복원하는 local restore drill
 - 운영 backup은 별도 암호화 object storage로 복제하고 restore drill을 월 1회 수행
 - 배포 후 장애는 correlation ID와 `/actuator/health/readiness`를 함께 확인

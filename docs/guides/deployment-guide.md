@@ -833,6 +833,24 @@ Repository Secrets에 아래 값을 넣습니다.
 - `.env.prod`는 Git에 올리지 않기
 - 암호 관리자 또는 안전한 개인 저장소에 백업
 
+### 21.4 복구 리허설
+
+운영 데이터를 직접 덮어쓰지 않도록, 복구 검증은 `kindergarten.erp.restore-target=disposable` 라벨이 붙은 별도 MySQL/Redis 컨테이너에서 실행합니다.
+
+```bash
+export MYSQL_PASSWORD='disposable-mysql-password'
+export REDIS_PASSWORD='disposable-redis-password'
+
+./scripts/restore-production-backup.sh /absolute/path/to/backup \
+  --mysql-container erp-restore-mysql \
+  --redis-container erp-restore-redis \
+  --mysql-database kindergarten \
+  --mysql-user erp \
+  --confirm-disposable
+```
+
+스크립트는 백업 checksum을 먼저 확인하고 MySQL logical dump를 import한 뒤 Redis RDB를 교체·재기동합니다. 대상 컨테이너에 disposable 라벨이 없거나 `--confirm-disposable`이 없으면 실행하지 않습니다. 실제 운영 복구는 RDS snapshot/Redis 운영 절차를 별도로 승인하고 진행해야 합니다.
+
 ---
 
 ## 22. 롤백 전략
@@ -1229,6 +1247,7 @@ jobs:
           ssh "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$DEPLOY_PATH'"
           scp deploy/docker-compose.prod.yml deploy/Caddyfile \
             scripts/deploy-with-rollback.sh scripts/backup-production.sh scripts/verify-production-backup.sh \
+            scripts/restore-production-backup.sh \
             "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
 
       - name: Deploy on server
@@ -1244,7 +1263,7 @@ jobs:
           ssh "$DEPLOY_USER@$DEPLOY_HOST" \
             "export APP_IMAGE='$IMAGE_TAG' GHCR_USERNAME='$GHCR_USERNAME' GHCR_READ_TOKEN='$GHCR_READ_TOKEN' SMOKE_URL='$SMOKE_URL'; \
              cd '$DEPLOY_PATH'; \
-             chmod 700 ./deploy-with-rollback.sh ./backup-production.sh ./verify-production-backup.sh; \
+             chmod 700 ./deploy-with-rollback.sh ./backup-production.sh ./verify-production-backup.sh ./restore-production-backup.sh; \
              echo \"\$GHCR_READ_TOKEN\" | docker login ghcr.io -u \"\$GHCR_USERNAME\" --password-stdin; \
              ./deploy-with-rollback.sh"
 ```

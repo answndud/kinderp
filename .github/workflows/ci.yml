@@ -75,4 +75,4 @@ jobs:
           docker run --rm -e APP_DOMAIN=erp.example.com -v "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2 caddy validate --config /etc/caddy/Caddyfile
 
       - name: Validate operational shell scripts
-        run: bash -n scripts/deploy-with-rollback.sh scripts/backup-production.sh scripts/verify-production-backup.sh
+        run: bash -n scripts/deploy-with-rollback.sh scripts/backup-production.sh scripts/verify-production-backup.sh scripts/restore-production-backup.sh
