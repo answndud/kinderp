@@ -3,6 +3,7 @@ package com.erp.domain.kid.entity;
 import com.erp.domain.classroom.entity.Classroom;
 import com.erp.domain.member.entity.Member;
 import com.erp.global.common.BaseEntity;
+import com.erp.global.common.ProductTime;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -123,7 +124,7 @@ public class Kid extends BaseEntity {
      * Soft Delete
      */
     public void softDelete() {
-        this.deletedAt = java.time.LocalDateTime.now();
+        this.deletedAt = ProductTime.nowDateTime();
     }
 
     /**
@@ -137,7 +138,7 @@ public class Kid extends BaseEntity {
      * 나이 계산 (만나이)
      */
     public int getAge() {
-        LocalDate now = LocalDate.now();
+        LocalDate now = ProductTime.today();
         int age = now.getYear() - birthDate.getYear();
         if (now.getMonthValue() < birthDate.getMonthValue() ||
             (now.getMonthValue() == birthDate.getMonthValue() && now.getDayOfMonth() < birthDate.getDayOfMonth())) {

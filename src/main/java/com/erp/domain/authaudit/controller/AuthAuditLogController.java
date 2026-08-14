@@ -6,6 +6,7 @@ import com.erp.domain.authaudit.entity.AuthAuditResult;
 import com.erp.domain.authaudit.service.AuthAuditLogQueryService;
 import com.erp.domain.member.entity.MemberAuthProvider;
 import com.erp.global.common.ApiResponse;
+import com.erp.global.common.ProductTime;
 import com.erp.global.security.user.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -124,7 +125,7 @@ public class AuthAuditLogController {
                 .header(
                         HttpHeaders.CONTENT_DISPOSITION,
                         ContentDisposition.attachment()
-                                .filename("auth-audit-logs-%s.csv".formatted(LocalDate.now()), StandardCharsets.UTF_8)
+                                .filename("auth-audit-logs-%s.csv".formatted(ProductTime.today()), StandardCharsets.UTF_8)
                                 .build()
                                 .toString()
                 )

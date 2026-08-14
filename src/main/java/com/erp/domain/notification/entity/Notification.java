@@ -2,6 +2,7 @@ package com.erp.domain.notification.entity;
 
 import com.erp.domain.member.entity.Member;
 import com.erp.global.common.BaseEntity;
+import com.erp.global.common.ProductTime;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -102,7 +103,7 @@ public class Notification extends BaseEntity {
     public void markAsRead() {
         if (!this.isRead) {
             this.isRead = true;
-            this.readAt = LocalDateTime.now();
+            this.readAt = ProductTime.nowDateTime();
         }
     }
 
@@ -118,7 +119,7 @@ public class Notification extends BaseEntity {
      * Soft Delete
      */
     public void softDelete() {
-        this.deletedAt = LocalDateTime.now();
+        this.deletedAt = ProductTime.nowDateTime();
     }
 
     /**

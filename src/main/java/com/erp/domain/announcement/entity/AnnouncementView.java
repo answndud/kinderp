@@ -1,6 +1,7 @@
 package com.erp.domain.announcement.entity;
 
 import com.erp.domain.member.entity.Member;
+import com.erp.global.common.ProductTime;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -45,7 +46,7 @@ public class AnnouncementView {
         AnnouncementView announcementView = new AnnouncementView();
         announcementView.announcement = announcement;
         announcementView.viewer = viewer;
-        announcementView.readAt = LocalDateTime.now();
+        announcementView.readAt = ProductTime.nowDateTime();
         return announcementView;
     }
 }

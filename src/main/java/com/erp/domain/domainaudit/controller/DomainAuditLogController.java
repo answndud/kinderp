@@ -5,6 +5,7 @@ import com.erp.domain.domainaudit.entity.DomainAuditAction;
 import com.erp.domain.domainaudit.entity.DomainAuditTargetType;
 import com.erp.domain.domainaudit.service.DomainAuditLogQueryService;
 import com.erp.global.common.ApiResponse;
+import com.erp.global.common.ProductTime;
 import com.erp.global.security.user.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -117,7 +118,7 @@ public class DomainAuditLogController {
                 .header(
                         HttpHeaders.CONTENT_DISPOSITION,
                         ContentDisposition.attachment()
-                                .filename("domain-audit-logs-%s.csv".formatted(LocalDate.now()), StandardCharsets.UTF_8)
+                                .filename("domain-audit-logs-%s.csv".formatted(ProductTime.today()), StandardCharsets.UTF_8)
                                 .build()
                                 .toString()
                 )

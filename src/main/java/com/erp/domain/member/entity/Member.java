@@ -2,6 +2,7 @@ package com.erp.domain.member.entity;
 
 import com.erp.domain.kindergarten.entity.Kindergarten;
 import com.erp.global.common.BaseEntity;
+import com.erp.global.common.ProductTime;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -261,7 +262,7 @@ public class Member extends BaseEntity {
      */
     public void withdraw() {
         this.status = MemberStatus.INACTIVE;
-        this.deletedAt = java.time.LocalDateTime.now();
+        this.deletedAt = ProductTime.nowDateTime();
     }
 
     /**

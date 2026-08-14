@@ -1,6 +1,7 @@
 package com.erp.global.common;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 
@@ -17,5 +18,9 @@ public final class ProductTime {
 
     public static LocalTime now() {
         return LocalTime.now(ZONE_ID);
+    }
+
+    public static LocalDateTime nowDateTime() {
+        return LocalDateTime.now(ZONE_ID);
     }
 }

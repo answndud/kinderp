@@ -3,6 +3,7 @@ package com.erp.domain.notification.entity;
 import com.erp.domain.member.entity.Member;
 import com.erp.domain.notification.service.channel.NotificationDeliveryPayload;
 import com.erp.global.common.BaseEntity;
+import com.erp.global.common.ProductTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -154,7 +155,7 @@ public class NotificationOutbox extends BaseEntity {
                 .linkUrl(notification.getLinkUrl())
                 .attemptCount(0)
                 .maxAttempts(Math.max(maxAttempts, 1))
-                .nextAttemptAt(LocalDateTime.now().minusSeconds(1))
+                .nextAttemptAt(ProductTime.nowDateTime().minusSeconds(1))
                 .build();
     }
 

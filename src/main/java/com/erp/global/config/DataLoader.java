@@ -43,6 +43,7 @@ import com.erp.domain.notification.entity.NotificationOutbox;
 import com.erp.domain.notification.entity.NotificationType;
 import com.erp.domain.notification.repository.NotificationOutboxRepository;
 import com.erp.domain.notification.repository.NotificationRepository;
+import com.erp.global.common.ProductTime;
 import com.erp.domain.notification.entity.NotificationChannel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -179,7 +180,7 @@ public class DataLoader implements CommandLineRunner {
         createParentKid(parentB3, kidsB.get(5), Relationship.GRANDMOTHER);  // 연우
 
         // 7. 출석부 생성 (최근 7일간)
-        LocalDate today = LocalDate.now();
+        LocalDate today = ProductTime.today();
         for (Kid kid : kidsA) {
             for (int i = 0; i < 7; i++) {
                 LocalDate date = today.minusDays(i);
@@ -493,7 +494,7 @@ public class DataLoader implements CommandLineRunner {
                                            Classroom classA1,
                                            Member principalA,
                                            Member teacherA1) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = ProductTime.today();
         if (!calendarEventRepository.existsByKindergartenIdAndTitleAndDeletedAtIsNull(kgA.getId(), "입학 상담 주간")) {
             createCalendarEvent(kgA, null, principalA, "입학 상담 주간", "신규 학부모 상담 집중 주간입니다.",
                     today.plusDays(1).atTime(10, 0), today.plusDays(1).atTime(11, 30),
@@ -530,14 +531,14 @@ public class DataLoader implements CommandLineRunner {
 
     private List<Kid> createKidsForClassroom(Classroom classroom, String... names) {
         List<Kid> kids = new ArrayList<>();
-        int birthYear = LocalDate.now().getYear() - 5;
+        int birthYear = ProductTime.today().getYear() - 5;
         for (String name : names) {
             Kid kid = Kid.create(
                     classroom,
                     name,
                     LocalDate.of(birthYear, 3, 15),
                     random.nextBoolean() ? Gender.MALE : Gender.FEMALE,
-                    LocalDate.of(LocalDate.now().getYear(), 3, 1)
+                    LocalDate.of(ProductTime.today().getYear(), 3, 1)
             );
             kids.add(kidRepository.save(kid));
         }
@@ -591,7 +592,7 @@ public class DataLoader implements CommandLineRunner {
                 parent,
                 kindergarten,
                 kidName,
-                LocalDate.of(LocalDate.now().getYear() - 4, 5, 10),
+                LocalDate.of(ProductTime.today().getYear() - 4, 5, 10),
                 Gender.FEMALE,
                 preferredClassroom,
                 notes
@@ -617,7 +618,7 @@ public class DataLoader implements CommandLineRunner {
                                                     String kidName,
                                                     String note) {
         KidApplication application = createPendingApplication(parent, kindergarten, classroom, kidName, note);
-        application.offerSeat(classroom, processor, LocalDateTime.now().plusDays(3), note);
+        application.offerSeat(classroom, processor, ProductTime.nowDateTime().plusDays(3), note);
         return kidApplicationRepository.save(application);
     }
 
@@ -662,9 +663,9 @@ public class DataLoader implements CommandLineRunner {
                 linkUrl
         ));
         NotificationOutbox outbox = NotificationOutbox.create(notification, channel, 2);
-        LocalDateTime firstAttemptAt = LocalDateTime.now().minusMinutes(10);
+        LocalDateTime firstAttemptAt = ProductTime.nowDateTime().minusMinutes(10);
         outbox.markProcessing(firstAttemptAt);
-        outbox.markDeadLetter(LocalDateTime.now().minusMinutes(8), errorMessage);
+        outbox.markDeadLetter(ProductTime.nowDateTime().minusMinutes(8), errorMessage);
         notificationOutboxRepository.save(outbox);
     }
 
@@ -677,7 +678,7 @@ public class DataLoader implements CommandLineRunner {
                 linkUrl
         ));
         NotificationOutbox outbox = NotificationOutbox.create(notification, channel, 2);
-        LocalDateTime attemptAt = LocalDateTime.now().minusMinutes(3);
+        LocalDateTime attemptAt = ProductTime.nowDateTime().minusMinutes(3);
         outbox.markProcessing(attemptAt);
         outbox.markDelivered(attemptAt.plusSeconds(2));
         notificationOutboxRepository.save(outbox);

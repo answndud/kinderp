@@ -1,6 +1,7 @@
 package com.erp.domain.notepad.entity;
 
 import com.erp.domain.member.entity.Member;
+import com.erp.global.common.ProductTime;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -53,7 +54,7 @@ public class NotepadReadConfirm {
         NotepadReadConfirm confirm = new NotepadReadConfirm();
         confirm.notepad = notepad;
         confirm.reader = reader;
-        confirm.readAt = LocalDateTime.now();
+        confirm.readAt = ProductTime.nowDateTime();
         return confirm;
     }
 
@@ -63,6 +64,6 @@ public class NotepadReadConfirm {
      * 읽은 시간 갱신
      */
     public void updateReadTime() {
-        this.readAt = LocalDateTime.now();
+        this.readAt = ProductTime.nowDateTime();
     }
 }

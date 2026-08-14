@@ -15,6 +15,7 @@ import com.erp.domain.member.entity.MemberRole;
 import com.erp.global.security.access.AccessPolicyService;
 import com.erp.global.exception.BusinessException;
 import com.erp.global.exception.ErrorCode;
+import com.erp.global.common.ProductTime;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Map;
@@ -133,7 +134,7 @@ public class NotificationOutboxOpsService {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "dead-letter 상태의 outbox만 재시도할 수 있습니다");
         }
 
-        outbox.resetDeadLetterForRetry(LocalDateTime.now(), deliveryProperties.getMaxAttempts());
+        outbox.resetDeadLetterForRetry(ProductTime.nowDateTime(), deliveryProperties.getMaxAttempts());
         domainAuditLogService.record(
                 reviewer,
                 kindergartenId,

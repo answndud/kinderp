@@ -7,6 +7,7 @@ import com.erp.domain.kidapplication.entity.ApplicationStatus;
 import com.erp.domain.kidapplication.repository.KidApplicationRepository;
 import com.erp.global.exception.BusinessException;
 import com.erp.global.exception.ErrorCode;
+import com.erp.global.common.ProductTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +42,7 @@ public class ClassroomCapacityService {
         long reservedOfferCount = kidApplicationRepository.countActiveOffersByAssignedClassroomId(
                 classroom.getId(),
                 ApplicationStatus.OFFERED,
-                LocalDateTime.now()
+                ProductTime.nowDateTime()
         );
         long availableSeatCount = classroom.remainingSeats(enrolledKidCount + reservedOfferCount);
         return new ClassroomSeatSummary(

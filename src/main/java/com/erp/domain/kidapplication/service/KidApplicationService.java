@@ -20,6 +20,7 @@ import com.erp.domain.member.entity.Member;
 import com.erp.domain.member.entity.MemberRole;
 import com.erp.domain.member.entity.MemberStatus;
 import com.erp.domain.member.repository.MemberRepository;
+import com.erp.global.common.ProductTime;
 import com.erp.global.exception.BusinessException;
 import com.erp.global.exception.ErrorCode;
 import com.erp.global.security.access.AccessPolicyService;
@@ -212,7 +213,7 @@ public class KidApplicationService {
             return;
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = ProductTime.nowDateTime();
         List<KidApplication> expiredOffers = applicationRepository.findExpiredOffers(ApplicationStatus.OFFERED, now);
         for (KidApplication application : expiredOffers) {
             if (!application.isOffered()) {

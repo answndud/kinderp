@@ -11,6 +11,7 @@ import com.erp.domain.notification.entity.NotificationType;
 import com.erp.domain.notification.repository.NotificationRepository;
 import com.erp.global.exception.BusinessException;
 import com.erp.global.exception.ErrorCode;
+import com.erp.global.common.ProductTime;
 import com.erp.global.security.access.AccessPolicyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -206,7 +207,7 @@ public class NotificationService {
      */
     @Transactional
     public void markAllAsRead(Long receiverId) {
-        notificationRepository.markAllAsRead(receiverId, LocalDateTime.now());
+        notificationRepository.markAllAsRead(receiverId, ProductTime.nowDateTime());
     }
 
     /**
@@ -272,8 +273,8 @@ public class NotificationService {
      */
     @Transactional
     public int cleanupOldReadNotifications(Long receiverId, int daysToKeep) {
-        LocalDateTime beforeDate = LocalDateTime.now().minusDays(daysToKeep);
-        return notificationRepository.softDeleteOldReadNotifications(receiverId, beforeDate, LocalDateTime.now());
+        LocalDateTime beforeDate = ProductTime.nowDateTime().minusDays(daysToKeep);
+        return notificationRepository.softDeleteOldReadNotifications(receiverId, beforeDate, ProductTime.nowDateTime());
     }
 
     private int resolveBatchSize() {

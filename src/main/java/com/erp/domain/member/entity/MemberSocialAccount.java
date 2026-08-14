@@ -1,6 +1,7 @@
 package com.erp.domain.member.entity;
 
 import com.erp.global.common.BaseEntity;
+import com.erp.global.common.ProductTime;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -64,7 +65,7 @@ public class MemberSocialAccount extends BaseEntity {
     }
 
     public void unlink() {
-        this.unlinkedAt = LocalDateTime.now();
+        this.unlinkedAt = ProductTime.nowDateTime();
     }
 
     public void relink() {

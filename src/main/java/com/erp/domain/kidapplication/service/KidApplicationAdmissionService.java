@@ -9,7 +9,7 @@ import com.erp.domain.kid.repository.ParentKidRepository;
 import com.erp.domain.kidapplication.entity.KidApplication;
 import com.erp.domain.kindergarten.entity.Kindergarten;
 import com.erp.domain.member.entity.Member;
-import java.time.LocalDate;
+import com.erp.global.common.ProductTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +26,7 @@ public class KidApplicationAdmissionService {
                 application.getKidName(),
                 application.getBirthDate(),
                 application.getGender(),
-                LocalDate.now()
+                ProductTime.today()
         );
         Kid savedKid = kidRepository.save(kid);
 

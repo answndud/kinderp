@@ -5,6 +5,7 @@ import com.erp.domain.kindergarten.entity.Kindergarten;
 import com.erp.domain.kid.entity.Gender;
 import com.erp.domain.member.entity.Member;
 import com.erp.global.common.BaseEntity;
+import com.erp.global.common.ProductTime;
 import com.erp.global.exception.BusinessException;
 import com.erp.global.exception.ErrorCode;
 import jakarta.persistence.*;
@@ -109,7 +110,7 @@ public class KidApplication extends BaseEntity {
         ensureState(status.isPending(), "즉시 승인은 PENDING 상태에서만 가능합니다");
         this.status = ApplicationStatus.APPROVED;
         this.assignedClassroom = classroom;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = ProductTime.nowDateTime();
         this.processedBy = processor;
         this.kidId = approvedKidId;
         this.waitlistedAt = null;
@@ -124,9 +125,9 @@ public class KidApplication extends BaseEntity {
                 "대기열 등록은 PENDING/OFFER_EXPIRED 상태에서만 가능합니다");
         this.status = ApplicationStatus.WAITLISTED;
         this.assignedClassroom = classroom;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = ProductTime.nowDateTime();
         this.processedBy = processor;
-        this.waitlistedAt = LocalDateTime.now();
+        this.waitlistedAt = ProductTime.nowDateTime();
         this.offeredAt = null;
         this.offerExpiresAt = null;
         this.offerAcceptedAt = null;
@@ -140,9 +141,9 @@ public class KidApplication extends BaseEntity {
                 "입학 offer는 PENDING/WAITLISTED 상태에서만 가능합니다");
         this.status = ApplicationStatus.OFFERED;
         this.assignedClassroom = classroom;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = ProductTime.nowDateTime();
         this.processedBy = processor;
-        this.offeredAt = LocalDateTime.now();
+        this.offeredAt = ProductTime.nowDateTime();
         this.offerExpiresAt = expiresAt;
         this.rejectionReason = null;
         this.decisionNote = normalize(note);
@@ -150,25 +151,25 @@ public class KidApplication extends BaseEntity {
 
     public void acceptOffer(Long approvedKidId) {
         ensureState(status == ApplicationStatus.OFFERED, "입학 offer 상태가 아닙니다");
-        ensureState(offerExpiresAt == null || offerExpiresAt.isAfter(LocalDateTime.now()),
+        ensureState(offerExpiresAt == null || offerExpiresAt.isAfter(ProductTime.nowDateTime()),
                 "만료된 입학 offer는 수락할 수 없습니다");
         this.status = ApplicationStatus.APPROVED;
-        this.offerAcceptedAt = LocalDateTime.now();
-        this.processedAt = LocalDateTime.now();
+        this.offerAcceptedAt = ProductTime.nowDateTime();
+        this.processedAt = ProductTime.nowDateTime();
         this.kidId = approvedKidId;
     }
 
     public void markOfferExpired() {
         ensureState(status == ApplicationStatus.OFFERED, "만료 처리 가능한 offer 상태가 아닙니다");
         this.status = ApplicationStatus.OFFER_EXPIRED;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = ProductTime.nowDateTime();
     }
 
     public void reject(String reason, Member processor) {
         ensureState(status.isReviewQueueStatus(), "처리 가능한 상태가 아닙니다: " + status);
         this.status = ApplicationStatus.REJECTED;
         this.rejectionReason = reason;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = ProductTime.nowDateTime();
         this.processedBy = processor;
         this.offerExpiresAt = null;
     }
@@ -176,7 +177,7 @@ public class KidApplication extends BaseEntity {
     public void cancel() {
         ensureState(status.isActiveForParent(), "취소 가능한 상태가 아닙니다: " + status);
         this.status = ApplicationStatus.CANCELLED;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = ProductTime.nowDateTime();
         this.offerExpiresAt = null;
     }
 
@@ -205,7 +206,7 @@ public class KidApplication extends BaseEntity {
     }
 
     public void softDelete() {
-        this.deletedAt = LocalDateTime.now();
+        this.deletedAt = ProductTime.nowDateTime();
     }
 
     public boolean isPending() {

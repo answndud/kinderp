@@ -1,6 +1,7 @@
 package com.erp.domain.kid.entity;
 
 import com.erp.domain.member.entity.Member;
+import com.erp.global.common.ProductTime;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -59,7 +60,7 @@ public class ParentKid {
         parentKid.kid = kid;
         parentKid.parent = parent;
         parentKid.relationship = relationship;
-        parentKid.createdAt = java.time.LocalDateTime.now();
+        parentKid.createdAt = ProductTime.nowDateTime();
         return parentKid;
     }
 

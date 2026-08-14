@@ -7,6 +7,7 @@ import com.erp.domain.notification.repository.NotificationOutboxRepository;
 import com.erp.domain.notification.entity.NotificationChannel;
 import com.erp.domain.notification.service.channel.NotificationChannelSender;
 import com.erp.domain.notification.service.channel.NotificationChannelSenderRegistry;
+import com.erp.global.common.ProductTime;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -65,7 +66,7 @@ public class NotificationDispatchService {
 
     public int processReadyDeliveriesBatch() {
         Timer.Sample timer = Timer.start(meterRegistry);
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = ProductTime.nowDateTime();
         try {
             List<Long> claimedIds = executeInNewTransaction(() -> claimReadyDeliveries(now));
             claimedIds.forEach(outboxId -> executeInNewTransaction(() -> {
@@ -113,7 +114,7 @@ public class NotificationDispatchService {
         }
 
         NotificationChannelSender sender = resolveSender(outbox.getChannel());
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = ProductTime.nowDateTime();
 
         try {
             sender.send(outbox.toPayload());

@@ -4,6 +4,7 @@ import com.erp.domain.classroom.entity.Classroom;
 import com.erp.domain.kindergarten.entity.Kindergarten;
 import com.erp.domain.member.entity.Member;
 import com.erp.global.common.BaseEntity;
+import com.erp.global.common.ProductTime;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -174,7 +175,7 @@ public class CalendarEvent extends BaseEntity {
     }
 
     public void softDelete() {
-        this.deletedAt = LocalDateTime.now();
+        this.deletedAt = ProductTime.nowDateTime();
     }
 
     public boolean isDeleted() {

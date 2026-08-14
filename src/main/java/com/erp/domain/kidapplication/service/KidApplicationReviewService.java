@@ -18,6 +18,7 @@ import com.erp.domain.member.entity.MemberRole;
 import com.erp.domain.member.repository.MemberRepository;
 import com.erp.global.exception.BusinessException;
 import com.erp.global.exception.ErrorCode;
+import com.erp.global.common.ProductTime;
 import java.time.LocalDateTime;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -91,7 +92,7 @@ public class KidApplicationReviewService {
 
         classroomCapacityService.validateSeatAvailable(classroom);
 
-        LocalDateTime offerExpiresAt = LocalDateTime.now().plus(workflowProperties.getOfferValidity());
+        LocalDateTime offerExpiresAt = ProductTime.nowDateTime().plus(workflowProperties.getOfferValidity());
         application.offerSeat(classroom, processor, offerExpiresAt, request.decisionNote());
         notificationService.notifyParentAboutOffer(application.getParent(), application.getKidName(), classroom, offerExpiresAt);
         auditService.record(
@@ -116,7 +117,7 @@ public class KidApplicationReviewService {
         if (!application.isOffered()) {
             throw new BusinessException(ErrorCode.APPLICATION_NOT_OFFERED);
         }
-        if (application.getOfferExpiresAt() != null && !application.getOfferExpiresAt().isAfter(LocalDateTime.now())) {
+        if (application.getOfferExpiresAt() != null && !application.getOfferExpiresAt().isAfter(ProductTime.nowDateTime())) {
             application.markOfferExpired();
             notificationService.notifyParentAboutOfferExpired(application.getParent(), application.getKidName());
             throw new BusinessException(ErrorCode.APPLICATION_OFFER_EXPIRED);

@@ -3,6 +3,7 @@ package com.erp.domain.kindergartenapplication.entity;
 import com.erp.domain.kindergarten.entity.Kindergarten;
 import com.erp.domain.member.entity.Member;
 import com.erp.global.common.BaseEntity;
+import com.erp.global.common.ProductTime;
 import com.erp.global.exception.BusinessException;
 import com.erp.global.exception.ErrorCode;
 import jakarta.persistence.*;
@@ -91,7 +92,7 @@ public class KindergartenApplication extends BaseEntity {
     public void approve(Member principal) {
         ensureProcessable("처리 가능한 상태가 아닙니다: " + status);
         this.status = ApplicationStatus.APPROVED;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = ProductTime.nowDateTime();
         this.processedBy = principal;
     }
 
@@ -102,7 +103,7 @@ public class KindergartenApplication extends BaseEntity {
         ensureProcessable("처리 가능한 상태가 아닙니다: " + status);
         this.status = ApplicationStatus.REJECTED;
         this.rejectionReason = reason;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = ProductTime.nowDateTime();
         this.processedBy = principal;
     }
 
@@ -112,7 +113,7 @@ public class KindergartenApplication extends BaseEntity {
     public void cancel() {
         ensureProcessable("취소 가능한 상태가 아닙니다: " + status);
         this.status = ApplicationStatus.CANCELLED;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = ProductTime.nowDateTime();
     }
 
     /**
@@ -134,7 +135,7 @@ public class KindergartenApplication extends BaseEntity {
      * Soft Delete
      */
     public void softDelete() {
-        this.deletedAt = LocalDateTime.now();
+        this.deletedAt = ProductTime.nowDateTime();
     }
 
     /**

@@ -3,6 +3,7 @@ package com.erp.domain.attendance.entity;
 import com.erp.domain.kid.entity.Kid;
 import com.erp.domain.member.entity.Member;
 import com.erp.global.common.BaseEntity;
+import com.erp.global.common.ProductTime;
 import com.erp.global.exception.BusinessException;
 import com.erp.global.exception.ErrorCode;
 import jakarta.persistence.*;
@@ -106,7 +107,7 @@ public class AttendanceChangeRequest extends BaseEntity {
         ensurePending();
         this.status = AttendanceChangeRequestStatus.APPROVED;
         this.reviewedBy = reviewer;
-        this.reviewedAt = LocalDateTime.now();
+        this.reviewedAt = ProductTime.nowDateTime();
         this.attendanceId = approvedAttendanceId;
         this.rejectionReason = null;
         this.cancelledAt = null;
@@ -116,7 +117,7 @@ public class AttendanceChangeRequest extends BaseEntity {
         ensurePending();
         this.status = AttendanceChangeRequestStatus.REJECTED;
         this.reviewedBy = reviewer;
-        this.reviewedAt = LocalDateTime.now();
+        this.reviewedAt = ProductTime.nowDateTime();
         this.rejectionReason = rejectionReason;
         this.cancelledAt = null;
     }
@@ -124,7 +125,7 @@ public class AttendanceChangeRequest extends BaseEntity {
     public void cancel() {
         ensurePending();
         this.status = AttendanceChangeRequestStatus.CANCELLED;
-        this.cancelledAt = LocalDateTime.now();
+        this.cancelledAt = ProductTime.nowDateTime();
     }
 
     public boolean isPending() {

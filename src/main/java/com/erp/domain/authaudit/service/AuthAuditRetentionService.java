@@ -1,6 +1,7 @@
 package com.erp.domain.authaudit.service;
 
 import com.erp.domain.authaudit.config.AuthAuditRetentionProperties;
+import com.erp.global.common.ProductTime;
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -33,7 +34,7 @@ public class AuthAuditRetentionService {
             return new AuthAuditRetentionResult(0, 0);
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = ProductTime.nowDateTime();
         int archived = archiveEligibleLogs(now.minus(normalizeDuration(
                 retentionProperties.getArchiveAfter(),
                 Duration.ofDays(30)
