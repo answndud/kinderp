@@ -49,7 +49,7 @@
             hideError();
             try {
                 await Promise.all([loadSummary(), loadTimeline(page)]);
-                lastRefreshedAt.textContent = `마지막 갱신: ${new Date().toLocaleTimeString('ko-KR')}`;
+                lastRefreshedAt.textContent = `마지막 갱신: ${window.AppTime.formatTime(new Date())}`;
             } finally {
                 refreshing = false;
                 refreshButton.disabled = false;
@@ -248,7 +248,7 @@
 
         function formatDateTime(value) {
             if (!value) return '-';
-            return new Date(value).toLocaleString('ko-KR');
+            return window.AppTime.formatDateTime(value);
         }
 
         function escapeHtml(value) {

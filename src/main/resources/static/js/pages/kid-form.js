@@ -97,7 +97,7 @@
         }
         if (formMode === 'create') {
             const admission = document.getElementById('admissionDate');
-            if (admission && !admission.value) admission.valueAsDate = new Date();
+            if (admission && !admission.value) admission.value = window.AppTime.todayInputValue();
         }
     };
 

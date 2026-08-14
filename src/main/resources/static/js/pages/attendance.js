@@ -45,28 +45,25 @@ document.addEventListener('alpine:init', () => {
             }
 
             // Keep the date aligned with the product timezone instead of UTC.
-            const today = new Intl.DateTimeFormat('en-CA', {
-                timeZone: 'Asia/Seoul',
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit'
-            }).format(new Date());
+            const today = window.AppTime.todayInputValue();
             document.getElementById('selectedDate').value = today;
+
+            const shiftDate = (value, days) => {
+                const [year, month, day] = value.split('-').map(Number);
+                const date = new Date(Date.UTC(year, month - 1, day + days));
+                return date.toISOString().slice(0, 10);
+            };
 
             // Date navigation
             document.getElementById('prevDay').addEventListener('click', function() {
                 const dateInput = document.getElementById('selectedDate');
-                const currentDate = new Date(dateInput.value);
-                currentDate.setDate(currentDate.getDate() - 1);
-                dateInput.value = currentDate.toISOString().split('T')[0];
+                dateInput.value = shiftDate(dateInput.value, -1);
                 loadAttendance();
             });
 
             document.getElementById('nextDay').addEventListener('click', function() {
                 const dateInput = document.getElementById('selectedDate');
-                const currentDate = new Date(dateInput.value);
-                currentDate.setDate(currentDate.getDate() + 1);
-                dateInput.value = currentDate.toISOString().split('T')[0];
+                dateInput.value = shiftDate(dateInput.value, 1);
                 loadAttendance();
             });
 
@@ -118,7 +115,7 @@ document.addEventListener('alpine:init', () => {
                         return count;
                     }, {});
                     const presentCount = (statusCount.PRESENT || 0) + (statusCount.LATE || 0);
-                    setAttendanceStatus(`${rows.length}명 · 출석/지각 ${presentCount}명 · 마지막 갱신 ${new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}`);
+                    setAttendanceStatus(`${rows.length}명 · 출석/지각 ${presentCount}명 · 마지막 갱신 ${window.AppTime.formatTime(new Date(), { hour: '2-digit', minute: '2-digit' })}`);
 
                     tbody.innerHTML = rows.map(row => {
                         const statusMap = {

@@ -404,7 +404,7 @@
                         .join('');
                 }
 
-                document.getElementById('kid-admission-date').valueAsDate = new Date();
+                document.getElementById('kid-admission-date').value = window.AppTime.todayInputValue();
             },
             preConfirm: () => {
                 const name = document.getElementById('kid-name').value;

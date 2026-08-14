@@ -49,7 +49,7 @@
                     const value = document.getElementById(valueId)?.textContent;
                     if (donut && value) donut.setAttribute('aria-label', `${donut.getAttribute('aria-label')} ${value}%`);
                 });
-            setText('dashboardStatus', `마지막 갱신 ${new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}`);
+            setText('dashboardStatus', `마지막 갱신 ${window.AppTime.formatTime(new Date(), { hour: '2-digit', minute: '2-digit' })}`);
         } catch {
             setText('dashboardStatus', '지표를 불러오지 못했습니다. 네트워크 상태를 확인하세요.');
         }

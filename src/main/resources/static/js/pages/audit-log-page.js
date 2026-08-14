@@ -44,8 +44,12 @@
 
     const formatDateTime = value => {
         if (!value) return '-';
-        const date = new Date(value);
-        return Number.isNaN(date.getTime()) ? String(value).replace('T', ' ').slice(0, 16) : date.toLocaleString('ko-KR');
+        const date = window.AppTime?.parse ? window.AppTime.parse(value) : new Date(value);
+        return Number.isNaN(date.getTime()) ? String(value).replace('T', ' ').slice(0, 16) : new Intl.DateTimeFormat('ko-KR', {
+            timeZone: 'Asia/Seoul',
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        }).format(date);
     };
 
     const buildQueryParams = (pageNumber, includePagination = true) => {
@@ -159,7 +163,7 @@
             const payload = await response.json().catch(() => ({}));
             if (!response.ok || !payload.success) throw new Error(payload.message || `${config.errorLabel} 조회에 실패했습니다.`);
             renderPage(payload.data);
-            if (status) status.textContent = `${payload.data.totalElements || 0}건 · ${buildFilterSummary()} · 마지막 갱신 ${new Date().toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit'})}`;
+            if (status) status.textContent = `${payload.data.totalElements || 0}건 · ${buildFilterSummary()} · 마지막 갱신 ${new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit' }).format(new Date())}`;
         } catch (error) {
             renderError(error.message || `${config.errorLabel}를 불러오지 못했습니다.`);
         } finally {
