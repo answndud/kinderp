@@ -16,6 +16,8 @@ services:
         max-file: "5"
     env_file:
       - ${PROD_ENV_FILE:-.env.prod}
+    environment:
+      APP_VERSION: ${APP_VERSION:-unknown}
     ports:
       - "127.0.0.1:8080:8080"
       - "127.0.0.1:9091:9091"

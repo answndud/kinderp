@@ -74,7 +74,7 @@ info:
   app:
     name: ${spring.application.name}
     description: Kindergarten ERP backend portfolio project
-    version: 0.0.1-SNAPSHOT
+    version: ${APP_VERSION:0.0.1-SNAPSHOT}
 
 # 알림 발송 설정 (외부 채널은 선택 사항)
 notification:

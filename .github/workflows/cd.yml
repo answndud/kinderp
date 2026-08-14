@@ -108,7 +108,7 @@ jobs:
           IMAGE_TAG: ghcr.io/${{ github.repository_owner }}/kindergarten-erp:${{ github.sha }}
         run: |
           ssh "$DEPLOY_USER@$DEPLOY_HOST" \
-            "export APP_IMAGE='$IMAGE_TAG' GHCR_USERNAME='$GHCR_USERNAME' GHCR_READ_TOKEN='$GHCR_READ_TOKEN' SMOKE_URL='$SMOKE_URL'; \
+            "export APP_IMAGE='$IMAGE_TAG' APP_VERSION='${{ github.sha }}' GHCR_USERNAME='$GHCR_USERNAME' GHCR_READ_TOKEN='$GHCR_READ_TOKEN' SMOKE_URL='$SMOKE_URL'; \
              cd '$DEPLOY_PATH'; \
              chmod 700 ./deploy-with-rollback.sh ./backup-production.sh ./verify-production-backup.sh ./restore-production-backup.sh; \
              echo \"\$GHCR_READ_TOKEN\" | docker login ghcr.io -u \"\$GHCR_USERNAME\" --password-stdin; \

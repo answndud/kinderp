@@ -92,6 +92,8 @@
 
 ### 선택
 
+- `APP_VERSION`
+  - 배포 이미지의 commit SHA를 Actuator `/actuator/info`에 표시합니다. CD가 자동 주입하며, 수동 배포에서는 이미지 태그와 동일한 값을 사용합니다.
 - `REDIS_PORT`
 - `MANAGEMENT_SERVER_PORT`
 - `MANAGEMENT_SERVER_ADDRESS`

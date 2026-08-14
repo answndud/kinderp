@@ -684,6 +684,8 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml ps
 
 `PREFLIGHT_ONLY=1`은 Docker/Curl, Compose 파일·환경 파일, Compose config만 검증하고 image pull이나 컨테이너 변경은 수행하지 않습니다. 이 검증이 통과한 뒤에 실제 배포 명령을 실행합니다.
 
+CD는 이미지 태그와 동일한 commit SHA를 `APP_VERSION`으로 주입합니다. 배포 후 인증된 management surface의 `/actuator/info`에서 `info.app.version`을 확인하면 실행 중인 이미지와 소스 커밋을 대조할 수 있습니다.
+
 로그 확인:
 
 ```bash

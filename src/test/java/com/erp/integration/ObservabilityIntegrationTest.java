@@ -52,6 +52,15 @@ class ObservabilityIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("Actuator info는 실행 중인 앱 버전을 식별할 수 있다")
+    void actuatorInfo_ExposesApplicationVersion() throws Exception {
+        mockMvc.perform(get("/actuator/info"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.app.name").value("erp"))
+                .andExpect(jsonPath("$.app.version").value("0.0.1-SNAPSHOT"));
+    }
+
+    @Test
     @DisplayName("readiness probe는 critical dependency가 DOWN이면 서비스 불가로 전환된다")
     void actuatorReadinessProbe_IsDown_WhenCriticalDependenciesFail() throws Exception {
         replaceCriticalDependencies(() -> Health.down()
