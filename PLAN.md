@@ -2,21 +2,27 @@
 
 ## Goal
 
-Kindergarten ERP를 TownPet과 중복되지 않는 다중 테넌트 내부 운영 플랫폼 포트폴리오로 전면 개편한다. 권한·승인·출결 정합성, 실패 복구, 성능 증거, 운영형 UI, 실제 배포 증거를 하나의 채용용 서사로 연결하고, 대표 시나리오를 코드·테스트·문서·화면에서 재현 가능하게 만든다.
+Kindergarten ERP를 TownPet과 차별화되는 다중 테넌트 내부 운영 플랫폼 포트폴리오로 완성한다. 코드·화면·테스트·운영 문서가 대표 업무 흐름과 일치하고, 실제 배포 전 남은 외부 의존 항목이 명확히 검증 가능한 상태가 되는 것이 완료 조건이다.
 
 ## Active
 
-### P3 - 배포·최종 포트폴리오 품질
+### P3 - 외부 운영 증거 확보
 
-1. 실제 배포와 장애·복구 증거를 확보하고 포트폴리오 산출물을 최종화한다.
-   - 파일: `deploy/**`, `scripts/deploy-with-rollback.sh`, `scripts/backup-production.sh`, `scripts/verify-production-backup.sh`, `scripts/restore-production-backup.sh`, `src/main/java/com/erp/domain/auth/**`, `src/main/java/com/erp/global/exception/GlobalExceptionHandler.java`, `src/main/resources/application-prod.yml`, `Dockerfile`, `.github/workflows/**`, `docs/guides/deployment-guide.md`, `docs/guides/production-like-checklist.md`, `README.md`
-   - 변경: 실제 HTTPS 배포, backup/restore, rollback, readiness, 알림 수신, 최소 장애 주입 결과를 기록한다. 로컬 backup artifact와 disposable MySQL/Redis restore drill은 통과했으며, Redis `requirepass`를 사용하는 운영 구성에 맞춰 백업 스크립트가 `REDIS_PASSWORD`로 인증한 뒤 RDB를 추출하도록 보강했다. rate-limit 운영값은 환경 계약으로 조정 가능하게 했다. 템플릿 액션은 CSP 호환 `data-action` 이벤트 위임으로 전환했고 `script-src-attr 'none'` 회귀 검사를 CI에 연결했다. 대시보드 통계 로직은 `static/js/pages/dashboard.js`, 홈 대시보드 Alpine 로직은 `static/js/pages/dashboard-home.js`로 분리하고 차트 색상·진행률을 CSS 토큰과 접근성 라벨로 연결했다. 원생 목록·출결·신청 화면에는 로딩 상태, 갱신 상태, 모바일 상태 전달을 보강하고 출결 기준일을 Asia/Seoul로 고정했다. 알림장·공지·일정 목록에도 live region과 busy 상태를 적용하고 공지 필터는 `aria-pressed`로 상태를 전달하며 일정 범위를 Asia/Seoul 기준으로 통일했다. 공지·알림장·캘린더 목록의 남은 인라인 로직도 각각 `announcement-list.js`, `notepad-list.js`, `calendar-page.js`로 이동했으며, 현재 템플릿 인라인 JavaScript 수는 0개다. 인증/업무 감사 로그는 표 caption·오류 alert·갱신 live region을 보강했고, 설정의 활성 세션 목록은 동적 busy 상태와 오류 alert를 제공하며 비밀번호 autocomplete을 명시했다. 로그인·회원가입은 autocomplete 및 오류 alert를 보강하고 전용 Alpine 로직을 `static/js/pages/auth-forms.js`로 분리했으며, 출결 요청·월간 리포트는 모바일 목록/표와 동적 busy 상태를 명시하며 월 초기화 기준을 Asia/Seoul로 통일했다. 월간 리포트 조회/렌더링은 `static/js/pages/monthly-report.js`로 분리하고 표·모바일 카드의 사용자 입력 escaping을 적용했다. 출결 요청 큐는 `static/js/pages/attendance-requests.js`로 분리하고 승인/반려/취소 중복 클릭 방지와 목록 busy 상태를 보강했다. 인증·업무 감사 로그는 공통 `static/js/pages/audit-log-page.js`로 통합하고 유형별 API/행 렌더링을 `data-audit-kind`로 분기했다. 알림 Outbox 운영 화면은 `static/js/pages/notification-outbox.js`로 분리하고 endpoint 계약을 `data-*`로 명시했다. 유치원 선택·등록과 반 관리에는 목록 busy/빈/오류 상태, 조직·주소·전화 자동완성, 반 생성 중복 제출 방지를 적용했으며 등록 제출 로직은 `static/js/pages/kindergarten-create.js`, 유치원 선택은 `static/js/pages/kindergarten-select.js`, 반 관리 조회/생성은 `static/js/pages/classrooms.js`로 분리했다. 프로필 수정·공지 미리보기·알림장 대상 선택 로직은 각각 `static/js/pages/profile.js`, `static/js/pages/announcement-editor.js`, `static/js/pages/notepad-write.js`로 분리하고 서버 주입 값은 `data-*` 설정으로 전달했다. 원생 등록/수정·상세 학부모 관리와 공지/알림장 편집의 화면 로직도 전용 모듈로 분리했다. 외부 도메인·운영 자격증명이 필요한 항목은 미실행으로 구분한다.
-   - 추가 상태: 배포 스크립트는 Compose env 파일을 기준으로 이미지 설정을 읽고, Redis 백업 비밀번호는 프로세스 인자가 아닌 환경변수로 전달한다. 백업 경로는 절대경로이면서 filesystem root가 아닌 값만 허용해 staging 정리 범위를 제한한다. 외부 smoke URL은 리다이렉트를 최종 응답까지 따라간 뒤 배포 성공을 판정한다. readiness/smoke 실패 시 이전 이미지와 이전 컨테이너의 `APP_VERSION`을 함께 복원한다. 유치원 최초 등록 시 생성자 원장을 같은 트랜잭션에서 해당 유치원에 연결하고, 이미 소속된 원장의 중복 등록을 차단한다. 인증 signup/login/refresh rate-limit과 Retry-After 계약, credentialed CORS 허용 헤더 제한, CSP `script-src-attr 'none'`, 웹 로그아웃의 Redis 세션 폐기를 테스트로 고정했다. 알림 Outbox 운영 API는 원장 계정의 tenant 범위로 summary/timeline/dead-letter/retry를 제한하고 retry 감사 로그와 dead-letter 인덱스를 적용했다. README·현재 가이드·아키텍처·지원 문서의 로컬 링크는 `npm run docs:links`로 CI에서 검사한다. 프론트엔드 런타임을 로컬 vendor 자산으로 고정하고 Tailwind 빌드 계약과 공통 레이아웃을 정리했으며, principal/parent 핵심 화면과 모바일 smoke 경로를 Playwright 시나리오로 확장했다. 브라우저 날짜 입력·감사/알림 시각·갱신 시각도 `Asia/Seoul` 공통 포맷터를 사용하고 출결 날짜 이동은 UTC 날짜 산술로 브라우저 시간대 영향을 제거했다. 전역 motion은 `prefers-reduced-motion`을 지원하고 저감 모션 브라우저 계약을 E2E로 검증한다. push CI에도 Node 20·`npm ci`·`frontend:build`를 연결해 생성 자산 drift를 검사한다. 업무 날짜·도메인 상태 변경 시각·JPA auditing을 `ProductTime(Asia/Seoul)` 기준으로 통일했다. 이미지 태그와 동일한 commit SHA를 `APP_VERSION`으로 주입하고 Actuator `/actuator/info`에서 확인하는 실행 버전 추적성을 추가했다. `clean build`, Docker image build, demo runtime의 Playwright smoke 4건, frontend/accessibility/security/docs/compose 정적 게이트를 통과했다. 외부 HTTPS 배포, 실제 backup/restore/rollback, provider·incident channel 연결은 자격증명과 외부 환경이 필요해 미실행으로 구분한다.
-   - 검증: `./gradlew bootJar`; `docker compose ... config`; 배포 URL smoke; backup/restore checksum 비교; `npm run docs:links`
-   - 완료: 외부에서 접근 가능한 데모와 배포 SHA, 복구 결과, 운영 runbook, 최종 README가 일치한다.
+1. 실제 HTTPS 환경에서 배포·롤백·복구 증거를 확보한다.
+   - 파일: `deploy/**`, `scripts/deploy-with-rollback.sh`, `scripts/backup-production.sh`, `scripts/verify-production-backup.sh`, `scripts/restore-production-backup.sh`, `.github/workflows/cd.yml`, `docs/guides/deployment-guide.md`, `docs/guides/production-like-checklist.md`
+   - 변경: 실제 도메인·TLS·운영 DB/Redis 자격증명을 연결하고, 이미지 SHA·readiness·smoke·rollback·backup/restore 결과를 기록한다. 운영 schema 변경은 rollback 대신 forward-fix 정책을 확인한다.
+   - 검증: `PREFLIGHT_ONLY=1 ... ./scripts/deploy-with-rollback.sh`; 실제 배포 URL smoke; `/actuator/info` SHA 대조; backup checksum 및 disposable/운영 restore 결과; rollback 결과
+   - 완료: 외부 URL에서 새 이미지의 readiness와 SHA가 확인되고, 실패 주입 후 이전 이미지·이전 `APP_VERSION`으로 복구되며, 복구 데이터 assertion이 남는다.
+   - 주의: cloud 계정, DNS, TLS, RDS/Redis, OAuth redirect URI가 필요하다. 자격증명 없이 완료로 표시하지 않는다.
+
+2. 외부 알림 provider sandbox와 incident 수신 채널을 연결한다.
+   - 파일: `src/main/java/com/erp/domain/notification/service/channel/**`, `src/main/resources/application-prod.yml`, `docs/guides/risk-response.md`, `docs/guides/deployment-guide.md`
+   - 변경: provider webhook signature, provider rate limit, delivery/retry/dead-letter, incident 알림 수신을 실제 sandbox에서 확인한다.
+   - 검증: provider sandbox smoke, 서명 검증 실패 테스트, dead-letter 재시도 후 수신 확인, Alertmanager test alert 수신 확인
+   - 완료: 외부 provider 성공·실패·재시도와 incident 채널 수신 결과가 correlation ID와 함께 기록된다.
+   - 주의: provider 계정·webhook secret·Alertmanager 수신 URL이 필요하다.
+
 ## Backlog
 
-- 실제 provider sandbox 연동은 자격 증명 확보 후 Outbox adapter 검증 범위에서 진행한다.
-- 운영 DB/Redis restore drill과 Alertmanager 수신 채널 연결은 인프라 접근 권한이 생기면 실행한다.
-- CDN을 제거하지 못하는 외부 자산만 공식 digest 확인 후 SRI를 적용한다.
-- 원생 관리 화면은 `static/js/pages/kids.js`, 출결 화면은 `static/js/pages/attendance.js`, 신청/승인 화면은 `static/js/pages/applications.js`로 분리했다. 대시보드 통계와 홈 Alpine 로직은 `static/js/pages/dashboard.js`, `static/js/pages/dashboard-home.js`로 분리하고 도넛 차트 CSS 토큰·접근성 라벨을 적용했다. 원생 목록에는 `aria-busy`/`aria-live`, 출결 상태에는 원자적 live region, 신청 fragment에는 갱신 live region을 적용했다. 알림장·공지·일정 fragment에도 목록 live region/busy 상태를 적용하고, 공지·알림장·캘린더 화면의 인라인 로직을 외부 모듈로 이동했다. 인증/업무 감사 로그와 계정 설정의 동적 영역에도 표 caption, alert, live region, 세션 busy 상태를 적용했다. 감사 로그는 `static/js/pages/audit-log-page.js`, 출결 요청 큐는 `static/js/pages/attendance-requests.js`로 공통 모듈화하고 필터 URL 보존, 승인 중복 클릭 방지, 오류/빈 상태를 통합했다. 알림 Outbox 운영은 `static/js/pages/notification-outbox.js`로 이동했다. 로그인·회원가입 폼에 계정 자동완성과 오류 alert를 적용하고 인증 Alpine 로직은 `static/js/pages/auth-forms.js`로 분리했으며 출결 요청·월간 리포트의 모바일 목록/표와 busy 상태를 보강했다. 월간 리포트 조회/렌더링은 `static/js/pages/monthly-report.js`로 분리했고 원생 등록/수정·상세 학부모 관리 및 공지/알림장 편집도 전용 모듈로 이동했다. 유치원 선택/등록·반 관리에도 목록 상태 전달, 입력 autocomplete, 생성 중복 제출 방지를 적용했고 유치원 등록 제출은 `static/js/pages/kindergarten-create.js`, 유치원 선택은 `static/js/pages/kindergarten-select.js`, 반 관리는 `static/js/pages/classrooms.js`로 분리했다. 알림 런타임과 header controller도 `static/js/notifications.js`, `static/js/header.js`로 분리했으며, 화면별 서버 주입 값은 `data-*` 설정으로 전달한다.
+- 실제 운영 트래픽 규모에서 k6 시나리오와 MySQL 실행계획을 재측정한다.
+- CDN 또는 외부 자산을 추가할 경우 공식 digest/SRI 검토를 거친다.
