@@ -39,7 +39,7 @@ run_smoke() {
         return 0
     fi
 
-    curl --fail --silent --show-error --max-time 10 "$SMOKE_URL" >/dev/null
+    curl --fail --silent --show-error --location --max-redirs 3 --max-time 10 "$SMOKE_URL" >/dev/null
 }
 
 validate_smoke_url() {
