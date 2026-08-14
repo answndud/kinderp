@@ -11,7 +11,7 @@ Kindergarten ERP를 TownPet과 차별화되는 다중 테넌트 내부 운영 �
 1. 실제 HTTPS 환경에서 배포·롤백·복구 증거를 확보한다.
    - 파일: `deploy/**`, `scripts/deploy-with-rollback.sh`, `scripts/backup-production.sh`, `scripts/verify-production-backup.sh`, `scripts/restore-production-backup.sh`, `.github/workflows/cd.yml`, `docs/guides/deployment-guide.md`, `docs/guides/production-like-checklist.md`
    - 변경: 실제 도메인·TLS·운영 DB/Redis 자격증명을 연결하고, 이미지 SHA·readiness·smoke·rollback·backup/restore 결과를 기록한다. 운영 schema 변경은 rollback 대신 forward-fix 정책을 확인한다.
-   - 검증: `PREFLIGHT_ONLY=1 ... ./scripts/deploy-with-rollback.sh`; 실제 배포 URL smoke; `/actuator/info` SHA 대조; backup checksum 및 disposable/운영 restore 결과; rollback 결과
+   - 검증: 로컬 production-like stack의 readiness·SHA·rollback 자산과 disposable MySQL/Redis restore drill을 확인했고, 복구 스크립트에 데이터 assertion 옵션을 추가했다. 남은 검증은 `PREFLIGHT_ONLY=1 ... ./scripts/deploy-with-rollback.sh`의 실제 환경 실행, 실제 배포 URL smoke, `/actuator/info` SHA 대조, 운영 backup/restore 및 rollback 결과다.
    - 완료: 외부 URL에서 새 이미지의 readiness와 SHA가 확인되고, 실패 주입 후 이전 이미지·이전 `APP_VERSION`으로 복구되며, 복구 데이터 assertion이 남는다.
    - 주의: cloud 계정, DNS, TLS, RDS/Redis, OAuth redirect URI가 필요하다. 자격증명 없이 완료로 표시하지 않는다.
 
