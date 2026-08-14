@@ -35,7 +35,10 @@ PROD_ENV_FILE=.env.prod.example docker compose --env-file deploy/.env.prod.examp
 ALERTMANAGER_WEBHOOK_URL=https://hooks.example.com/alerts docker compose --profile alerting -f docker/docker-compose.monitoring.yml config >/tmp/docker-compose.monitoring-alerting.yml
 docker run --rm -e APP_DOMAIN=erp.example.com -v "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2 caddy validate --config /etc/caddy/Caddyfile
 bash -n scripts/deploy-with-rollback.sh scripts/backup-production.sh scripts/verify-production-backup.sh
-SMOKE_URL=https://erp.example.com/login ./scripts/deploy-with-rollback.sh
+SMOKE_URL=https://erp.example.com/login \
+COMPOSE_ENV_FILE=deploy/.env.prod \
+COMPOSE_FILE=deploy/docker-compose.prod.yml \
+./scripts/deploy-with-rollback.sh
 git diff --check
 ```
 
