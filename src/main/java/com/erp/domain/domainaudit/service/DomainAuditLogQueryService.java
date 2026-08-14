@@ -7,6 +7,7 @@ import com.erp.domain.domainaudit.entity.DomainAuditTargetType;
 import com.erp.domain.domainaudit.repository.DomainAuditLogRepository;
 import com.erp.domain.member.repository.MemberRepository;
 import com.erp.global.common.PageRequests;
+import com.erp.global.common.ProductTime;
 import com.erp.global.exception.BusinessException;
 import com.erp.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -63,7 +64,7 @@ public class DomainAuditLogQueryService {
                                                  LocalDate from,
                                                  LocalDate to) {
         Long kindergartenId = resolvePrincipalKindergartenId(principalId);
-        LocalDate exportTo = to != null ? to : LocalDate.now();
+        LocalDate exportTo = to != null ? to : ProductTime.today();
         LocalDate exportFrom = from != null ? from : exportTo.minusDays(MAX_EXPORT_DAYS - 1L);
         if (exportFrom.isAfter(exportTo) || ChronoUnit.DAYS.between(exportFrom, exportTo) >= MAX_EXPORT_DAYS) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "감사 로그 export 기간은 최대 31일입니다");

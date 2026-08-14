@@ -22,6 +22,7 @@ import com.erp.domain.member.entity.Member;
 import com.erp.domain.member.entity.MemberRole;
 import com.erp.global.exception.BusinessException;
 import com.erp.global.exception.ErrorCode;
+import com.erp.global.common.ProductTime;
 import com.erp.global.security.access.AccessPolicyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -408,7 +409,7 @@ public class AttendanceService {
     }
 
     private LocalTime resolveTimeOrNow(LocalTime time) {
-        return time != null ? time : LocalTime.now();
+        return time != null ? time : ProductTime.now();
     }
 
     private YearMonthRange resolveYearMonthRange(int year, int month) {

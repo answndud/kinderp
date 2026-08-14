@@ -9,6 +9,7 @@
 - 로컬 인프라용 값과 앱 프로세스용 시크릿은 분리합니다.
 - Swagger/OpenAPI, app-port Prometheus, demo seed는 기본 공개가 아니라 명시적 opt-in입니다.
 - Credentialed CORS allowed origins는 `app.security.cors.allowed-origins` / `CORS_ALLOWED_ORIGINS`로 환경별 명시합니다.
+- 업무 기준 날짜·자동 기록 시간은 서버 JVM 기본 시간대와 무관하게 `Asia/Seoul`을 사용합니다.
 - CORS 허용 헤더는 프론트 요청에 필요한 Content-Type, CSRF, 멱등 키, HTMX 헤더로 제한하며 wildcard header를 사용하지 않습니다.
 
 ## 1. local

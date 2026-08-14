@@ -5,6 +5,7 @@ import com.erp.domain.calendar.dto.response.CalendarEventResponse;
 import com.erp.domain.calendar.entity.CalendarScopeType;
 import com.erp.domain.calendar.service.CalendarEventService;
 import com.erp.global.common.ApiResponse;
+import com.erp.global.common.ProductTime;
 import com.erp.global.security.user.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -59,7 +60,7 @@ public class CalendarEventController {
     public ResponseEntity<ApiResponse<List<CalendarEventResponse>>> getTodayEvents(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = ProductTime.today();
         List<CalendarEventResponse> responses = calendarEventService.getEvents(
                 userDetails.getMemberId(),
                 today,
@@ -77,7 +78,7 @@ public class CalendarEventController {
             @RequestParam(defaultValue = "7") int days
     ) {
         int safeDays = Math.min(Math.max(days, 1), 30);
-        LocalDate startDate = LocalDate.now();
+        LocalDate startDate = ProductTime.today();
         LocalDate endDate = startDate.plusDays(safeDays);
         List<CalendarEventResponse> responses = calendarEventService.getEvents(
                 userDetails.getMemberId(),

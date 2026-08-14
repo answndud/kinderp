@@ -6,6 +6,7 @@ import com.erp.domain.dashboard.dto.response.DashboardStatisticsResponse;
 import com.erp.domain.kindergarten.entity.Kindergarten;
 import com.erp.domain.kid.repository.KidRepository;
 import com.erp.domain.member.repository.MemberRepository;
+import com.erp.global.common.ProductTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -30,7 +31,7 @@ public class DashboardService {
     @Cacheable(cacheNames = "dashboardStatistics", key = "#kindergarten.id")
     public DashboardStatisticsResponse getDashboardStatistics(Kindergarten kindergarten) {
         long kindergartenId = kindergarten.getId();
-        LocalDate today = LocalDate.now();
+        LocalDate today = ProductTime.today();
         LocalDate attendanceEndDate = today.minusDays(1);
         LocalDate attendanceStartDate30Days = attendanceEndDate.minusDays(29);
 

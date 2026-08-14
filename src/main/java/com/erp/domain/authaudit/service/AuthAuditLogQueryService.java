@@ -10,6 +10,7 @@ import com.erp.domain.member.entity.MemberAuthProvider;
 import com.erp.domain.member.entity.MemberRole;
 import com.erp.domain.member.service.MemberService;
 import com.erp.global.common.PageRequests;
+import com.erp.global.common.ProductTime;
 import com.erp.global.exception.BusinessException;
 import com.erp.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -121,7 +122,7 @@ public class AuthAuditLogQueryService {
     }
 
     private LocalDate resolveExportTo(LocalDate to) {
-        return to != null ? to : LocalDate.now();
+        return to != null ? to : ProductTime.today();
     }
 
     private LocalDate resolveExportFrom(LocalDate from, LocalDate to) {
