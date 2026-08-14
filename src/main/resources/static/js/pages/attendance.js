@@ -155,10 +155,10 @@ document.addEventListener('alpine:init', () => {
                                     </select>
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <input type="time" aria-label="${safeKidName} 등원 시간" class="drop-off-time h-10 px-3 border border-gray-200 rounded-lg text-sm" data-kid-id="${row.kidId}" value="${dropOffTime}">
+                                        <input type="time" aria-label="${safeKidName} 등원 시간" class="drop-off-time h-10 px-3 border border-gray-200 rounded-lg text-sm" data-kid-id="${row.kidId}" value="${escapeHtml(dropOffTime)}">
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <input type="time" aria-label="${safeKidName} 하원 시간" class="pick-up-time h-10 px-3 border border-gray-200 rounded-lg text-sm" data-kid-id="${row.kidId}" value="${pickUpTime}">
+                                        <input type="time" aria-label="${safeKidName} 하원 시간" class="pick-up-time h-10 px-3 border border-gray-200 rounded-lg text-sm" data-kid-id="${row.kidId}" value="${escapeHtml(pickUpTime)}">
                                 </td>
                                 <td class="px-6 py-4 text-center">
                                     <input type="text" aria-label="${safeKidName} 출결 메모" class="attendance-note h-10 w-44 px-3 border border-gray-200 rounded-lg text-sm" data-kid-id="${row.kidId}" placeholder="메모" value="${safeNote}">
@@ -221,11 +221,11 @@ document.addEventListener('alpine:init', () => {
                                     </div>
                                     <div>
                                         <label class="block text-xs font-semibold text-gray-700 mb-2">등원 시간</label>
-                                        <input type="time" aria-label="${safeKidName} 등원 시간" class="drop-off-time h-11 w-full px-3 border border-gray-200 rounded-lg text-sm" data-kid-id="${row.kidId}" value="${dropOffTime}">
+                                            <input type="time" aria-label="${safeKidName} 등원 시간" class="drop-off-time h-11 w-full px-3 border border-gray-200 rounded-lg text-sm" data-kid-id="${row.kidId}" value="${escapeHtml(dropOffTime)}">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-semibold text-gray-700 mb-2">하원 시간</label>
-                                        <input type="time" aria-label="${safeKidName} 하원 시간" class="pick-up-time h-11 w-full px-3 border border-gray-200 rounded-lg text-sm" data-kid-id="${row.kidId}" value="${pickUpTime}">
+                                            <input type="time" aria-label="${safeKidName} 하원 시간" class="pick-up-time h-11 w-full px-3 border border-gray-200 rounded-lg text-sm" data-kid-id="${row.kidId}" value="${escapeHtml(pickUpTime)}">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-semibold text-gray-700 mb-2">메모</label>
