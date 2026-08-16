@@ -1,6 +1,6 @@
 # Kindergarten ERP
 
-> 유치원 운영 ERP를 주제로, 인증/권한/상태 전이/감사/관측성을 끝까지 다룬 Spring Boot 백엔드 포트폴리오입니다.
+> 유치원 운영 ERP를 주제로, 인증·권한·상태 전이·감사·관측성을 다룬 Spring Boot 기반 백엔드 시스템입니다.
 
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.14-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -8,22 +8,22 @@
 [![Redis](https://img.shields.io/badge/Redis-7.x-red.svg)](https://redis.io/)
 [![Backend CI](https://github.com/answndud/Kindergarten_ERP/actions/workflows/ci.yml/badge.svg)](https://github.com/answndud/Kindergarten_ERP/actions/workflows/ci.yml)
 
-## 30초 요약
+## 프로젝트 개요
 
 - 이 프로젝트의 핵심 문제는 **하나의 유치원 데이터를 원장·교사·학부모가 서로 다른 권한으로 동시에 처리할 때 정합성과 운영 추적성을 어떻게 보장할 것인가**입니다.
 - 단순 CRUD가 아니라 **tenant 경계, 입학·출결 승인 상태 전이, 감사 로그, Outbox dead-letter 운영**까지 하나의 업무 흐름으로 닫았습니다.
 - 성능 개선은 감으로 처리하지 않고 **쿼리 수/응답 시간/CI 시간**을 전후 비교했습니다. Notepad 목록은 `22 queries -> 5 queries`, Dashboard 반복 조회는 cache hit 기준 `5 queries -> 0 queries`로 줄였습니다.
-- 면접 시연은 `demo` 프로파일로 재현 가능합니다. 최신 main 기준 `Backend CI` 상태는 상단 배지와 [Actions](https://github.com/answndud/Kindergarten_ERP/actions/workflows/ci.yml)에서 확인합니다.
+- `demo` 프로파일과 seed 데이터로 핵심 업무 흐름을 재현할 수 있으며, 빌드·테스트 상태는 상단 [Backend CI](https://github.com/answndud/Kindergarten_ERP/actions/workflows/ci.yml)에서 확인할 수 있습니다.
 - 실제 클라우드 배포는 비용 문제로 수행하지 않았고, 대신 Docker/배포 자산/runbook과 local/demo/prod 환경 계약을 분리해 설명 가능하게 준비했습니다.
 
-> TownPet이 레거시 이관과 서비스 구조의 안전성을 보여준다면, Kindergarten ERP는 운영 중 발생하는 권한·승인·동시성·실패 복구를 통제하는 내부 플랫폼을 보여줍니다. 상세 설계는 [포트폴리오 설계 서사](./docs/architecture/portfolio-story.md)에서 확인할 수 있습니다.
+> TownPet이 레거시 이관과 서비스 구조의 안전성을 보여준다면, Kindergarten ERP는 운영 중 발생하는 권한·승인·동시성·실패 복구를 통제하는 내부 플랫폼을 다룹니다. 상세 설계는 [설계 서사](./docs/architecture/portfolio-story.md)에서 확인할 수 있습니다.
 
 ## 한눈에 보기
 
 | 항목 | 내용 |
 |------|------|
-| 프로젝트 성격 | 다중 테넌트 내부 운영 플랫폼 포트폴리오 |
-| 포트폴리오에서 강조한 역량 | 권한·workflow 정합성, 동시성, 실패 복구, 성능 측정, 운영 관측성 |
+| 프로젝트 성격 | 다중 테넌트 내부 운영 플랫폼 |
+| 핵심 기술 과제 | 권한·workflow 정합성, 동시성, 실패 복구, 성능 측정, 운영 관측성 |
 | 핵심 사용자 | `PRINCIPAL`, `TEACHER`, `PARENT` |
 | 핵심 기술 | Java 21, Spring Boot 3.5.14, MySQL 8, Redis, JPA, QueryDSL |
 | 실행 프로필 | `local`, `demo`, `prod` |
@@ -31,52 +31,35 @@
 | 바로 볼 문서 | [`PLAN.md`](./PLAN.md), [`docs/guides/developer-guide.md`](./docs/guides/developer-guide.md), [`docs/guides/env-contract.md`](./docs/guides/env-contract.md), [`docs/guides/deployment-guide.md`](./docs/guides/deployment-guide.md) |
 | 최소 로컬 검증 | 빠른 수정은 `./gradlew compileJava compileTestJava` + `git diff --check`, 릴리스 전만 `./gradlew test` |
 
-## 3분 리뷰 루트
-
-면접관이 짧게 훑는다면 아래 5곳만 보면 됩니다.
-
-1. [핵심 문제와 해결](#핵심-문제와-해결): tenant, 권한, 상태 전이, 감사, outbox 실패 대응.
-2. [수치로 검증한 개선](#수치로-검증한-개선): 쿼리 수, 응답 시간, CI 시간 개선.
-3. [화면](#화면): 대시보드, 신청 큐, 출석, 감사 로그, outbox 운영 화면.
-4. [API / 운영 문서](#api--운영-문서): Swagger, audit export, outbox, dashboard API.
-5. [테스트 & CI](#테스트--ci): quick CI와 manual quality 분리 이유.
-
 ## 대표 업무 흐름
 
 학부모가 출결 변경을 요청하면 API는 세션과 tenant 경계를 확인한 뒤 요청을 저장합니다. 네트워크 재전송은 `Idempotency-Key`로 같은 요청 ID를 재사용하고, 다른 payload의 키 재사용은 거부합니다. 교사 또는 원장이 이를 승인하면 허용된 상태 전이와 동시성 조건을 검증하고, 업무 감사 로그와 알림 Outbox를 남깁니다. 외부 전달이 실패하면 worker는 해당 건을 dead-letter로 전환하고, 원장은 실패 원인·시도 횟수·재시도 이력을 확인합니다.
 
 이 흐름은 [아키텍처 및 증거 지도](./docs/architecture/portfolio-story.md)의 대표 시나리오와 코드·테스트·운영 화면을 연결합니다.
 
-## 바로 확인할 것
+## 문서와 실행
 
-- [5분 실행 / 검증](#5분-실행--검증): `demo` 프로파일과 시연 계정으로 빠르게 재현할 수 있습니다.
-- [수치로 검증한 개선](#수치로-검증한-개선): 쿼리 수와 응답 시간 기준 개선 결과를 먼저 볼 수 있습니다.
-- [화면](#화면): 대시보드, 신청 처리 큐, 감사 로그, 알림 Outbox 운영 화면을 바로 확인할 수 있습니다.
-- [PLAN.md](./PLAN.md): 현재/향후 구현 작업과 검증 계획을 확인할 수 있습니다.
-- [docs/guides/evidence-map.md](./docs/guides/evidence-map.md): README의 주요 주장별 코드/테스트/문서 증거를 연결했습니다.
-- [docs/guides/risk-response.md](./docs/guides/risk-response.md): 미배포, 모놀리식, 외부 provider 미연동, demo/mock 범위 같은 약점 질문 대응을 정리했습니다.
-- [docs/guides/production-like-checklist.md](./docs/guides/production-like-checklist.md): cloud 미배포 상태에서 반복 가능한 prod safety/bootJar/compose dry-run 증거를 정리했습니다.
-- [docs/guides/interview-guide.md](./docs/guides/interview-guide.md): 면접관 관점에서 볼 핵심 개선 스토리와 질문 대응 포인트를 정리했습니다.
-- [docs/guides/demo-scenario.md](./docs/guides/demo-scenario.md): demo 계정, 클릭 순서, 실패 시 복구 절차를 정리했습니다.
+- 실행 방법은 [로컬 실행과 검증](#로컬-실행과-검증)에서 확인할 수 있습니다.
+- 시스템 구조와 대표 상태 전이는 [설계 서사](./docs/architecture/portfolio-story.md)에 정리했습니다.
+- 성능 수치의 측정 조건과 한계는 [성능 측정 방법론](./docs/architecture/performance-methodology.md)에서 확인할 수 있습니다.
+- 운영 환경 변수와 배포 절차는 [환경 변수 계약](./docs/guides/env-contract.md)과 [배포 가이드](./docs/guides/deployment-guide.md)를 참고하세요.
 
-## 왜 이 저장소를 열어볼 만한가
+## 핵심 설계 포인트
 
 - 단순 CRUD가 아니라 tenant 권한 경계, 세션 수명주기, 승인 워크플로우, 감사 로그 같은 운영형 백엔드 문제를 다뤘습니다.
 - 기능을 추가하는 데서 멈추지 않고 Testcontainers, CI 분리, Prometheus/Grafana, structured logging까지 연결했습니다.
 - 성능 작업은 "느린 지점을 찾고, 수치로 검증하고, 개선 후 다시 측정"하는 방식으로 정리했습니다.
 - 학부모, 교사, 원장이 실제로 상호작용하는 서비스 흐름과 운영 도구가 한 저장소 안에서 닫히는 구조입니다.
 
-## 제출 전 상태
+## 검증 상태
 
 | 항목 | 상태 |
 |------|------|
 | Main branch | `main` 고정 운영 |
-| 최신 CI | `Backend CI` 배지와 Actions에서 확인. 최근 main push는 1분대 통과 |
-| Demo smoke | `/dashboard`, `/applications/pending`, `/notification-outbox`, `/swagger-ui.html` 확인 + Playwright 8건 통과 |
-| Frontend quality | `frontend:build`, 템플릿 접근성, KST 브라우저 시간 계약 검사 통과 |
+| 최신 CI | `Backend CI` 배지와 Actions에서 확인 |
+| Demo smoke | `/dashboard`, `/applications/pending`, `/notification-outbox`, `/swagger-ui.html` 확인 + Playwright 시나리오 통과 |
 | Release check | `./gradlew bootJar` 통과 |
-| Prod safety | seed, Swagger/OpenAPI, app-port Prometheus, insecure cookie, wildcard/non-HTTPS CORS 차단 테스트 보유 |
-| Production-like dry-run | bootJar, local/prod compose config, backup/checksum 및 disposable MySQL/Redis restore drill 통과 |
+| Production-like dry-run | prod safety, compose config, backup/checksum, disposable MySQL/Redis restore drill 확인 |
 | 배포 | 클라우드 미배포. `deploy/*`, Dockerfile, 배포 가이드만 준비 |
 
 ## 핵심 문제와 해결
@@ -94,6 +77,22 @@
 | 입력 오류 500 위험 | MVC parameter/type/date 예외를 400 `ApiResponse.error`로 정규화 | 출석 월 조회 invalid/missing/type 오류 테스트 |
 | 과도한 일정 조회 | 캘린더 조회 기간 366일 cap + `RecurrenceExpander` 분리 | fast unit test, calendar integration test |
 
+## 최근 개선 하이라이트
+
+최근 작업은 기능을 늘리는 것보다 운영 중 발생할 실패와 회귀를 줄이는 데 집중했습니다.
+
+| 문제 | 개선 | 검증 근거 |
+|------|------|----------|
+| 모바일 네트워크 재전송으로 출결 요청 중복 | `Idempotency-Key`를 requester 단위로 저장하고, 다른 payload 재사용은 거부 | [출결 변경 요청 통합 테스트](./src/test/java/com/erp/api/AttendanceChangeRequestApiIntegrationTest.java) |
+| 신청 서비스의 책임 집중 | review, admission, notification, audit orchestration을 별도 service로 분리 | [신청 workflow 구조](./docs/guides/interview-guide.md#7-최근-강화-작업의-의도) |
+| 잘못된 입력이 generic 500으로 노출될 위험 | path/query/date 입력 오류를 400 `ApiResponse.error`로 정규화 | [입력·예외 하드닝 기록](./docs/guides/interview-guide.md#7-최근-강화-작업의-의도) |
+| Outbox 실패 건을 찾고 재처리하기 어려움 | timeline, 상태·채널·검색어 필터, dead-letter retry 운영면 추가 | [Outbox 운영 설계](./docs/architecture/portfolio-story.md#외부-전달은-outbox로-분리한다) |
+| dead-letter 최신순 조회의 정렬 비용 | 상태·채널·`dead_lettered_at` 복합 인덱스 추가 | [EXPLAIN 전후 비교](./docs/architecture/performance-methodology.md#3-실제-mysql-explain-비교) |
+| 배포 후 실행 버전 식별 어려움 | `APP_VERSION`에 Git SHA를 주입하고 `/actuator/info`에서 확인 | [production-like checklist](./docs/guides/production-like-checklist.md#5-2026-08-14-실행-결과) |
+| 서버·브라우저 시간대 불일치 | 업무 날짜와 표시 시간을 `Asia/Seoul` 기준으로 통일 | [시간대 일관성 기록](./docs/architecture/rework-history-2026-08-14.md#시간대-일관성) |
+
+화면 모듈화, CSP, 접근성, reduced-motion, 백업 assertion 같은 보강 내역은 [개편 작업 상세 기록](./docs/architecture/rework-history-2026-08-14.md)에 전체 변경 범위와 검증 결과를 정리했습니다.
+
 ## 수치로 검증한 개선
 
 | 대상 | 개선 전 | 개선 후 | 핵심 개선 |
@@ -101,6 +100,7 @@
 | Notepad 목록 조회 | queries 22, 17ms | queries 5, 6ms | 읽음 수 N+1 제거, 다건 집계 쿼리 전환 |
 | Dashboard 통계 | queries 13, 13ms | queries 5, 5ms | 정확도 보정 + 집계 쿼리 통합 |
 | Dashboard 반복 조회 | queries 5, 12ms | queries 0, 0ms | 60초 TTL 캐시 적용 (`dashboardStatistics`) |
+| Outbox dead-letter 조회 | `Using filesort` | `Backward index scan` | 상태·채널·최신순 복합 인덱스 추가 |
 | Backend CI wall-clock | 5m 28s | 1m 14s 대표, 최근 main push 1분대 | push CI는 quick check로 축소, heavy 검증은 수동 workflow로 분리 |
 
 - k6 부하 테스트 결과 (2026-08-14, Docker k6, 15 VU, 각 30초)
@@ -196,7 +196,7 @@ erp/
 └── blog/                            # 구현 배경과 설계 설명 글
 ```
 
-## 5분 실행 / 검증
+## 로컬 실행과 검증
 
 ### 1. 저장소 클론
 
@@ -225,7 +225,7 @@ SPRING_PROFILES_ACTIVE=demo ./gradlew bootRun
 | 교사 | `teacher1@test.com / test1234!` |
 | 학부모 | `parent1@test.com / test1234!` |
 
-### 4. 시연 시 바로 볼 경로
+### 4. 주요 화면 경로
 
 - Swagger UI: `http://localhost:8080/swagger-ui.html`
 - 출결 요청 화면: `http://localhost:8080/attendance-requests`
@@ -250,17 +250,6 @@ npm run e2e:smoke
 - `e2e:smoke`는 먼저 `SPRING_PROFILES_ACTIVE=demo ./gradlew bootRun`을 실행한 뒤 사용합니다. 로그인·역할별 홈·모바일·저감 모션·KST 시간 계약을 포함한 8개 시나리오를 검증합니다.
 - 실행 전 필수 환경 변수는 [`docs/guides/env-contract.md`](./docs/guides/env-contract.md)를 확인하면 됩니다.
 
-## 현재 상태
-
-| 항목 | 상태 |
-|------|------|
-| Core backend MVP | 인증, 출석, 알림장, 공지, 지원/승인, 감사 로그, 대시보드까지 완료 |
-| Demo | `demo` 프로파일과 seed 계정으로 로컬 시연 가능 |
-| Verification | push quick CI + 수동 quality workflow + 로컬 `test`/`integrationTest`/`performanceSmokeTest` 구성 완료 |
-| Operations | auth/domain audit, management plane, Prometheus/Grafana overlay, active session control 포함 |
-| Deployment package | `Dockerfile`, `deploy/*`, [`docs/guides/deployment-guide.md`](./docs/guides/deployment-guide.md) 기준 배포 자산 정리 |
-| Active work | [`PLAN.md`](./PLAN.md)에서 현재/향후 작업을 관리 |
-
 ## API / 운영 문서
 
 - Swagger UI: `http://localhost:8080/swagger-ui.html`
@@ -281,14 +270,14 @@ npm run e2e:smoke
 
 ## 테스트 & CI
 
-혼자 운영하는 `main` 고정 포트폴리오 프로젝트라서, push마다 모든 heavy test를 돌리지 않고 빠른 실패 신호와 수동 품질 검증을 분리했습니다.
+Push마다 빠른 실패 신호를 확인하고, 통합·성능 검증은 별도 품질 workflow로 분리했습니다.
 
 | 구분 | 실행 시점 | 하는 일 | 이유 |
 |------|-----------|---------|------|
 | 최소 로컬 검증 | 작은 문서/annotation/seed 수정 | `compileJava compileTestJava`, 관련 targeted test, `git diff --check` | 빠르게 깨진 import, annotation, query method를 잡음 |
 | Backend CI | 모든 push | `fastTest`, `bootJar`, compose config 해석 | `main`의 빠른 실패 신호 유지 |
 | Backend Quality | 큰 기능/보안/DB/성능 변경 후 수동 | `integrationTest`, `performanceSmokeTest`, `bootJar`, monitoring compose config | Testcontainers/성능 smoke는 필요할 때 비용을 지불 |
-| Release check | 릴리스/면접 시연 직전 | `./gradlew test`, demo runbook 수동 확인 | 실제 시연 전 회귀 리스크 축소 |
+| Release check | 릴리스 전 | `./gradlew test`, demo runbook 수동 확인 | 실제 릴리스 전 회귀 리스크 축소 |
 
 - 통합 테스트는 H2 대체가 아니라 MySQL/Redis Testcontainers를 사용합니다.
 - 대표 측정 기준으로 자동 push CI는 `5m 28s`에서 `1m 14s`로 줄었고, 최근 main push도 1분대에서 통과합니다. 정확한 최신 시간은 GitHub Actions를 기준으로 확인합니다.
@@ -306,8 +295,11 @@ npm run e2e:smoke
 | [`docs/guides/env-contract.md`](./docs/guides/env-contract.md) | 환경 변수 계약 |
 | [`docs/guides/user-guide.md`](./docs/guides/user-guide.md) | 사용자 가이드 |
 | [`docs/guides/deployment-guide.md`](./docs/guides/deployment-guide.md) | 배포 가이드 |
-| [`docs/guides/interview-guide.md`](./docs/guides/interview-guide.md) | 면접관 관점 포트폴리오 설명 가이드 |
-| [`docs/guides/demo-scenario.md`](./docs/guides/demo-scenario.md) | demo 시연 runbook |
+| [`docs/guides/demo-scenario.md`](./docs/guides/demo-scenario.md) | demo 실행 runbook |
+| [`docs/architecture/portfolio-story.md`](./docs/architecture/portfolio-story.md) | 대표 업무 흐름과 설계 의사결정 |
+| [`docs/architecture/performance-methodology.md`](./docs/architecture/performance-methodology.md) | 성능 측정 조건·수치·한계 |
+| [`docs/architecture/rework-history-2026-08-14.md`](./docs/architecture/rework-history-2026-08-14.md) | 최근 성능·리팩토링·운영 개선 상세 |
+| [`docs/guides/evidence-map.md`](./docs/guides/evidence-map.md) | README 주장과 코드·테스트 증거 연결 |
 | [`blog/README.md`](./blog/README.md) | 구현 배경과 글 시리즈 인덱스 |
 
 ## 라이선스
