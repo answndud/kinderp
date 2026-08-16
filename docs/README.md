@@ -3,6 +3,8 @@
 이 폴더는 개발, 실행, 환경, 배포 가이드를 모아 둡니다.
 현재/향후 구현 작업은 저장소 루트 `PLAN.md`에서 관리합니다.
 
+취업 포트폴리오용 한글 문서의 시작점은 [`docs/문서-안내.md`](문서-안내.md)입니다. 제품 요구사항, 시스템 설계, 기능 카탈로그, 성능·보안·운영 증거, 면접 질문, TownPet과의 차별화 자료를 번호순으로 읽을 수 있습니다.
+
 ## Start Here
 
 새 세션에서 먼저 읽는 순서는 아래와 같습니다.
@@ -36,6 +38,8 @@
   - 실제 클라우드 배포 없이 반복 가능한 prod safety, bootJar, compose config dry-run checklist
 - `docs/guides/demo-scenario.md`
   - demo 실행, 계정, 5분/10분 시연 순서와 실패 시 복구 절차
+- `docs/guides/local-demo-accounts.md`
+  - 로컬 데모 계정 전체 목록, 시드 데이터, 역할별 테스트 순서와 초기화 방법
 
 ## Architecture
 
