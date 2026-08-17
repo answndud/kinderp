@@ -21,7 +21,11 @@ cleanup_failed_backup() {
 }
 trap cleanup_failed_backup EXIT HUP INT TERM
 
-docker exec -e MYSQL_PWD="$MYSQL_PASSWORD" "$MYSQL_CONTAINER"   mysqldump --single-transaction --routines --events --triggers   -u "$MYSQL_USER" "$MYSQL_DATABASE" | gzip -c > "$backup_root/mysql.sql.gz"
+docker exec -e MYSQL_PWD="$MYSQL_PASSWORD" "$MYSQL_CONTAINER" \
+  mysqldump --single-transaction --no-tablespaces --routines --events --triggers \
+  -u "$MYSQL_USER" --databases "$MYSQL_DATABASE" > "$backup_root/mysql.sql"
+gzip -c "$backup_root/mysql.sql" > "$backup_root/mysql.sql.gz"
+rm -f "$backup_root/mysql.sql"
 [ -s "$backup_root/mysql.sql.gz" ] || { echo "mysql dump is empty" >&2; exit 1; }
 
 {

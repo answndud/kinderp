@@ -8,7 +8,7 @@ KinderP를 TownPet과 차별화되는 다중 테넌트 내부 운영 플랫폼 �
 
 ### P2 - netcup 단일 VPS 공동 배포 기반
 
-> 상태: Compose·배포 스크립트·환경 정책·Resend SMTP fail-closed 설정·암호화 백업 자산, backend compile/bootJar와 frontend asset/accessibility 검증, local MySQL·Redis·Spring Boot health/root 기동을 완료했다. netcup 승인 후 실제 MySQL/Redis/app readiness·메일 발송과 복구 리허설을 수행한다.
+> 상태: `/opt/kinderp`에서 `kinderp-*` 컨테이너와 `https://kinderp.cloud` 공개 응답을 확인했다. MySQL 백업과 disposable restore는 완료했으며, SMTP 실제 수신·암호화 백업 외부 보관·이미지 롤백만 남아 있다.
 
 > 검증 메모(2026-08-16): Docker Desktop을 실행한 뒤 전체 `./gradlew test`가 2분 56초 만에 통과했다. Testcontainers 기반 통합 테스트까지 포함한 결과이며, 실제 netcup 외부 의존 검증은 별도 항목으로 남아 있다.
 
