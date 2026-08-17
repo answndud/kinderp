@@ -78,7 +78,7 @@ import java.util.Random;
  */
 @Slf4j
 @Component
-@Profile("local")
+@Profile("local | prod")
 @ConditionalOnProperty(prefix = "app.seed", name = "enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class DataLoader implements CommandLineRunner {

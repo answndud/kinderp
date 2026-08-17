@@ -94,7 +94,7 @@ management:
 
 app:
   seed:
-    enabled: false
+    enabled: ${APP_SEED_ENABLED:false}
     log-credentials: false
   security:
     management-surface:

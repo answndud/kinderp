@@ -58,7 +58,8 @@ public class StartupSafetyValidator {
             throw new IllegalStateException("Production profile must keep jwt.cookie-secure=true.");
         }
 
-        if (seedProperties.isEnabled()) {
+        boolean publicDemoEnabled = environment.getProperty("APP_PUBLIC_DEMO_ENABLED", Boolean.class, false);
+        if (seedProperties.isEnabled() && !publicDemoEnabled) {
             throw new IllegalStateException("Production profile must keep app.seed.enabled=false.");
         }
 
