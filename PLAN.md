@@ -6,6 +6,24 @@ Kindergarten ERP를 TownPet과 차별화되는 다중 테넌트 내부 운영 �
 
 ## Active
 
+### P2 - netcup 단일 VPS 공동 배포 기반
+
+> 상태: Compose·배포 스크립트·환경 정책·Resend SMTP fail-closed 설정·암호화 백업 자산, backend compile/bootJar와 frontend asset/accessibility 검증, local MySQL·Redis·Spring Boot health/root 기동을 완료했다. netcup 승인 후 실제 MySQL/Redis/app readiness·메일 발송과 복구 리허설을 수행한다.
+
+> 검증 메모(2026-08-16): Docker Desktop을 실행한 뒤 전체 `./gradlew test`가 2분 56초 만에 통과했다. Testcontainers 기반 통합 테스트까지 포함한 결과이며, 실제 netcup 외부 의존 검증은 별도 항목으로 남아 있다.
+
+1. netcup x86 VPS Lite 2용 Compose를 준비한다.
+   - 파일: `deploy/docker-compose.netcup.yml`, `deploy/Caddyfile.netcup`, `deploy/.env.netcup.example`, `scripts/validate-netcup-env.sh`
+   - 변경: MySQL을 VPS 내부 service로 추가하고, ERP Caddy의 80/443 공개를 제거해 공용 edge Caddy에 연결한다. app·MySQL·Redis·Caddy의 메모리/로그 제한을 유지하고 Resend SMTP를 production profile에 연결한다.
+   - 검증: `docker compose config`와 외부 포트 정적 검사를 완료했다. MySQL·Redis·app readiness는 실제 Docker/VPS에서 남아 있다.
+   - 완료: TownPet stack과 같은 `edge` network에서 ERP가 `erp.example.com` upstream으로 응답한다.
+
+2. ERP MySQL backup/restore를 TownPet 배포 계획과 연결한다.
+   - 파일: `deploy/backup-mysql.sh`, `deploy/restore-mysql.sh`, `docs/guides/deployment-guide.md`
+   - 변경: MySQL dump·checksum·destructive restore guard와 netcup 실행 명령을 추가한다.
+   - 검증: dump·checksum·destructive restore guard와 age 암호화 자산을 확인했다. disposable MySQL 복구와 핵심 table count는 Docker 실행 환경에서 남아 있다.
+   - 완료: ERP DB를 외부 암호화 backup 대상으로 포함하고 복구 명령을 재현할 수 있다.
+
 ### P3 - 외부 운영 증거 확보
 
 1. 실제 HTTPS 환경에서 배포·롤백·복구 증거를 확보한다.

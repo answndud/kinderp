@@ -311,3 +311,20 @@ git diff --stat c841847^..HEAD
 ## 10. 한 문장 결론
 
 이번 6시간의 핵심 산출물은 기능을 무작정 늘린 것이 아니라, 기존 화면과 서버를 운영 가능한 모듈·권한·상태 전이·실패 복구·성능 증거·배포 준비 자산으로 재구성한 것이다. 실제 클라우드와 외부 provider만 아직 연결되지 않았으며, 그 부분을 완료했다고 과장하지 않는 상태가 현재의 정확한 품질 판정이다.
+
+## 11. 두 프로젝트의 이메일 경계를 Resend SMTP로 통일했다
+
+TownPet은 이메일 인증·비밀번호 복구를 위해 SMTP를 사용하고 있었지만, ERP의 `EmailNotificationSender`는 구현되어도 production profile에서 `enabled=false`였다. 같은 VPS에 배포되는 두 프로젝트의 운영 기능을 다르게 끄면 알림 Outbox가 성공처럼 보이거나 기본 이메일 기능을 조용히 잃을 수 있으므로, ERP도 Resend SMTP를 사용하도록 production 설정을 바꿨다. SMTP host·credential·STARTTLS·발신 주소가 없으면 netcup 환경 validator가 기동 전에 거부한다.
+
+- 근거: `src/main/resources/application-prod.yml`, `deploy/.env.netcup.example`, `scripts/validate-netcup-env.sh`, `docs/guides/netcup-deployment.md`
+- 검증: ERP backend compile, Compose config, shell 문법과 문서 링크 검사를 다시 실행했다. 실제 Resend 수신·SPF/DKIM/DMARC는 netcup 승인 후 외부 검증으로 남아 있다.
+- trade-off·한계: 이메일 기능은 완성되지만 Resend provider 장애가 알림 전달에 영향을 줄 수 있으므로 Outbox retry/dead-letter를 유지하고, 실제 provider sandbox에서 실패·재시도를 추가 확인한다.
+
+2026-08-16 Docker Desktop을 실행한 뒤 전체 ERP 테스트를 다시 실행했고 304개 테스트가 2분 56초 만에 통과했다. 이전 Docker daemon 부재 실패는 환경 원인이었으며, 현재는 Testcontainers 기반 통합 테스트까지 로컬에서 확인된 상태다.
+
+## 12. 공용 edge와 내부 Caddy 사이의 Host 계약을 명시했다
+
+ERP 내부 Caddy는 TLS를 직접 종료하지 않고 `http://{$APP_DOMAIN}` site block으로 동작한다. 공용 edge가 upstream 기본 Host를 전달하면 이 site block과 매칭되지 않을 수 있으므로, 내부 reverse proxy에도 원래 요청 Host를 전달하도록 고정했다. TownPet의 media 경로와 함께 두 프로젝트가 하나의 edge를 공유하는 실제 토폴로지에서 발견한 배포 전 결함이다.
+
+- 근거: `deploy/Caddyfile.netcup`, `kindergarten-erp/erp/deploy/Caddyfile.netcup`, TownPet `deploy/compose/Caddyfile.netcup`
+- 검증: Compose config와 shell 문법·문서 링크 검사를 통과했다. 실제 HTTPS·로그인·media 요청은 netcup 승인 후 실행한다.

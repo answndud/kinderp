@@ -1,14 +1,33 @@
+# Git and local development state
 .git
 .github
-.gradle
 .idea
 .vscode
+.DS_Store
+*.iml
+
+# Gradle, Node, and generated output
+.gradle
 build
 out
+node_modules
+frontend/node_modules
+frontend/dist
+coverage
 logs
-bin
-docker/.env
-deploy/.env.prod
-deploy/.env.production
-*.iml
-.DS_Store
+test-results
+reports
+
+# Local credentials and deployment data
+.env
+.env.*
+!.env.example
+deploy/.env*
+backup
+backups
+*.dump
+*.sql
+*.sql.gz
+
+# Documentation is not needed in the runtime image
+docs

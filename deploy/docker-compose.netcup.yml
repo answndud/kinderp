@@ -1,0 +1,126 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: kindergarten-erp-mysql
+    restart: unless-stopped
+    mem_limit: 768m
+    cpus: 1.0
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      MYSQL_DATABASE: $MYSQL_DATABASE
+      MYSQL_USER: $MYSQL_USER
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+    command:
+      - --skip-name-resolve
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - erp-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks: [erp-internal]
+
+  redis:
+    image: redis:7-alpine
+    container_name: kindergarten-erp-redis
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.5
+    security_opt:
+      - no-new-privileges:true
+    command: sh -c "redis-server --appendonly yes --requirepass $$REDIS_PASSWORD"
+    environment:
+      REDIS_PASSWORD: $REDIS_PASSWORD
+    volumes:
+      - erp-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "$$REDIS_PASSWORD", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks: [erp-internal]
+
+  app:
+    image: $APP_IMAGE
+    container_name: kindergarten-erp-app
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+    mem_limit: 768m
+    cpus: 1.5
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: "5"
+    env_file:
+      - ${PROD_ENV_FILE:-.env.netcup.example}
+    environment:
+      APP_VERSION: $APP_VERSION
+      DB_URL: jdbc:mysql://mysql:3306/$MYSQL_DATABASE?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useUnicode=true
+      DB_USERNAME: $MYSQL_USER
+      DB_PASSWORD: $MYSQL_PASSWORD
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: $REDIS_PASSWORD
+    expose:
+      - "8080"
+      - "9091"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:9091/actuator/health/readiness"]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    networks: [erp-internal]
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: kindergarten-erp-caddy
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.5
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    environment:
+      APP_DOMAIN: $APP_DOMAIN
+    depends_on:
+      app:
+        condition: service_healthy
+    volumes:
+      - ./Caddyfile.netcup:/etc/caddy/Caddyfile:ro
+      - erp-caddy-data:/data
+      - erp-caddy-config:/config
+    networks:
+      - erp-internal
+      - edge
+
+volumes:
+  erp-mysql-data:
+  erp-redis-data:
+  erp-caddy-data:
+  erp-caddy-config:
+
+networks:
+  erp-internal:
+    name: erp-internal
+  edge:
+    external: true

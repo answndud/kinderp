@@ -5,6 +5,17 @@
 spring:
   lifecycle:
     timeout-per-shutdown-phase: 25s
+  mail:
+    host: ${SPRING_MAIL_HOST}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME}
+    password: ${SPRING_MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:true}
   # MySQL 설정 (운영)
   datasource:
     url: ${DB_URL}
@@ -97,6 +108,10 @@ app:
 
 notification:
   delivery:
+    email:
+      enabled: ${NOTIFICATION_EMAIL_ENABLED:true}
+      from: ${NOTIFICATION_EMAIL_FROM}
+      subject-prefix: "[KinderCare]"
     push:
       signature-secret: ${NOTIFICATION_PUSH_WEBHOOK_SECRET:}
     app:

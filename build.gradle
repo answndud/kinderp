@@ -89,6 +89,13 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+// Keep the MySQL/Redis Testcontainers fixture bounded on developer laptops and CI.
+// Test classes already share the static containers; parallel forks would only
+// increase JVM and Docker memory without improving this small project.
+tasks.withType(Test).configureEach {
+    maxParallelForks = 1
+}
+
 tasks.register('fastTest', Test) {
     description = 'Runs fast unit/service tests.'
     group = 'verification'

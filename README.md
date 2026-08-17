@@ -14,7 +14,7 @@
 - 단순 CRUD가 아니라 **tenant 경계, 입학·출결 승인 상태 전이, 감사 로그, Outbox dead-letter 운영**까지 하나의 업무 흐름으로 닫았습니다.
 - 성능 개선은 감으로 처리하지 않고 **쿼리 수/응답 시간/CI 시간**을 전후 비교했습니다. Notepad 목록은 `22 queries -> 5 queries`, Dashboard 반복 조회는 cache hit 기준 `5 queries -> 0 queries`로 줄였습니다.
 - `demo` 프로파일과 seed 데이터로 핵심 업무 흐름을 재현할 수 있으며, 빌드·테스트 상태는 상단 [Backend CI](https://github.com/answndud/Kindergarten_ERP/actions/workflows/ci.yml)에서 확인할 수 있습니다.
-- 실제 클라우드 배포는 비용 문제로 수행하지 않았고, 대신 Docker/배포 자산/runbook과 local/demo/prod 환경 계약을 분리해 설명 가능하게 준비했습니다.
+- 실제 클라우드 배포 전이며, 확정 대상은 TownPet과 공유하는 netcup VPS Lite 2 단일 VPS입니다. Docker/배포 자산/runbook과 local/demo/prod 환경 계약을 분리해 준비했습니다.
 
 > TownPet이 레거시 이관과 서비스 구조의 안전성을 보여준다면, Kindergarten ERP는 운영 중 발생하는 권한·승인·동시성·실패 복구를 통제하는 내부 플랫폼을 다룹니다. 상세 설계는 [설계 서사](./docs/architecture/portfolio-story.md)에서 확인할 수 있습니다.
 
@@ -28,7 +28,7 @@
 | 핵심 기술 | Java 21, Spring Boot 3.5.14, MySQL 8, Redis, JPA, QueryDSL |
 | 실행 프로필 | `local`, `demo`, `prod` |
 | 최근 운영 개선 | 입력 오류 500 방지, 인증 rate-limit/`Retry-After`, graceful shutdown, production Compose resource/log guardrail, Notification Outbox 운영면, `Backend CI` `5m 28s -> 1분대` |
-| 바로 볼 문서 | [`PLAN.md`](./PLAN.md), [`docs/guides/developer-guide.md`](./docs/guides/developer-guide.md), [`docs/guides/env-contract.md`](./docs/guides/env-contract.md), [`docs/guides/deployment-guide.md`](./docs/guides/deployment-guide.md) |
+| 바로 볼 문서 | [`PLAN.md`](./PLAN.md), [`docs/guides/developer-guide.md`](./docs/guides/developer-guide.md), [`docs/guides/env-contract.md`](./docs/guides/env-contract.md), [`docs/guides/netcup-deployment.md`](./docs/guides/netcup-deployment.md) |
 | 최소 로컬 검증 | 빠른 수정은 `./gradlew compileJava compileTestJava` + `git diff --check`, 릴리스 전만 `./gradlew test` |
 
 ## 대표 업무 흐름
@@ -60,7 +60,7 @@
 | Demo smoke | `/dashboard`, `/applications/pending`, `/notification-outbox`, `/swagger-ui.html` 확인 + Playwright 시나리오 통과 |
 | Release check | `./gradlew bootJar` 통과 |
 | Production-like dry-run | prod safety, compose config, backup/checksum, disposable MySQL/Redis restore drill 확인 |
-| 배포 | 클라우드 미배포. `deploy/*`, Dockerfile, 배포 가이드만 준비 |
+| 배포 | netcup 승인 대기. `deploy/docker-compose.netcup.yml`, MySQL backup/restore, Dockerfile와 배포 가이드 준비 |
 
 ## 핵심 문제와 해결
 
@@ -73,7 +73,7 @@
 | 테스트 신뢰성 부족 | MySQL/Redis Testcontainers 통합 테스트 + `fast/integration/performanceSmoke` CI 분리 | GitHub Actions 배지, 테스트 태스크, smoke 검증 |
 | 운영 실패 대응 부족 | Notification Outbox timeline, status/channel/search filter, dead-letter retry API 추가 | `/api/v1/notification-outbox/*`, principal-only 통합 테스트 |
 | 인증 남용과 재시도 혼선 | Redis 기반 login/refresh rate limit, 429 `Retry-After` 계약 | `AuthApiIntegrationTest`, `AuthRateLimitService` |
-| 배포 컨테이너 운영 위험 | production Compose 자원 상한, 로그 rotation, `no-new-privileges`, graceful shutdown | `deploy/docker-compose.prod.yml`, `application-prod.yml`, production-like checklist |
+| 배포 컨테이너 운영 위험 | netcup Compose 자원 상한, 로그 rotation, `no-new-privileges`, graceful shutdown | `deploy/docker-compose.netcup.yml`, `application-prod.yml`, netcup deployment guide |
 | 입력 오류 500 위험 | MVC parameter/type/date 예외를 400 `ApiResponse.error`로 정규화 | 출석 월 조회 invalid/missing/type 오류 테스트 |
 | 과도한 일정 조회 | 캘린더 조회 기간 366일 cap + `RecurrenceExpander` 분리 | fast unit test, calendar integration test |
 

@@ -79,4 +79,4 @@ Controller의 `@PreAuthorize`, service의 요청자 검증, repository의 tenant
 | 상태 전이 | 입학·출결 요청 서비스, 허용 상태 전이 테스트, 동시 요청·멱등성 검증 | 트래픽 증가 시 workflow 상태 이력 보관 정책 점검 |
 | 전달 실패 대응 | Notification Outbox, `FOR UPDATE SKIP LOCKED`, worker 경쟁 테스트, dead-letter retry 운영 API | 실제 provider sandbox, webhook 수신·rate limit·reconciliation 검증 |
 | 성능 개선 | Notepad/Dashboard query count·응답 시간·k6 p95·EXPLAIN 측정값 | 운영 DB 규모와 실제 HTTPS 경로에서 동일 시나리오 재측정 |
-| 운영 가능성 | Docker·runbook·prod safety·backup checksum·disposable restore·readiness/HTTPS proxy 로컬 검증 | 실제 클라우드 DNS/TLS, 운영 RDS/Redis, 외부 rollback 실행 |
+| 운영 가능성 | Docker·runbook·prod safety·backup checksum·disposable restore·readiness/HTTPS proxy 로컬 검증, netcup Compose·GHCR·암호화 backup 자산 | 실제 netcup DNS/TLS, 내부 MySQL/Redis 운영 volume, 외부 rollback 실행 |

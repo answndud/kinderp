@@ -1,6 +1,8 @@
 # Kindergarten ERP 배포 가이드
 
-이 문서는 **초보자도 이 파일 하나만 보고** Kindergarten ERP를 실제 인터넷에 배포할 수 있도록 정리한 배포 SSOT입니다.
+> 이 문서는 AWS EC2+RDS 대안의 비교·참고 기록으로 유지한다. 실제 실행 순서와 현재 확정된 포트폴리오 배포 대상은 [netcup 단일 VPS 배포 가이드](./netcup-deployment.md)다.
+
+이 문서는 과거 AWS 대안의 설계·비용·운영 trade-off를 보존한다. 현재 실행 SSOT는 `netcup-deployment.md`다.
 
 기준일: **2026-08-14 (KST)**
 
@@ -1316,4 +1318,4 @@ OAuth/플랫폼 공식 문서:
 
 ## 34. 마지막 한 줄 정리
 
-이 프로젝트의 첫 운영 배포는 **`EC2 + RDS + Redis self-host + Caddy + GitHub Actions CD`**가 가장 현실적이고, 비용 대비 설명력도 가장 좋습니다.
+이 문서에 남아 있는 **`EC2 + RDS + Redis self-host + Caddy + GitHub Actions CD`**는 과거 대안과 비교 근거입니다. 현재 첫 운영 배포는 [`netcup 단일 VPS 배포 가이드`](./netcup-deployment.md)의 `netcup VPS Lite 2 + 공용 Caddy + 내부 MySQL/Redis + GHCR CD`를 따릅니다.

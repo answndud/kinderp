@@ -3,7 +3,9 @@
 기준일: 2026-08-14
 
 이 문서는 실제 클라우드 배포 없이도 운영 전환 전 확인 가능한 항목을 반복 실행하기 위한 checklist입니다.
-실제 운영 배포를 대체하지 않으며, cloud 계정, 운영 도메인, OAuth redirect URI, RDS/Redis 접속, backup/rollback은 실제 서버에서 다시 검증해야 합니다.
+실제 운영 배포를 대체하지 않으며, cloud 계정, 운영 도메인, OAuth redirect URI, netcup 내부 MySQL/Redis 접속, backup/rollback은 실제 서버에서 다시 검증해야 합니다.
+
+> 이 문서의 `deploy/docker-compose.prod.yml`과 2026-08-14 실행 결과는 당시 production-like 증거로 보존한다. 현재 실제 실행 SSOT와 Compose는 [`netcup-deployment.md`](./netcup-deployment.md)와 `deploy/docker-compose.netcup.yml`이며, 아래 과거 명령을 실제 netcup 배포 명령으로 간주하지 않는다.
 
 ## 1. 목적
 
@@ -95,7 +97,7 @@ git diff --check
 - 실제 HTTPS 도메인
 - `CORS_ALLOWED_ORIGINS=https://<real-domain>`
 - Google/Kakao OAuth redirect URI 운영 도메인 등록
-- RDS MySQL 접속과 backup 정책
+- netcup 내부 MySQL·Redis 접속과 backup 정책
 - Redis password/volume/backup 정책
 - Caddy TLS 발급 확인
 - readiness `UP` 확인
@@ -120,4 +122,4 @@ base MySQL (docker/docker-compose.yml)
   └─ production Redis + Spring Boot prod image + Caddy (deploy/docker-compose.prod.yml)
 ```
 
-검증한 것은 배포 자산과 컨테이너 간 연결·기동·프록시·재시작 복구이며, `localhost`의 Caddy 인증서는 로컬 전용이므로 `curl -k`를 사용했다. 실제 클라우드 DNS/TLS 발급, 운영 RDS/Redis, OAuth redirect URI, 외부 webhook provider는 여전히 미실행 상태다.
+검증한 것은 과거 production-like 배포 자산과 컨테이너 간 연결·기동·프록시·재시작 복구이며, `localhost`의 Caddy 인증서는 로컬 전용이므로 `curl -k`를 사용했다. 실제 netcup DNS/TLS 발급, 내부 MySQL/Redis 운영 volume, OAuth redirect URI, 외부 webhook provider는 여전히 미실행 상태다.

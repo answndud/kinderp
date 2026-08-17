@@ -27,7 +27,9 @@
 - `docs/guides/user-guide.md`
   - 역할별 사용 흐름
 - `docs/guides/deployment-guide.md`
-  - 초보자용 배포 절차와 운영 자산 설명
+  - AWS EC2+RDS 대안과 기존 운영 자산 설명(현재 실행 SSOT 아님)
+- `docs/guides/netcup-deployment.md`
+  - TownPet과 공유하는 netcup VPS Lite 2 단일 VPS 배포 절차
 - `docs/guides/interview-guide.md`
   - 면접관 관점의 핵심 개선 스토리와 검증 포인트
 - `docs/guides/evidence-map.md`
