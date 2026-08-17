@@ -2,9 +2,13 @@
 
 이 문서는 Kindergarten ERP를 로컬에서 실행한 뒤 브라우저로 로그인하고, 역할별 기능을 빠르게 확인하기 위한 안내서입니다.
 
-아래 계정과 비밀번호는 `local`/`demo` 프로파일의 합성 시드 데이터 전용입니다. 실제 서비스, 운영 환경, 공개 배포 환경에서 재사용하지 마세요.
+아래 계정과 비밀번호는 합성 시드 데이터 전용입니다. 실제 개인정보는 포함하지 않으며, 공개 포트폴리오 showcase에서는 방문자가 역할별 화면을 확인할 수 있도록 사용할 수 있습니다. 상용 운영이나 실제 사용자 데이터가 있는 환경에서는 재사용하지 않습니다.
 
 ## 1. 실행 프로파일
+
+### 공개 포트폴리오 배포
+
+netcup showcase에서는 `SPRING_PROFILES_ACTIVE=prod`, `APP_PUBLIC_DEMO_ENABLED=true`, `APP_SEED_ENABLED=true`를 명시합니다. `StartupSafetyValidator`가 이 조합을 공개 demo 예외로 허용하며 Swagger·Prometheus는 계속 비공개입니다.
 
 ### 면접·시연용 권장 실행
 
