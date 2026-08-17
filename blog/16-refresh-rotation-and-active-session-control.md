@@ -58,12 +58,12 @@ refresh token을 쓸 때마다 새 refresh token으로 갈아끼우는 전략입
 ## 3. 이번 글에서 다룰 파일
 
 ```text
-- src/main/java/com/erp/domain/auth/service/AuthSessionRegistryService.java
-- src/main/java/com/erp/global/security/jwt/JwtTokenProvider.java
-- src/main/java/com/erp/global/security/jwt/JwtFilter.java
-- src/main/java/com/erp/domain/auth/service/AuthService.java
-- src/main/java/com/erp/domain/auth/controller/AuthApiController.java
-- src/test/java/com/erp/api/AuthApiIntegrationTest.java
+- src/main/java/com/kinderp/domain/auth/service/AuthSessionRegistryService.java
+- src/main/java/com/kinderp/global/security/jwt/JwtTokenProvider.java
+- src/main/java/com/kinderp/global/security/jwt/JwtFilter.java
+- src/main/java/com/kinderp/domain/auth/service/AuthService.java
+- src/main/java/com/kinderp/domain/auth/controller/AuthApiController.java
+- src/test/java/com/kinderp/api/AuthApiIntegrationTest.java
 - docs/COMPLETED.md#archive-002
 - docs/COMPLETED.md#archive-003
 ```
@@ -89,7 +89,7 @@ flowchart TD
 
 ### 5-1. `AuthSessionRegistryService`: 세션 저장소의 중심
 
-[AuthSessionRegistryService.java](../src/main/java/com/erp/domain/auth/service/AuthSessionRegistryService.java)의 핵심 메서드는 아래입니다.
+[AuthSessionRegistryService.java](../src/main/java/com/kinderp/domain/auth/service/AuthSessionRegistryService.java)의 핵심 메서드는 아래입니다.
 
 - `registerSession(...)`
 - `rotateSession(...)`
@@ -103,7 +103,7 @@ flowchart TD
 
 ### 5-2. `JwtTokenProvider`: `sessionId`와 `tokenType`을 claims에 넣는다
 
-[JwtTokenProvider.java](../src/main/java/com/erp/global/security/jwt/JwtTokenProvider.java)는
+[JwtTokenProvider.java](../src/main/java/com/kinderp/global/security/jwt/JwtTokenProvider.java)는
 
 - `sessionId`
 - `tokenType`
@@ -116,7 +116,7 @@ flowchart TD
 
 ### 5-3. `JwtFilter`: access token도 Redis 세션 활성 여부를 확인한다
 
-[JwtFilter.java](../src/main/java/com/erp/global/security/jwt/JwtFilter.java)의 핵심은 `doFilter(...)`입니다.
+[JwtFilter.java](../src/main/java/com/kinderp/global/security/jwt/JwtFilter.java)의 핵심은 `doFilter(...)`입니다.
 
 이 메서드는
 
@@ -132,7 +132,7 @@ flowchart TD
 
 ### 5-4. `AuthService`: issue, rotate, revoke를 하나의 흐름으로 묶는다
 
-[AuthService.java](../src/main/java/com/erp/domain/auth/service/AuthService.java)의 핵심 메서드는 아래입니다.
+[AuthService.java](../src/main/java/com/kinderp/domain/auth/service/AuthService.java)의 핵심 메서드는 아래입니다.
 
 - `issueTokens(...)`
 - `refreshAccessToken(...)`
@@ -144,7 +144,7 @@ flowchart TD
 
 ### 5-5. `AuthApiController`: 사용자가 세션을 실제로 제어하게 한다
 
-[AuthApiController.java](../src/main/java/com/erp/domain/auth/controller/AuthApiController.java)의 핵심 API는 아래입니다.
+[AuthApiController.java](../src/main/java/com/kinderp/domain/auth/controller/AuthApiController.java)의 핵심 API는 아래입니다.
 
 - `GET /api/v1/auth/sessions`
 - `DELETE /api/v1/auth/sessions/{sessionId}`
@@ -239,16 +239,16 @@ sequenceDiagram
 
 ```text
 - 토큰 / 필터:
-  - src/main/java/com/erp/global/security/jwt/JwtTokenProvider.java
-  - src/main/java/com/erp/global/security/jwt/JwtFilter.java
+  - src/main/java/com/kinderp/global/security/jwt/JwtTokenProvider.java
+  - src/main/java/com/kinderp/global/security/jwt/JwtFilter.java
 - 세션 레지스트리 / 인증 서비스:
-  - src/main/java/com/erp/domain/auth/service/AuthService.java
-  - src/main/java/com/erp/domain/auth/service/AuthSessionRegistryService.java
-  - src/main/java/com/erp/domain/auth/dto/response/AuthSessionResponse.java
+  - src/main/java/com/kinderp/domain/auth/service/AuthService.java
+  - src/main/java/com/kinderp/domain/auth/service/AuthSessionRegistryService.java
+  - src/main/java/com/kinderp/domain/auth/dto/response/AuthSessionResponse.java
 - API:
-  - src/main/java/com/erp/domain/auth/controller/AuthApiController.java
+  - src/main/java/com/kinderp/domain/auth/controller/AuthApiController.java
 - 검증:
-  - src/test/java/com/erp/api/AuthApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/AuthApiIntegrationTest.java
 - 결정 로그:
   - docs/COMPLETED.md#archive-002
   - docs/COMPLETED.md#archive-003

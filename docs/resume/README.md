@@ -22,11 +22,11 @@ KinderP는 유치원 운영을 주제로 한 Spring Boot 백엔드 포트폴리�
 | 주장 | 증거 |
 | --- | --- |
 | 단순 CRUD가 아니라 운영형 백엔드 문제를 풀었다 | [`../../README.md`](../../README.md), [`../guides/evidence-map.md`](../guides/evidence-map.md) |
-| role/tenant 보안 경계를 API/service/test에서 검증했다 | [`../../src/main/java/com/erp/global/security/access`](../../src/main/java/com/erp/global/security/access), [`../../src/test/java/com/erp/api`](../../src/test/java/com/erp/api) |
-| JWT cookie + Redis refresh/session revoke를 구현했다 | [`../../src/main/java/com/erp/global/security/jwt`](../../src/main/java/com/erp/global/security/jwt), [`../../src/main/java/com/erp/domain/auth`](../../src/main/java/com/erp/domain/auth) |
-| 알림 실패를 outbox timeline/dead-letter/retry로 운영 가능하게 만들었다 | [`../../src/main/java/com/erp/domain/notification`](../../src/main/java/com/erp/domain/notification), [`../../src/main/resources/templates/notifications/outbox.html`](../../src/main/resources/templates/notifications/outbox.html) |
-| 감사 로그와 CSV export로 운영 조사 흐름을 제공한다 | [`../../src/main/java/com/erp/domain/authaudit`](../../src/main/java/com/erp/domain/authaudit), [`../../src/main/java/com/erp/domain/domainaudit`](../../src/main/java/com/erp/domain/domainaudit) |
-| 성능 개선을 숫자로 남겼다 | [`../../README.md`](../../README.md), [`../../src/test/java/com/erp/performance`](../../src/test/java/com/erp/performance) |
+| role/tenant 보안 경계를 API/service/test에서 검증했다 | [`../../src/main/java/com/kinderp/global/security/access`](../../src/main/java/com/kinderp/global/security/access), [`../../src/test/java/com/kinderp/api`](../../src/test/java/com/kinderp/api) |
+| JWT cookie + Redis refresh/session revoke를 구현했다 | [`../../src/main/java/com/kinderp/global/security/jwt`](../../src/main/java/com/kinderp/global/security/jwt), [`../../src/main/java/com/kinderp/domain/auth`](../../src/main/java/com/kinderp/domain/auth) |
+| 알림 실패를 outbox timeline/dead-letter/retry로 운영 가능하게 만들었다 | [`../../src/main/java/com/kinderp/domain/notification`](../../src/main/java/com/kinderp/domain/notification), [`../../src/main/resources/templates/notifications/outbox.html`](../../src/main/resources/templates/notifications/outbox.html) |
+| 감사 로그와 CSV export로 운영 조사 흐름을 제공한다 | [`../../src/main/java/com/kinderp/domain/authaudit`](../../src/main/java/com/kinderp/domain/authaudit), [`../../src/main/java/com/kinderp/domain/domainaudit`](../../src/main/java/com/kinderp/domain/domainaudit) |
+| 성능 개선을 숫자로 남겼다 | [`../../README.md`](../../README.md), [`../../src/test/java/com/kinderp/performance`](../../src/test/java/com/kinderp/performance) |
 | 실제 클라우드 미배포 약점을 숨기지 않고 production-like 검증으로 방어한다 | [`../guides/risk-response.md`](../guides/risk-response.md), [`../guides/production-like-checklist.md`](../guides/production-like-checklist.md), [`../../deploy`](../../deploy) |
 | 면접 시연 흐름이 준비되어 있다 | [`../guides/interview-guide.md`](../guides/interview-guide.md), [`../guides/demo-scenario.md`](../guides/demo-scenario.md) |
 | 현재 작업 범위와 검증 근거를 추적한다 | [`../../PLAN.md`](../../PLAN.md), [`../guides/evidence-map.md`](../guides/evidence-map.md) |

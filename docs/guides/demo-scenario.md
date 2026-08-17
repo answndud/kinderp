@@ -59,10 +59,10 @@ SPRING_PROFILES_ACTIVE=demo ./gradlew bootRun
 
 | 질문 | 열 파일 |
 | --- | --- |
-| 인증/세션은 어떻게 관리하나요? | `src/main/java/com/erp/global/security/*`, `src/main/java/com/erp/domain/auth/service/*` |
-| 권한/tenant 경계는 어디서 막나요? | `src/main/java/com/erp/global/security/access/AccessPolicyService.java` |
-| 알림 실패는 어떻게 재처리하나요? | `src/main/java/com/erp/domain/notification/*`, `src/main/resources/templates/notifications/outbox.html` |
-| 입학 workflow는 어디서 관리하나요? | `src/main/java/com/erp/domain/kidapplication/service/*` |
+| 인증/세션은 어떻게 관리하나요? | `src/main/java/com/kinderp/global/security/*`, `src/main/java/com/kinderp/domain/auth/service/*` |
+| 권한/tenant 경계는 어디서 막나요? | `src/main/java/com/kinderp/global/security/access/AccessPolicyService.java` |
+| 알림 실패는 어떻게 재처리하나요? | `src/main/java/com/kinderp/domain/notification/*`, `src/main/resources/templates/notifications/outbox.html` |
+| 입학 workflow는 어디서 관리하나요? | `src/main/java/com/kinderp/domain/kidapplication/service/*` |
 | 운영 환경 변수는 어디에 정리했나요? | `docs/guides/env-contract.md` |
 | 현재 작업과 검증 계획은 어디에 남기나요? | 루트 `PLAN.md` |
 

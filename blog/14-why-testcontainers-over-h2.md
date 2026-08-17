@@ -55,9 +55,9 @@ Testcontainers는 테스트 실행 중 Docker 컨테이너를 띄워
 ```text
 - build.gradle
 - src/test/resources/application-test.yml
-- src/test/java/com/erp/common/TestcontainersSupport.java
-- src/test/java/com/erp/common/BaseIntegrationTest.java
-- src/test/java/com/erp/KinderpApplicationTests.java
+- src/test/java/com/kinderp/common/TestcontainersSupport.java
+- src/test/java/com/kinderp/common/BaseIntegrationTest.java
+- src/test/java/com/kinderp/KinderpApplicationTests.java
 - docs/COMPLETED.md#archive-002
 ```
 
@@ -101,7 +101,7 @@ flowchart TD
 
 ### 5-3. `TestcontainersSupport`: 동적 인프라 주입의 중심
 
-[TestcontainersSupport.java](../src/test/java/com/erp/common/TestcontainersSupport.java)의 핵심은 아래입니다.
+[TestcontainersSupport.java](../src/test/java/com/kinderp/common/TestcontainersSupport.java)의 핵심은 아래입니다.
 
 - `MYSQL`
 - `REDIS`
@@ -117,7 +117,7 @@ flowchart TD
 
 ### 5-4. `BaseIntegrationTest`: 통합 테스트 공통 기반
 
-[BaseIntegrationTest.java](../src/test/java/com/erp/common/BaseIntegrationTest.java)는
+[BaseIntegrationTest.java](../src/test/java/com/kinderp/common/BaseIntegrationTest.java)는
 
 - 컨테이너 인프라 상속
 - 테스트 데이터 초기화
@@ -208,9 +208,9 @@ Testcontainers는 신뢰도를 크게 올리지만 **속도 비용과 Docker 의
   - build.gradle
   - src/test/resources/application-test.yml
 - 컨테이너 / 테스트 기반:
-  - src/test/java/com/erp/common/TestcontainersSupport.java
-  - src/test/java/com/erp/common/BaseIntegrationTest.java
-  - src/test/java/com/erp/KinderpApplicationTests.java
+  - src/test/java/com/kinderp/common/TestcontainersSupport.java
+  - src/test/java/com/kinderp/common/BaseIntegrationTest.java
+  - src/test/java/com/kinderp/KinderpApplicationTests.java
 - 결정 로그:
   - docs/COMPLETED.md#archive-002
 ```

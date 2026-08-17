@@ -1,7 +1,7 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 
-const root = resolve('src/main/java/com/erp/domain');
+const root = resolve('src/main/java/com/kinderp/domain');
 const violations = [];
 
 async function walk(directory) {

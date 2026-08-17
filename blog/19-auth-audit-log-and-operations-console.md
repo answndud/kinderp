@@ -73,15 +73,15 @@ KinderP는 이 문제를 `auth_audit_log`라는 별도 도메인으로 풀었습
 ## 3. 이번 글에서 다룰 파일
 
 ```text
-- src/main/java/com/erp/domain/authaudit/entity/AuthAuditLog.java
-- src/main/java/com/erp/domain/authaudit/service/AuthAuditLogService.java
-- src/main/java/com/erp/domain/authaudit/service/AuthAuditLogQueryService.java
-- src/main/java/com/erp/domain/authaudit/controller/AuthAuditLogController.java
-- src/main/java/com/erp/domain/authaudit/controller/AuthAuditLogViewController.java
-- src/main/java/com/erp/domain/authaudit/repository/AuthAuditLogRepository.java
+- src/main/java/com/kinderp/domain/authaudit/entity/AuthAuditLog.java
+- src/main/java/com/kinderp/domain/authaudit/service/AuthAuditLogService.java
+- src/main/java/com/kinderp/domain/authaudit/service/AuthAuditLogQueryService.java
+- src/main/java/com/kinderp/domain/authaudit/controller/AuthAuditLogController.java
+- src/main/java/com/kinderp/domain/authaudit/controller/AuthAuditLogViewController.java
+- src/main/java/com/kinderp/domain/authaudit/repository/AuthAuditLogRepository.java
 - src/main/resources/templates/authaudit/audit-logs.html
-- src/test/java/com/erp/api/AuthAuditApiIntegrationTest.java
-- src/test/java/com/erp/api/AuthApiIntegrationTest.java
+- src/test/java/com/kinderp/api/AuthAuditApiIntegrationTest.java
+- src/test/java/com/kinderp/api/AuthApiIntegrationTest.java
 - docs/COMPLETED.md#archive-003
 ```
 
@@ -111,7 +111,7 @@ flowchart TD
 
 ### 5-1. `AuthAuditLog`: 인증 사건을 담는 전용 엔티티
 
-[AuthAuditLog.java](../src/main/java/com/erp/domain/authaudit/entity/AuthAuditLog.java)는 아래 정보를 담습니다.
+[AuthAuditLog.java](../src/main/java/com/kinderp/domain/authaudit/entity/AuthAuditLog.java)는 아래 정보를 담습니다.
 
 - `memberId`
 - `kindergartenId`
@@ -127,7 +127,7 @@ flowchart TD
 
 ### 5-2. `AuthAuditLogService`: 로그인 흐름에서 감사 로그를 저장하는 지점
 
-[AuthAuditLogService.java](../src/main/java/com/erp/domain/authaudit/service/AuthAuditLogService.java)의 핵심 메서드는 아래입니다.
+[AuthAuditLogService.java](../src/main/java/com/kinderp/domain/authaudit/service/AuthAuditLogService.java)의 핵심 메서드는 아래입니다.
 
 - `recordLoginSuccess(...)`
 - `recordLoginFailure(...)`
@@ -168,7 +168,7 @@ write-time에 최대한 결정합니다.
 
 ### 5-3. `AuthAuditLogQueryService`: principal 범위 조회와 CSV export
 
-[AuthAuditLogQueryService.java](../src/main/java/com/erp/domain/authaudit/service/AuthAuditLogQueryService.java)의 핵심 메서드는 아래입니다.
+[AuthAuditLogQueryService.java](../src/main/java/com/kinderp/domain/authaudit/service/AuthAuditLogQueryService.java)의 핵심 메서드는 아래입니다.
 
 - `getAuditLogsForPrincipal(...)`
 - `exportAuditLogsCsvForPrincipal(...)`
@@ -176,7 +176,7 @@ write-time에 최대한 결정합니다.
 여기서 중요한 설계 포인트는 먼저 `validateRequester(...)`로
 principal인지, 유치원 소속이 있는지 검증한다는 점입니다.
 
-그 뒤 [AuthAuditLogRepository.java](../src/main/java/com/erp/domain/authaudit/repository/AuthAuditLogRepository.java)의
+그 뒤 [AuthAuditLogRepository.java](../src/main/java/com/kinderp/domain/authaudit/repository/AuthAuditLogRepository.java)의
 
 - `searchByKindergartenId(...)`
 - `searchAllByKindergartenId(...)`
@@ -192,7 +192,7 @@ principal인지, 유치원 소속이 있는지 검증한다는 점입니다.
 
 ### 5-4. `AuthAuditLogController`: API 계약을 얇게 유지한다
 
-[AuthAuditLogController.java](../src/main/java/com/erp/domain/authaudit/controller/AuthAuditLogController.java)는 두 메서드만 가집니다.
+[AuthAuditLogController.java](../src/main/java/com/kinderp/domain/authaudit/controller/AuthAuditLogController.java)는 두 메서드만 가집니다.
 
 - `getAuditLogs(...)`
 - `exportAuditLogs(...)`
@@ -209,7 +209,7 @@ principal인지, 유치원 소속이 있는지 검증한다는 점입니다.
 
 ### 5-5. `AuthAuditLogViewController`와 `audit-logs.html`
 
-[AuthAuditLogViewController.java](../src/main/java/com/erp/domain/authaudit/controller/AuthAuditLogViewController.java)는
+[AuthAuditLogViewController.java](../src/main/java/com/kinderp/domain/authaudit/controller/AuthAuditLogViewController.java)는
 운영 화면에 필요한 enum 목록만 모델에 넣고 `authaudit/audit-logs` 템플릿을 반환합니다.
 
 [audit-logs.html](../src/main/resources/templates/authaudit/audit-logs.html)은
@@ -247,9 +247,9 @@ sequenceDiagram
 
 대표 테스트는 아래입니다.
 
-- [AuthApiIntegrationTest.java](../src/test/java/com/erp/api/AuthApiIntegrationTest.java)
+- [AuthApiIntegrationTest.java](../src/test/java/com/kinderp/api/AuthApiIntegrationTest.java)
   - 로그인 성공/실패가 실제 감사 로그로 남는지 확인
-- [AuthAuditApiIntegrationTest.java](../src/test/java/com/erp/api/AuthAuditApiIntegrationTest.java)
+- [AuthAuditApiIntegrationTest.java](../src/test/java/com/kinderp/api/AuthAuditApiIntegrationTest.java)
   - principal만 조회 가능한지
   - tenant 범위가 지켜지는지
   - CSV export가 정상 동작하는지 확인
@@ -320,20 +320,20 @@ sequenceDiagram
   - src/main/resources/db/migration/V10__create_auth_audit_log.sql
   - src/main/resources/db/migration/V11__denormalize_auth_audit_log_and_add_retention_archive.sql
 - 저장 / 조회:
-  - src/main/java/com/erp/domain/authaudit/service/AuthAuditLogService.java
-  - src/main/java/com/erp/domain/authaudit/service/AuthAuditLogQueryService.java
-  - src/main/java/com/erp/domain/authaudit/service/AuthAuditRetentionService.java
+  - src/main/java/com/kinderp/domain/authaudit/service/AuthAuditLogService.java
+  - src/main/java/com/kinderp/domain/authaudit/service/AuthAuditLogQueryService.java
+  - src/main/java/com/kinderp/domain/authaudit/service/AuthAuditRetentionService.java
 - API / 화면:
-  - src/main/java/com/erp/domain/authaudit/controller/AuthAuditLogController.java
-  - src/main/java/com/erp/domain/authaudit/controller/AuthAuditLogViewController.java
+  - src/main/java/com/kinderp/domain/authaudit/controller/AuthAuditLogController.java
+  - src/main/java/com/kinderp/domain/authaudit/controller/AuthAuditLogViewController.java
   - src/main/resources/templates/authaudit/audit-logs.html
 - 호출 지점:
-  - src/main/java/com/erp/domain/auth/service/AuthService.java
-  - src/main/java/com/erp/domain/member/controller/MemberApiController.java
-  - src/main/java/com/erp/global/security/oauth2/OAuth2AuthenticationSuccessHandler.java
+  - src/main/java/com/kinderp/domain/auth/service/AuthService.java
+  - src/main/java/com/kinderp/domain/member/controller/MemberApiController.java
+  - src/main/java/com/kinderp/global/security/oauth2/OAuth2AuthenticationSuccessHandler.java
 - 검증:
-  - src/test/java/com/erp/api/AuthApiIntegrationTest.java
-  - src/test/java/com/erp/api/AuthAuditApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/AuthApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/AuthAuditApiIntegrationTest.java
 - 결정 로그:
   - docs/COMPLETED.md#archive-003
 ```

@@ -53,7 +53,7 @@ TownPet이 레거시 데이터와 서비스 구조를 안전하게 바꾸는 프
 | 권한 경계 | `AccessPolicyService`, `*IntegrationTest` | role + kindergarten tenant 검증을 service와 test 양쪽에 둠 |
 | 예외 계약 | `global/exception` | 입력 오류를 500이 아니라 400 `ApiResponse.error`로 정규화 |
 | Outbox 운영 | `domain/notification`, `/notification-outbox` | sender adapter, retry/backoff/dead-letter, timeline/search/filter, principal-only 운영 API |
-| 성능 개선 | `src/test/java/com/erp/performance` | query count와 elapsed time 전후 측정 |
+| 성능 개선 | `src/test/java/com/kinderp/performance` | query count와 elapsed time 전후 측정 |
 | CI 전략 | `.github/workflows/ci.yml`, `backend-quality.yml` | push quick check와 수동 heavy suite 분리 |
 
 ## 5. 약점 질문 선제 대응

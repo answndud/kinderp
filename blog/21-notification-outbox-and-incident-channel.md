@@ -63,14 +63,14 @@ Outbox는 글로 읽으면 복잡해 보이지만, 실제로는 아래 표 하�
 ## 3. 이번 글에서 다룰 파일
 
 ```text
-- src/main/java/com/erp/domain/notification/entity/NotificationOutbox.java
-- src/main/java/com/erp/domain/notification/repository/NotificationOutboxRepository.java
-- src/main/java/com/erp/domain/notification/service/NotificationDispatchService.java
-- src/main/java/com/erp/domain/notification/service/NotificationDeliveryPolicyService.java
-- src/main/java/com/erp/domain/notification/service/channel/NotificationChannel.java
-- src/test/java/com/erp/integration/NotificationOutboxIntegrationTest.java
-- src/test/java/com/erp/integration/NotificationOutboxRetryIntegrationTest.java
-- src/test/java/com/erp/integration/NotificationOutboxClaimConcurrencyIntegrationTest.java
+- src/main/java/com/kinderp/domain/notification/entity/NotificationOutbox.java
+- src/main/java/com/kinderp/domain/notification/repository/NotificationOutboxRepository.java
+- src/main/java/com/kinderp/domain/notification/service/NotificationDispatchService.java
+- src/main/java/com/kinderp/domain/notification/service/NotificationDeliveryPolicyService.java
+- src/main/java/com/kinderp/domain/notification/service/channel/NotificationChannel.java
+- src/test/java/com/kinderp/integration/NotificationOutboxIntegrationTest.java
+- src/test/java/com/kinderp/integration/NotificationOutboxRetryIntegrationTest.java
+- src/test/java/com/kinderp/integration/NotificationOutboxClaimConcurrencyIntegrationTest.java
 - docs/COMPLETED.md#archive-003
 - docs/COMPLETED.md#archive-005
 ```
@@ -100,7 +100,7 @@ flowchart TD
 
 ### 5-1. `NotificationOutbox`: 전달 작업을 표현하는 엔티티
 
-[NotificationOutbox.java](../src/main/java/com/erp/domain/notification/entity/NotificationOutbox.java)는
+[NotificationOutbox.java](../src/main/java/com/kinderp/domain/notification/entity/NotificationOutbox.java)는
 아래 상태를 가집니다.
 
 - `channel`
@@ -128,7 +128,7 @@ flowchart TD
 
 ### 5-2. `NotificationDispatchService`: worker 역할까지 담당한다
 
-[NotificationDispatchService.java](../src/main/java/com/erp/domain/notification/service/NotificationDispatchService.java)의 핵심 메서드는 아래입니다.
+[NotificationDispatchService.java](../src/main/java/com/kinderp/domain/notification/service/NotificationDispatchService.java)의 핵심 메서드는 아래입니다.
 
 - `dispatch(Notification notification)`
 - `dispatch(List<Notification> notifications)`
@@ -193,7 +193,7 @@ claim 자체를 MySQL 8 `FOR UPDATE SKIP LOCKED`로 원자화했습니다.
 
 ### 5-5. `NotificationDeliveryPolicyService`: 어떤 채널로 보낼지 결정
 
-[NotificationDeliveryPolicyService.java](../src/main/java/com/erp/domain/notification/service/NotificationDeliveryPolicyService.java)의 핵심 메서드는 아래입니다.
+[NotificationDeliveryPolicyService.java](../src/main/java/com/kinderp/domain/notification/service/NotificationDeliveryPolicyService.java)의 핵심 메서드는 아래입니다.
 
 - `resolveReceiverChannels(...)`
 - `resolveIncidentChannels(...)`
@@ -211,7 +211,7 @@ claim 자체를 MySQL 8 `FOR UPDATE SKIP LOCKED`로 원자화했습니다.
 
 ### 5-6. `NotificationOutboxRepository`: worker가 실제로 의존하는 조회 규칙
 
-[NotificationOutboxRepository.java](../src/main/java/com/erp/domain/notification/repository/NotificationOutboxRepository.java)의 핵심 메서드는 아래입니다.
+[NotificationOutboxRepository.java](../src/main/java/com/kinderp/domain/notification/repository/NotificationOutboxRepository.java)의 핵심 메서드는 아래입니다.
 
 - `findByStatusAndNextAttemptAtLessThanEqualOrderByNextAttemptAtAscIdAsc(...)`
 - `findByStatusAndProcessingStartedAtLessThanEqualOrderByProcessingStartedAtAscIdAsc(...)`
@@ -255,11 +255,11 @@ sequenceDiagram
 
 대표 테스트는 아래입니다.
 
-- [NotificationOutboxIntegrationTest.java](../src/test/java/com/erp/integration/NotificationOutboxIntegrationTest.java)
+- [NotificationOutboxIntegrationTest.java](../src/test/java/com/kinderp/integration/NotificationOutboxIntegrationTest.java)
   - outbox 적재 후 성공 시 `DELIVERED`
-- [NotificationOutboxRetryIntegrationTest.java](../src/test/java/com/erp/integration/NotificationOutboxRetryIntegrationTest.java)
+- [NotificationOutboxRetryIntegrationTest.java](../src/test/java/com/kinderp/integration/NotificationOutboxRetryIntegrationTest.java)
   - 실패 반복 시 `DEAD_LETTER`
-- [NotificationOutboxClaimConcurrencyIntegrationTest.java](../src/test/java/com/erp/integration/NotificationOutboxClaimConcurrencyIntegrationTest.java)
+- [NotificationOutboxClaimConcurrencyIntegrationTest.java](../src/test/java/com/kinderp/integration/NotificationOutboxClaimConcurrencyIntegrationTest.java)
   - 동시에 두 worker가 batch를 처리해도 같은 outbox가 한 번만 claim되는지 확인
 
 이 테스트가 좋은 이유는 외부 채널을 모킹하면서도
@@ -314,22 +314,22 @@ Outbox를 처음 보면 구조가 복잡해 보일 수 있습니다.
 ```text
 - 스키마 / 엔티티:
   - src/main/resources/db/migration/V12__add_notification_outbox.sql
-  - src/main/java/com/erp/domain/notification/entity/NotificationOutbox.java
-  - src/main/java/com/erp/domain/notification/entity/NotificationDeliveryStatus.java
+  - src/main/java/com/kinderp/domain/notification/entity/NotificationOutbox.java
+  - src/main/java/com/kinderp/domain/notification/entity/NotificationDeliveryStatus.java
 - 정책 / worker:
-  - src/main/java/com/erp/domain/notification/service/NotificationDispatchService.java
-  - src/main/java/com/erp/domain/notification/service/NotificationDeliveryPolicyService.java
-  - src/main/java/com/erp/domain/notification/repository/NotificationOutboxRepository.java
-  - src/main/java/com/erp/domain/notification/config/NotificationDeliveryProperties.java
+  - src/main/java/com/kinderp/domain/notification/service/NotificationDispatchService.java
+  - src/main/java/com/kinderp/domain/notification/service/NotificationDeliveryPolicyService.java
+  - src/main/java/com/kinderp/domain/notification/repository/NotificationOutboxRepository.java
+  - src/main/java/com/kinderp/domain/notification/config/NotificationDeliveryProperties.java
 - 채널 구현:
-  - src/main/java/com/erp/domain/notification/service/channel/NotificationChannelSender.java
-  - src/main/java/com/erp/domain/notification/service/channel/AppNotificationSender.java
-  - src/main/java/com/erp/domain/notification/service/channel/EmailNotificationSender.java
-  - src/main/java/com/erp/domain/notification/service/channel/IncidentWebhookNotificationSender.java
+  - src/main/java/com/kinderp/domain/notification/service/channel/NotificationChannelSender.java
+  - src/main/java/com/kinderp/domain/notification/service/channel/AppNotificationSender.java
+  - src/main/java/com/kinderp/domain/notification/service/channel/EmailNotificationSender.java
+  - src/main/java/com/kinderp/domain/notification/service/channel/IncidentWebhookNotificationSender.java
 - 검증:
-  - src/test/java/com/erp/integration/NotificationOutboxIntegrationTest.java
-  - src/test/java/com/erp/integration/NotificationOutboxRetryIntegrationTest.java
-  - src/test/java/com/erp/integration/NotificationOutboxClaimConcurrencyIntegrationTest.java
+  - src/test/java/com/kinderp/integration/NotificationOutboxIntegrationTest.java
+  - src/test/java/com/kinderp/integration/NotificationOutboxRetryIntegrationTest.java
+  - src/test/java/com/kinderp/integration/NotificationOutboxClaimConcurrencyIntegrationTest.java
 - 결정 로그:
   - docs/COMPLETED.md#archive-003
   - docs/COMPLETED.md#archive-005

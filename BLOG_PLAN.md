@@ -181,8 +181,8 @@
 - `src/main/resources/application-demo.yml`
 - `src/main/resources/application-prod.yml`
 - `src/main/resources/logback-spring.xml`
-- `src/main/java/com/erp/KinderpApplication.java`
-- `src/main/java/com/erp/global/config/DataLoader.java`
+- `src/main/java/com/kinderp/KinderpApplication.java`
+- `src/main/java/com/kinderp/global/config/DataLoader.java`
 
 ### 3-2. DB / 스키마 진화
 - `src/main/resources/db/migration/V1__init_schema.sql`
@@ -201,44 +201,44 @@
 - `src/main/resources/db/migration/V14__guard_pending_attendance_change_requests.sql`
 
 ### 3-3. 공통 백엔드 토대
-- `src/main/java/com/erp/global/common/*`
-- `src/main/java/com/erp/global/exception/*`
-- `src/main/java/com/erp/global/config/*`
-- `src/main/java/com/erp/global/logging/*`
-- `src/main/java/com/erp/global/monitoring/*`
+- `src/main/java/com/kinderp/global/common/*`
+- `src/main/java/com/kinderp/global/exception/*`
+- `src/main/java/com/kinderp/global/config/*`
+- `src/main/java/com/kinderp/global/logging/*`
+- `src/main/java/com/kinderp/global/monitoring/*`
 
 ### 3-4. 보안 / 인증 / 권한
-- `src/main/java/com/erp/global/config/SecurityConfig.java`
-- `src/main/java/com/erp/global/security/jwt/*`
-- `src/main/java/com/erp/global/security/oauth2/*`
-- `src/main/java/com/erp/global/security/access/AccessPolicyService.java`
-- `src/main/java/com/erp/global/security/ClientIpResolver.java`
-- `src/main/java/com/erp/global/security/AuthenticatedMemberResolver.java`
-- `src/main/java/com/erp/domain/auth/*`
-- `src/main/java/com/erp/domain/member/entity/MemberSocialAccount.java`
+- `src/main/java/com/kinderp/global/config/SecurityConfig.java`
+- `src/main/java/com/kinderp/global/security/jwt/*`
+- `src/main/java/com/kinderp/global/security/oauth2/*`
+- `src/main/java/com/kinderp/global/security/access/AccessPolicyService.java`
+- `src/main/java/com/kinderp/global/security/ClientIpResolver.java`
+- `src/main/java/com/kinderp/global/security/AuthenticatedMemberResolver.java`
+- `src/main/java/com/kinderp/domain/auth/*`
+- `src/main/java/com/kinderp/domain/member/entity/MemberSocialAccount.java`
 
 ### 3-5. 핵심 도메인
-- `src/main/java/com/erp/domain/member/*`
-- `src/main/java/com/erp/domain/kindergarten/*`
-- `src/main/java/com/erp/domain/classroom/*`
-- `src/main/java/com/erp/domain/kid/*`
-- `src/main/java/com/erp/domain/attendance/*`
-- `src/main/java/com/erp/domain/notepad/*`
-- `src/main/java/com/erp/domain/announcement/*`
-- `src/main/java/com/erp/domain/kidapplication/*`
-- `src/main/java/com/erp/domain/kindergartenapplication/*`
-- `src/main/java/com/erp/domain/calendar/*`
-- `src/main/java/com/erp/domain/dashboard/*`
-- `src/main/java/com/erp/domain/notification/*`
-- `src/main/java/com/erp/domain/authaudit/*`
-- `src/main/java/com/erp/domain/domainaudit/*`
+- `src/main/java/com/kinderp/domain/member/*`
+- `src/main/java/com/kinderp/domain/kindergarten/*`
+- `src/main/java/com/kinderp/domain/classroom/*`
+- `src/main/java/com/kinderp/domain/kid/*`
+- `src/main/java/com/kinderp/domain/attendance/*`
+- `src/main/java/com/kinderp/domain/notepad/*`
+- `src/main/java/com/kinderp/domain/announcement/*`
+- `src/main/java/com/kinderp/domain/kidapplication/*`
+- `src/main/java/com/kinderp/domain/kindergartenapplication/*`
+- `src/main/java/com/kinderp/domain/calendar/*`
+- `src/main/java/com/kinderp/domain/dashboard/*`
+- `src/main/java/com/kinderp/domain/notification/*`
+- `src/main/java/com/kinderp/domain/authaudit/*`
+- `src/main/java/com/kinderp/domain/domainaudit/*`
 
 ### 3-6. 테스트 / CI / 운영 문서
-- `src/test/java/com/erp/common/TestcontainersSupport.java`
-- `src/test/java/com/erp/common/BaseIntegrationTest.java`
-- `src/test/java/com/erp/api/*`
-- `src/test/java/com/erp/integration/*`
-- `src/test/java/com/erp/performance/*`
+- `src/test/java/com/kinderp/common/TestcontainersSupport.java`
+- `src/test/java/com/kinderp/common/BaseIntegrationTest.java`
+- `src/test/java/com/kinderp/api/*`
+- `src/test/java/com/kinderp/integration/*`
+- `src/test/java/com/kinderp/performance/*`
 - `.github/workflows/ci.yml`
 - `docs/decisions/phase00_setup.md` ~ `docs/decisions/phase44_tagged_ci_readiness_and_hiring_pack.md`
 - `docs/portfolio/architecture/system-architecture.md`

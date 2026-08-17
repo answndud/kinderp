@@ -82,15 +82,15 @@ auth audit와 domain audit를 모두 보여 주더라도, 둘이 같은 질문�
 ## 3. 이번 글에서 다룰 파일
 
 ```text
-- src/main/java/com/erp/domain/authaudit/service/AuthAuditLogQueryService.java
-- src/main/java/com/erp/domain/authaudit/service/AuthAuditRetentionService.java
-- src/main/java/com/erp/domain/authaudit/repository/AuthAuditLogRepository.java
-- src/main/java/com/erp/domain/domainaudit/service/DomainAuditLogQueryService.java
-- src/main/java/com/erp/domain/domainaudit/repository/DomainAuditLogRepository.java
-- src/main/java/com/erp/domain/authaudit/controller/AuthAuditLogController.java
-- src/main/java/com/erp/domain/domainaudit/controller/DomainAuditLogController.java
-- src/test/java/com/erp/integration/AuthAuditRetentionIntegrationTest.java
-- src/test/java/com/erp/performance/AuditConsolePerformanceSmokeTest.java
+- src/main/java/com/kinderp/domain/authaudit/service/AuthAuditLogQueryService.java
+- src/main/java/com/kinderp/domain/authaudit/service/AuthAuditRetentionService.java
+- src/main/java/com/kinderp/domain/authaudit/repository/AuthAuditLogRepository.java
+- src/main/java/com/kinderp/domain/domainaudit/service/DomainAuditLogQueryService.java
+- src/main/java/com/kinderp/domain/domainaudit/repository/DomainAuditLogRepository.java
+- src/main/java/com/kinderp/domain/authaudit/controller/AuthAuditLogController.java
+- src/main/java/com/kinderp/domain/domainaudit/controller/DomainAuditLogController.java
+- src/test/java/com/kinderp/integration/AuthAuditRetentionIntegrationTest.java
+- src/test/java/com/kinderp/performance/AuditConsolePerformanceSmokeTest.java
 - docs/COMPLETED.md#archive-003
 ```
 
@@ -120,7 +120,7 @@ flowchart TD
 
 ### 5-1. `AuthAuditLogRepository`: tenant 기준 검색으로 단순화
 
-[AuthAuditLogRepository.java](../src/main/java/com/erp/domain/authaudit/repository/AuthAuditLogRepository.java)의 핵심 메서드는 아래입니다.
+[AuthAuditLogRepository.java](../src/main/java/com/kinderp/domain/authaudit/repository/AuthAuditLogRepository.java)의 핵심 메서드는 아래입니다.
 
 - `searchByKindergartenId(...)`
 - `searchAllByKindergartenId(...)`
@@ -141,7 +141,7 @@ flowchart TD
 
 ### 5-2. `AuthAuditLogQueryService`: 목록과 export를 한 서비스에 모은다
 
-[AuthAuditLogQueryService.java](../src/main/java/com/erp/domain/authaudit/service/AuthAuditLogQueryService.java)의 핵심 메서드는 아래입니다.
+[AuthAuditLogQueryService.java](../src/main/java/com/kinderp/domain/authaudit/service/AuthAuditLogQueryService.java)의 핵심 메서드는 아래입니다.
 
 - `getAuditLogsForPrincipal(...)`
 - `exportAuditLogsCsvForPrincipal(...)`
@@ -159,7 +159,7 @@ repository 검색 메서드를 호출합니다.
 
 ### 5-3. `DomainAuditLogQueryService`: 업무 감사 로그도 같은 운영 패턴으로
 
-[DomainAuditLogQueryService.java](../src/main/java/com/erp/domain/domainaudit/service/DomainAuditLogQueryService.java)도 동일한 구조를 가집니다.
+[DomainAuditLogQueryService.java](../src/main/java/com/kinderp/domain/domainaudit/service/DomainAuditLogQueryService.java)도 동일한 구조를 가집니다.
 
 - `getAuditLogsForPrincipal(...)`
 - `exportAuditLogsCsvForPrincipal(...)`
@@ -169,7 +169,7 @@ repository 검색 메서드를 호출합니다.
 
 ### 5-4. `AuthAuditRetentionService`: 오래된 인증 로그를 archive로 이동
 
-[AuthAuditRetentionService.java](../src/main/java/com/erp/domain/authaudit/service/AuthAuditRetentionService.java)의 핵심 메서드는 아래입니다.
+[AuthAuditRetentionService.java](../src/main/java/com/kinderp/domain/authaudit/service/AuthAuditRetentionService.java)의 핵심 메서드는 아래입니다.
 
 - `runScheduledRetention()`
 - `executeRetention()`
@@ -191,7 +191,7 @@ repository 검색 메서드를 호출합니다.
 
 ### 5-5. `AuthAuditRetentionIntegrationTest`: 보관 정책도 테스트한다
 
-[AuthAuditRetentionIntegrationTest.java](../src/test/java/com/erp/integration/AuthAuditRetentionIntegrationTest.java)는 아래를 검증합니다.
+[AuthAuditRetentionIntegrationTest.java](../src/test/java/com/kinderp/integration/AuthAuditRetentionIntegrationTest.java)는 아래를 검증합니다.
 
 - 오래된 active row가 archive table로 이동하는가
 - 오래된 archive row가 purge되는가
@@ -201,7 +201,7 @@ repository 검색 메서드를 호출합니다.
 
 ### 5-6. `AuditConsolePerformanceSmokeTest`: 운영 화면도 query budget을 가진다
 
-[AuditConsolePerformanceSmokeTest.java](../src/test/java/com/erp/performance/AuditConsolePerformanceSmokeTest.java)는
+[AuditConsolePerformanceSmokeTest.java](../src/test/java/com/kinderp/performance/AuditConsolePerformanceSmokeTest.java)는
 아래 두 경로를 검증합니다.
 
 - auth audit list / export
@@ -239,9 +239,9 @@ sequenceDiagram
 
 대표 테스트는 아래입니다.
 
-- [AuthAuditRetentionIntegrationTest.java](../src/test/java/com/erp/integration/AuthAuditRetentionIntegrationTest.java)
+- [AuthAuditRetentionIntegrationTest.java](../src/test/java/com/kinderp/integration/AuthAuditRetentionIntegrationTest.java)
   - archive / purge
-- [AuditConsolePerformanceSmokeTest.java](../src/test/java/com/erp/performance/AuditConsolePerformanceSmokeTest.java)
+- [AuditConsolePerformanceSmokeTest.java](../src/test/java/com/kinderp/performance/AuditConsolePerformanceSmokeTest.java)
   - auth/domain audit list/export query budget
 
 즉 이 영역은 운영 문서를 넘어
@@ -301,19 +301,19 @@ sequenceDiagram
 
 ```text
 - auth audit 조회 / retention:
-  - src/main/java/com/erp/domain/authaudit/service/AuthAuditLogQueryService.java
-  - src/main/java/com/erp/domain/authaudit/service/AuthAuditRetentionService.java
-  - src/main/java/com/erp/domain/authaudit/controller/AuthAuditLogController.java
+  - src/main/java/com/kinderp/domain/authaudit/service/AuthAuditLogQueryService.java
+  - src/main/java/com/kinderp/domain/authaudit/service/AuthAuditRetentionService.java
+  - src/main/java/com/kinderp/domain/authaudit/controller/AuthAuditLogController.java
   - src/main/resources/db/migration/V11__denormalize_auth_audit_log_and_add_retention_archive.sql
 - domain audit 조회:
-  - src/main/java/com/erp/domain/domainaudit/service/DomainAuditLogQueryService.java
-  - src/main/java/com/erp/domain/domainaudit/controller/DomainAuditLogController.java
-  - src/main/java/com/erp/domain/domainaudit/controller/DomainAuditLogViewController.java
+  - src/main/java/com/kinderp/domain/domainaudit/service/DomainAuditLogQueryService.java
+  - src/main/java/com/kinderp/domain/domainaudit/controller/DomainAuditLogController.java
+  - src/main/java/com/kinderp/domain/domainaudit/controller/DomainAuditLogViewController.java
 - 검증:
-  - src/test/java/com/erp/api/AuthAuditApiIntegrationTest.java
-  - src/test/java/com/erp/api/DomainAuditApiIntegrationTest.java
-  - src/test/java/com/erp/integration/AuthAuditRetentionIntegrationTest.java
-  - src/test/java/com/erp/performance/AuditConsolePerformanceSmokeTest.java
+  - src/test/java/com/kinderp/api/AuthAuditApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/DomainAuditApiIntegrationTest.java
+  - src/test/java/com/kinderp/integration/AuthAuditRetentionIntegrationTest.java
+  - src/test/java/com/kinderp/performance/AuditConsolePerformanceSmokeTest.java
 - 결정 로그:
   - docs/COMPLETED.md#archive-003
 ```

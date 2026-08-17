@@ -55,17 +55,17 @@ KinderP에서는 이 확장을 아래 도메인으로 풀었습니다.
 ## 3. 이번 글에서 다룰 파일
 
 ```text
-- src/main/java/com/erp/domain/calendar/service/CalendarEventService.java
-- src/main/java/com/erp/domain/dashboard/service/DashboardService.java
-- src/main/java/com/erp/domain/kidapplication/service/KidApplicationService.java
-- src/main/java/com/erp/domain/kindergartenapplication/service/KindergartenApplicationService.java
+- src/main/java/com/kinderp/domain/calendar/service/CalendarEventService.java
+- src/main/java/com/kinderp/domain/dashboard/service/DashboardService.java
+- src/main/java/com/kinderp/domain/kidapplication/service/KidApplicationService.java
+- src/main/java/com/kinderp/domain/kindergartenapplication/service/KindergartenApplicationService.java
 - src/main/resources/db/migration/V2__add_application_workflow.sql
 - src/main/resources/db/migration/V4__create_calendar_events.sql
 - src/main/resources/db/migration/V5__add_performance_indexes_for_dashboard_and_notepad.sql
-- src/test/java/com/erp/api/CalendarApiIntegrationTest.java
-- src/test/java/com/erp/api/DashboardApiIntegrationTest.java
-- src/test/java/com/erp/api/KidApplicationApiIntegrationTest.java
-- src/test/java/com/erp/api/KindergartenApplicationApiIntegrationTest.java
+- src/test/java/com/kinderp/api/CalendarApiIntegrationTest.java
+- src/test/java/com/kinderp/api/DashboardApiIntegrationTest.java
+- src/test/java/com/kinderp/api/KidApplicationApiIntegrationTest.java
+- src/test/java/com/kinderp/api/KindergartenApplicationApiIntegrationTest.java
 - docs/COMPLETED.md#archive-001
 - docs/COMPLETED.md#archive-002
 ```
@@ -93,7 +93,7 @@ flowchart TD
 
 ### 5-1. `CalendarEventService`: 범위가 있는 일정 시스템
 
-[CalendarEventService.java](../src/main/java/com/erp/domain/calendar/service/CalendarEventService.java)의 핵심 메서드는 아래입니다.
+[CalendarEventService.java](../src/main/java/com/kinderp/domain/calendar/service/CalendarEventService.java)의 핵심 메서드는 아래입니다.
 
 - `createEvent(...)`
 - `getEvent(...)`
@@ -112,7 +112,7 @@ flowchart TD
 
 ### 5-2. `DashboardService`: 엔티티가 아니라 숫자를 만드는 서비스
 
-[DashboardService.java](../src/main/java/com/erp/domain/dashboard/service/DashboardService.java)의 핵심 메서드는 아래입니다.
+[DashboardService.java](../src/main/java/com/kinderp/domain/dashboard/service/DashboardService.java)의 핵심 메서드는 아래입니다.
 
 - `getDashboardStatistics(...)`
 - `evictDashboardStatisticsCache(...)`
@@ -128,7 +128,7 @@ flowchart TD
 
 ### 5-3. `KindergartenApplicationService`: 교사 지원 승인 흐름
 
-[KindergartenApplicationService.java](../src/main/java/com/erp/domain/kindergartenapplication/service/KindergartenApplicationService.java)의 핵심 메서드는 아래입니다.
+[KindergartenApplicationService.java](../src/main/java/com/kinderp/domain/kindergartenapplication/service/KindergartenApplicationService.java)의 핵심 메서드는 아래입니다.
 
 - `apply(...)`
 - `approve(...)`
@@ -148,7 +148,7 @@ flowchart TD
 
 ### 5-4. `KidApplicationService`: 학부모 입학 신청의 첫 상태 전이
 
-[KidApplicationService.java](../src/main/java/com/erp/domain/kidapplication/service/KidApplicationService.java)의 핵심 메서드는 아래입니다.
+[KidApplicationService.java](../src/main/java/com/kinderp/domain/kidapplication/service/KidApplicationService.java)의 핵심 메서드는 아래입니다.
 
 - `apply(...)`
 - `approve(...)`
@@ -252,27 +252,27 @@ sequenceDiagram
 
 ```text
 - 캘린더:
-  - src/main/java/com/erp/domain/calendar/entity/CalendarEvent.java
-  - src/main/java/com/erp/domain/calendar/controller/CalendarEventController.java
-  - src/main/java/com/erp/domain/calendar/service/CalendarEventService.java
+  - src/main/java/com/kinderp/domain/calendar/entity/CalendarEvent.java
+  - src/main/java/com/kinderp/domain/calendar/controller/CalendarEventController.java
+  - src/main/java/com/kinderp/domain/calendar/service/CalendarEventService.java
   - src/main/resources/db/migration/V4__create_calendar_events.sql
 - 대시보드:
-  - src/main/java/com/erp/domain/dashboard/service/DashboardService.java
+  - src/main/java/com/kinderp/domain/dashboard/service/DashboardService.java
   - src/main/resources/db/migration/V5__add_performance_indexes_for_dashboard_and_notepad.sql
 - 학부모 입학 신청:
-  - src/main/java/com/erp/domain/kidapplication/entity/KidApplication.java
-  - src/main/java/com/erp/domain/kidapplication/controller/KidApplicationController.java
-  - src/main/java/com/erp/domain/kidapplication/service/KidApplicationService.java
+  - src/main/java/com/kinderp/domain/kidapplication/entity/KidApplication.java
+  - src/main/java/com/kinderp/domain/kidapplication/controller/KidApplicationController.java
+  - src/main/java/com/kinderp/domain/kidapplication/service/KidApplicationService.java
   - src/main/resources/db/migration/V2__add_application_workflow.sql
 - 교사 지원:
-  - src/main/java/com/erp/domain/kindergartenapplication/entity/KindergartenApplication.java
-  - src/main/java/com/erp/domain/kindergartenapplication/controller/KindergartenApplicationController.java
-  - src/main/java/com/erp/domain/kindergartenapplication/service/KindergartenApplicationService.java
+  - src/main/java/com/kinderp/domain/kindergartenapplication/entity/KindergartenApplication.java
+  - src/main/java/com/kinderp/domain/kindergartenapplication/controller/KindergartenApplicationController.java
+  - src/main/java/com/kinderp/domain/kindergartenapplication/service/KindergartenApplicationService.java
 - 검증:
-  - src/test/java/com/erp/api/CalendarApiIntegrationTest.java
-  - src/test/java/com/erp/api/DashboardApiIntegrationTest.java
-  - src/test/java/com/erp/api/KidApplicationApiIntegrationTest.java
-  - src/test/java/com/erp/api/KindergartenApplicationApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/CalendarApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/DashboardApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/KidApplicationApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/KindergartenApplicationApiIntegrationTest.java
 - 결정 로그:
   - docs/COMPLETED.md#archive-001
   - docs/COMPLETED.md#archive-002

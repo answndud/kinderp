@@ -46,8 +46,8 @@ Redis, 인덱스, 캐시 같은 기술을 많이 써도 설득력이 떨어집�
 ## 3. 이번 글에서 다룰 파일
 
 ```text
-- src/test/java/com/erp/performance/NotepadPerformanceStoryTest.java
-- src/test/java/com/erp/performance/DashboardPerformanceStoryTest.java
+- src/test/java/com/kinderp/performance/NotepadPerformanceStoryTest.java
+- src/test/java/com/kinderp/performance/DashboardPerformanceStoryTest.java
 - docs/COMPLETED.md
 ```
 
@@ -74,7 +74,7 @@ flowchart TD
 
 ### 5-1. `NotepadPerformanceStoryTest`: N+1 제거를 숫자로 증명
 
-[NotepadPerformanceStoryTest.java](../src/test/java/com/erp/performance/NotepadPerformanceStoryTest.java)의 핵심 메서드는 아래입니다.
+[NotepadPerformanceStoryTest.java](../src/test/java/com/kinderp/performance/NotepadPerformanceStoryTest.java)의 핵심 메서드는 아래입니다.
 
 - `compareLegacyVsOptimizedReadCountFlow()`
 - `prepareNotepads(...)`
@@ -93,7 +93,7 @@ flowchart TD
 
 ### 5-2. `DashboardPerformanceStoryTest`: 집계 쿼리와 캐시 무효화를 함께 본다
 
-[DashboardPerformanceStoryTest.java](../src/test/java/com/erp/performance/DashboardPerformanceStoryTest.java)의 핵심 메서드는 아래입니다.
+[DashboardPerformanceStoryTest.java](../src/test/java/com/kinderp/performance/DashboardPerformanceStoryTest.java)의 핵심 메서드는 아래입니다.
 
 - `compareLegacyVsOptimizedDashboardStatistics()`
 - `dashboardCacheHit_ReducesQueries()`
@@ -189,9 +189,9 @@ sequenceDiagram
 
 대표 테스트는 아래입니다.
 
-- [NotepadPerformanceStoryTest.java](../src/test/java/com/erp/performance/NotepadPerformanceStoryTest.java)
+- [NotepadPerformanceStoryTest.java](../src/test/java/com/kinderp/performance/NotepadPerformanceStoryTest.java)
   - N+1 제거 증명
-- [DashboardPerformanceStoryTest.java](../src/test/java/com/erp/performance/DashboardPerformanceStoryTest.java)
+- [DashboardPerformanceStoryTest.java](../src/test/java/com/kinderp/performance/DashboardPerformanceStoryTest.java)
   - 집계 쿼리, 캐시, 무효화, 인덱스 효과 검증
 
 그리고 문서 쪽에서는
@@ -239,8 +239,8 @@ sequenceDiagram
 
 ```text
 - 성능 테스트:
-  - src/test/java/com/erp/performance/NotepadPerformanceStoryTest.java
-  - src/test/java/com/erp/performance/DashboardPerformanceStoryTest.java
+  - src/test/java/com/kinderp/performance/NotepadPerformanceStoryTest.java
+  - src/test/java/com/kinderp/performance/DashboardPerformanceStoryTest.java
 - 성능 문서:
   - docs/COMPLETED.md
 ```

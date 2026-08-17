@@ -63,7 +63,7 @@ KinderP는 마지막 단계에서 이 문제를
 
 ```text
 - src/main/resources/application-demo.yml
-- src/main/java/com/erp/global/config/DataLoader.java
+- src/main/java/com/kinderp/global/config/DataLoader.java
 - docs/COMPLETED.md
 - docs/COMPLETED.md#archive-003
 ```
@@ -107,7 +107,7 @@ flowchart TD
 
 ### 5-2. `DataLoader`: 데모를 위한 실제 데이터 준비
 
-[DataLoader.java](../src/main/java/com/erp/global/config/DataLoader.java)는
+[DataLoader.java](../src/main/java/com/kinderp/global/config/DataLoader.java)는
 `local` profile에서 시드 데이터를 넣습니다.
 
 `demo` profile은 `local` 그룹을 포함하므로, 실제 시연에서도 같은 시드 데이터를 그대로 사용합니다.
@@ -325,12 +325,12 @@ sequenceDiagram
 ```text
 - demo 실행 환경:
   - src/main/resources/application-demo.yml
-  - src/main/java/com/erp/global/config/DataLoader.java
+  - src/main/java/com/kinderp/global/config/DataLoader.java
 - 인터뷰 / 아키텍처 문서:
   - docs/COMPLETED.md
 - 관련 코드 근거:
-  - src/main/java/com/erp/global/config/OpenApiConfig.java
-  - src/main/java/com/erp/global/monitoring/CriticalDependenciesHealthIndicator.java
+  - src/main/java/com/kinderp/global/config/OpenApiConfig.java
+  - src/main/java/com/kinderp/global/monitoring/CriticalDependenciesHealthIndicator.java
 ```
 
 ## 12. 구현 체크리스트

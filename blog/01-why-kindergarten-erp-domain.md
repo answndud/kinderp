@@ -67,11 +67,11 @@ KinderP 프로젝트는 이 질문에 “유치원 운영”이라는 도메인�
 - docs/COMPLETED.md#archive-001
 - docs/guides/user-guide.md
 - BLOG_PLAN.md
-- src/main/java/com/erp/domain/member/entity/Member.java
-- src/main/java/com/erp/domain/kindergarten/entity/Kindergarten.java
-- src/main/java/com/erp/domain/classroom/entity/Classroom.java
-- src/main/java/com/erp/domain/kid/entity/Kid.java
-- src/main/java/com/erp/domain/member/entity/MemberRole.java
+- src/main/java/com/kinderp/domain/member/entity/Member.java
+- src/main/java/com/kinderp/domain/kindergarten/entity/Kindergarten.java
+- src/main/java/com/kinderp/domain/classroom/entity/Classroom.java
+- src/main/java/com/kinderp/domain/kid/entity/Kid.java
+- src/main/java/com/kinderp/domain/member/entity/MemberRole.java
 ```
 
 이번 글은 구현 세부보다, **왜 이 주제가 설계 연습과 취업 포트폴리오에 유리한가**를 설명하는 글입니다.

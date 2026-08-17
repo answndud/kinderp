@@ -83,7 +83,7 @@
 
 | 문제 | 개선 | 검증 근거 |
 |------|------|----------|
-| 모바일 네트워크 재전송으로 출결 요청 중복 | `Idempotency-Key`를 requester 단위로 저장하고, 다른 payload 재사용은 거부 | [출결 변경 요청 통합 테스트](./src/test/java/com/erp/api/AttendanceChangeRequestApiIntegrationTest.java) |
+| 모바일 네트워크 재전송으로 출결 요청 중복 | `Idempotency-Key`를 requester 단위로 저장하고, 다른 payload 재사용은 거부 | [출결 변경 요청 통합 테스트](./src/test/java/com/kinderp/api/AttendanceChangeRequestApiIntegrationTest.java) |
 | 신청 서비스의 책임 집중 | review, admission, notification, audit orchestration을 별도 service로 분리 | [신청 workflow 구조](./docs/guides/interview-guide.md#7-최근-강화-작업의-의도) |
 | 잘못된 입력이 generic 500으로 노출될 위험 | path/query/date 입력 오류를 400 `ApiResponse.error`로 정규화 | [입력·예외 하드닝 기록](./docs/guides/interview-guide.md#7-최근-강화-작업의-의도) |
 | Outbox 실패 건을 찾고 재처리하기 어려움 | timeline, 상태·채널·검색어 필터, dead-letter retry 운영면 추가 | [Outbox 운영 설계](./docs/architecture/portfolio-story.md#외부-전달은-outbox로-분리한다) |
@@ -179,7 +179,7 @@
 ```text
 erp/
 ├── src/
-│   ├── main/java/com/erp/
+│   ├── main/java/com/kinderp/
 │   │   ├── global/                  # config, security, exception, common
 │   │   └── domain/                  # auth, member, kid, attendance, notification...
 │   ├── main/resources/

@@ -11,7 +11,7 @@ Spring Boot 프로젝트를 처음 시작할 때 가장 흔한 실수는 두 가
 
 - `settings.gradle`
 - `build.gradle`
-- `src/main/java/com/erp/KinderpApplication.java`
+- `src/main/java/com/kinderp/KinderpApplication.java`
 
 그리고 더 중요한 질문도 같이 다룹니다.
 
@@ -66,7 +66,7 @@ Spring Boot 애플리케이션은 보통 `main()` 메서드 하나에서 시작�
 ```text
 - settings.gradle
 - build.gradle
-- src/main/java/com/erp/KinderpApplication.java
+- src/main/java/com/kinderp/KinderpApplication.java
 - .github/workflows/ci.yml
 - docs/COMPLETED.md#archive-002
 - docs/COMPLETED.md#archive-003
@@ -639,7 +639,7 @@ flowchart TD
 - 새 파일:
   - settings.gradle
   - build.gradle
-  - src/main/java/com/erp/KinderpApplication.java
+  - src/main/java/com/kinderp/KinderpApplication.java
 - 이후 확장 참고:
   - .github/workflows/ci.yml
 ```
@@ -648,7 +648,7 @@ flowchart TD
 
 1. `settings.gradle`에 루트 프로젝트 이름을 정의합니다.
 2. `build.gradle`에 Java / Spring Boot / dependency 관리 플러그인과 starter 의존성을 넣습니다.
-3. `src/main/java/com/erp/KinderpApplication.java`를 만들어 `main()` 진입점을 만듭니다.
+3. `src/main/java/com/kinderp/KinderpApplication.java`를 만들어 `main()` 진입점을 만듭니다.
 4. `./gradlew tasks`로 Gradle wrapper와 태스크 구성이 정상인지 확인합니다.
 5. `./gradlew bootRun --args='--spring.profiles.active=local'`로 최소 부팅이 되는지 확인합니다.
 
@@ -668,7 +668,7 @@ flowchart TD
 ## 14. 글 종료 체크포인트
 
 - 프로젝트 루트에 `settings.gradle`, `build.gradle`이 존재한다
-- `src/main/java/com/erp/KinderpApplication.java`가 존재한다
+- `src/main/java/com/kinderp/KinderpApplication.java`가 존재한다
 - Gradle wrapper로 애플리케이션이 기동된다
 - 아직 기능이 없어도 “부팅 가능한 Spring Boot 뼈대”가 완성돼 있다
 
@@ -676,7 +676,7 @@ flowchart TD
 
 - 증상: `KinderpApplication`이 실행되지 않음
   - 원인: 패키지 위치가 `com.kinderp` 루트가 아니어서 컴포넌트 스캔 기준이 꼬일 수 있습니다
-  - 확인할 것: `src/main/java/com/erp/KinderpApplication.java` 경로인지 확인
+  - 확인할 것: `src/main/java/com/kinderp/KinderpApplication.java` 경로인지 확인
 
 - 증상: `./gradlew bootRun --args='--spring.profiles.active=local'`에서 Java 버전 오류 발생
   - 원인: 로컬 Java가 17이 아니거나 Gradle 설정과 맞지 않을 수 있습니다

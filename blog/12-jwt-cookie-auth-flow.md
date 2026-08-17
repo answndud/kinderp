@@ -54,12 +54,12 @@ Spring Security는 단순 토큰 문자열이 아니라
 ## 3. 이번 글에서 다룰 파일
 
 ```text
-- src/main/java/com/erp/global/security/jwt/JwtTokenProvider.java
-- src/main/java/com/erp/global/security/jwt/JwtFilter.java
-- src/main/java/com/erp/global/security/jwt/JwtProperties.java
-- src/main/java/com/erp/domain/auth/service/AuthService.java
-- src/main/java/com/erp/domain/auth/controller/AuthApiController.java
-- src/test/java/com/erp/api/AuthApiIntegrationTest.java
+- src/main/java/com/kinderp/global/security/jwt/JwtTokenProvider.java
+- src/main/java/com/kinderp/global/security/jwt/JwtFilter.java
+- src/main/java/com/kinderp/global/security/jwt/JwtProperties.java
+- src/main/java/com/kinderp/domain/auth/service/AuthService.java
+- src/main/java/com/kinderp/domain/auth/controller/AuthApiController.java
+- src/test/java/com/kinderp/api/AuthApiIntegrationTest.java
 - docs/COMPLETED.md#archive-002
 ```
 
@@ -86,7 +86,7 @@ flowchart TD
 
 ### 5-1. `JwtTokenProvider`: 토큰 생성과 파싱을 전담한다
 
-[JwtTokenProvider.java](../src/main/java/com/erp/global/security/jwt/JwtTokenProvider.java)의 핵심 메서드는 아래입니다.
+[JwtTokenProvider.java](../src/main/java/com/kinderp/global/security/jwt/JwtTokenProvider.java)의 핵심 메서드는 아래입니다.
 
 - `createAccessToken(...)`
 - `createRefreshToken(...)`
@@ -115,7 +115,7 @@ flowchart TD
 
 ### 5-3. `AuthService.login()`: 로그인 성공 후 토큰을 발급한다
 
-[AuthService.java](../src/main/java/com/erp/domain/auth/service/AuthService.java)의 핵심 메서드는 아래입니다.
+[AuthService.java](../src/main/java/com/kinderp/domain/auth/service/AuthService.java)의 핵심 메서드는 아래입니다.
 
 - `login(...)`
 - `issueTokens(...)`
@@ -135,7 +135,7 @@ flowchart TD
 
 ### 5-4. `JwtFilter`: 요청마다 쿠키를 읽어 인증으로 복원한다
 
-[JwtFilter.java](../src/main/java/com/erp/global/security/jwt/JwtFilter.java)의 핵심 메서드는 아래입니다.
+[JwtFilter.java](../src/main/java/com/kinderp/global/security/jwt/JwtFilter.java)의 핵심 메서드는 아래입니다.
 
 - `doFilter(...)`
 - `resolveToken(...)`
@@ -228,16 +228,16 @@ sequenceDiagram
 
 ```text
 - 토큰 / 필터:
-  - src/main/java/com/erp/global/security/jwt/JwtTokenProvider.java
-  - src/main/java/com/erp/global/security/jwt/JwtFilter.java
+  - src/main/java/com/kinderp/global/security/jwt/JwtTokenProvider.java
+  - src/main/java/com/kinderp/global/security/jwt/JwtFilter.java
 - 인증 조율:
-  - src/main/java/com/erp/domain/auth/service/AuthService.java
-  - src/main/java/com/erp/domain/auth/controller/AuthApiController.java
-  - src/main/java/com/erp/global/config/SecurityConfig.java
-  - src/main/java/com/erp/global/config/StartupSafetyValidator.java
+  - src/main/java/com/kinderp/domain/auth/service/AuthService.java
+  - src/main/java/com/kinderp/domain/auth/controller/AuthApiController.java
+  - src/main/java/com/kinderp/global/config/SecurityConfig.java
+  - src/main/java/com/kinderp/global/config/StartupSafetyValidator.java
   - src/main/resources/application.yml
 - 검증 파일:
-  - src/test/java/com/erp/api/AuthApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/AuthApiIntegrationTest.java
   - docs/COMPLETED.md#archive-002
 ```
 

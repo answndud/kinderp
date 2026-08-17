@@ -65,15 +65,15 @@
 ## 3. 이번 글에서 다룰 파일
 
 ```text
-- src/main/java/com/erp/domain/notepad/entity/Notepad.java
-- src/main/java/com/erp/domain/notepad/service/NotepadService.java
-- src/main/java/com/erp/domain/announcement/entity/Announcement.java
-- src/main/java/com/erp/domain/announcement/service/AnnouncementService.java
-- src/main/java/com/erp/domain/notification/entity/Notification.java
-- src/main/java/com/erp/domain/notification/service/NotificationService.java
-- src/test/java/com/erp/api/NotepadApiIntegrationTest.java
-- src/test/java/com/erp/api/AnnouncementApiIntegrationTest.java
-- src/test/java/com/erp/api/NotificationApiIntegrationTest.java
+- src/main/java/com/kinderp/domain/notepad/entity/Notepad.java
+- src/main/java/com/kinderp/domain/notepad/service/NotepadService.java
+- src/main/java/com/kinderp/domain/announcement/entity/Announcement.java
+- src/main/java/com/kinderp/domain/announcement/service/AnnouncementService.java
+- src/main/java/com/kinderp/domain/notification/entity/Notification.java
+- src/main/java/com/kinderp/domain/notification/service/NotificationService.java
+- src/test/java/com/kinderp/api/NotepadApiIntegrationTest.java
+- src/test/java/com/kinderp/api/AnnouncementApiIntegrationTest.java
+- src/test/java/com/kinderp/api/NotificationApiIntegrationTest.java
 - docs/COMPLETED.md#archive-001
 ```
 
@@ -101,7 +101,7 @@ flowchart TD
 
 ### 5-1. `Notepad`: 전체/반/원생 범위를 가진 알림장
 
-[Notepad.java](../src/main/java/com/erp/domain/notepad/entity/Notepad.java)의 핵심은 범위 분기입니다.
+[Notepad.java](../src/main/java/com/kinderp/domain/notepad/entity/Notepad.java)의 핵심은 범위 분기입니다.
 
 생성 메서드는 아래 세 개입니다.
 
@@ -119,7 +119,7 @@ flowchart TD
 
 ### 5-2. `NotepadService`: 생성과 알림 fan-out을 같이 다룬다
 
-[NotepadService.java](../src/main/java/com/erp/domain/notepad/service/NotepadService.java)의 핵심 메서드는 아래입니다.
+[NotepadService.java](../src/main/java/com/kinderp/domain/notepad/service/NotepadService.java)의 핵심 메서드는 아래입니다.
 
 - `createClassroomNotepad(...)`
 - `createGlobalNotepad(...)`
@@ -138,7 +138,7 @@ flowchart TD
 
 ### 5-3. `Announcement`: 유치원 전체 공지와 중요 공지
 
-[Announcement.java](../src/main/java/com/erp/domain/announcement/entity/Announcement.java)의 핵심 생성 메서드는 아래입니다.
+[Announcement.java](../src/main/java/com/kinderp/domain/announcement/entity/Announcement.java)의 핵심 생성 메서드는 아래입니다.
 
 - `create(...)`
 - `createImportant(...)`
@@ -161,7 +161,7 @@ flowchart TD
 
 ### 5-4. `AnnouncementService`: 공지 작성이 대시보드와 감사 로그까지 연결된다
 
-[AnnouncementService.java](../src/main/java/com/erp/domain/announcement/service/AnnouncementService.java)의 핵심 메서드는 아래입니다.
+[AnnouncementService.java](../src/main/java/com/kinderp/domain/announcement/service/AnnouncementService.java)의 핵심 메서드는 아래입니다.
 
 - `createAnnouncement(...)`
 - `getAnnouncement(...)`
@@ -184,7 +184,7 @@ flowchart TD
 
 ### 5-5. `Notification`: 수신자 중심의 이벤트 박스
 
-[Notification.java](../src/main/java/com/erp/domain/notification/entity/Notification.java)의 핵심 생성 메서드는 아래입니다.
+[Notification.java](../src/main/java/com/kinderp/domain/notification/entity/Notification.java)의 핵심 생성 메서드는 아래입니다.
 
 - `create(...)`
 - `createWithRelatedEntity(...)`
@@ -200,7 +200,7 @@ flowchart TD
 
 ### 5-6. `NotificationService`: 내부 이벤트를 사용자 알림으로 바꾸는 계층
 
-[NotificationService.java](../src/main/java/com/erp/domain/notification/service/NotificationService.java)의 핵심 메서드는 아래입니다.
+[NotificationService.java](../src/main/java/com/kinderp/domain/notification/service/NotificationService.java)의 핵심 메서드는 아래입니다.
 
 - `notify(...)`
 - `notifyWithLink(...)`
@@ -303,21 +303,21 @@ sequenceDiagram
 
 ```text
 - 알림장:
-  - src/main/java/com/erp/domain/notepad/entity/Notepad.java
-  - src/main/java/com/erp/domain/notepad/controller/NotepadController.java
-  - src/main/java/com/erp/domain/notepad/service/NotepadService.java
+  - src/main/java/com/kinderp/domain/notepad/entity/Notepad.java
+  - src/main/java/com/kinderp/domain/notepad/controller/NotepadController.java
+  - src/main/java/com/kinderp/domain/notepad/service/NotepadService.java
 - 공지:
-  - src/main/java/com/erp/domain/announcement/entity/Announcement.java
-  - src/main/java/com/erp/domain/announcement/controller/AnnouncementController.java
-  - src/main/java/com/erp/domain/announcement/service/AnnouncementService.java
+  - src/main/java/com/kinderp/domain/announcement/entity/Announcement.java
+  - src/main/java/com/kinderp/domain/announcement/controller/AnnouncementController.java
+  - src/main/java/com/kinderp/domain/announcement/service/AnnouncementService.java
 - 알림:
-  - src/main/java/com/erp/domain/notification/entity/Notification.java
-  - src/main/java/com/erp/domain/notification/controller/NotificationController.java
-  - src/main/java/com/erp/domain/notification/service/NotificationService.java
+  - src/main/java/com/kinderp/domain/notification/entity/Notification.java
+  - src/main/java/com/kinderp/domain/notification/controller/NotificationController.java
+  - src/main/java/com/kinderp/domain/notification/service/NotificationService.java
 - 검증:
-  - src/test/java/com/erp/api/NotepadApiIntegrationTest.java
-  - src/test/java/com/erp/api/AnnouncementApiIntegrationTest.java
-  - src/test/java/com/erp/api/NotificationApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/NotepadApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/AnnouncementApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/NotificationApiIntegrationTest.java
 - 결정 로그:
   - docs/COMPLETED.md#archive-001
 ```

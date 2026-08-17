@@ -18,10 +18,10 @@ KinderP는 초반부터 이 문제를 피하려고 구조를 두 갈래로 나�
 
 그리고 그 위에 아래 공통 규약을 먼저 세웠습니다.
 
-- [ApiResponse.java](../src/main/java/com/erp/global/common/ApiResponse.java)
-- [ErrorCode.java](../src/main/java/com/erp/global/exception/ErrorCode.java)
-- [GlobalExceptionHandler.java](../src/main/java/com/erp/global/exception/GlobalExceptionHandler.java)
-- [BaseEntity.java](../src/main/java/com/erp/global/common/BaseEntity.java)
+- [ApiResponse.java](../src/main/java/com/kinderp/global/common/ApiResponse.java)
+- [ErrorCode.java](../src/main/java/com/kinderp/global/exception/ErrorCode.java)
+- [GlobalExceptionHandler.java](../src/main/java/com/kinderp/global/exception/GlobalExceptionHandler.java)
+- [BaseEntity.java](../src/main/java/com/kinderp/global/common/BaseEntity.java)
 
 이번 글의 목표는 “패키지를 이렇게 나눴다”가 아니라
 **왜 이 구조가 프로젝트가 커질수록 더 중요해지는가**를 설명하는 것입니다.
@@ -69,16 +69,16 @@ KinderP는 초반부터 이 문제를 피하려고 구조를 두 갈래로 나�
 ## 3. 이번 글에서 다룰 파일
 
 ```text
-- src/main/java/com/erp/global/common/ApiResponse.java
-- src/main/java/com/erp/global/common/BaseEntity.java
-- src/main/java/com/erp/global/exception/BusinessException.java
-- src/main/java/com/erp/global/exception/ErrorCode.java
-- src/main/java/com/erp/global/exception/GlobalExceptionHandler.java
-- src/main/java/com/erp/global/config/*
-- src/main/java/com/erp/global/security/*
-- src/main/java/com/erp/domain/member/*
-- src/main/java/com/erp/domain/attendance/*
-- src/main/java/com/erp/domain/notepad/*
+- src/main/java/com/kinderp/global/common/ApiResponse.java
+- src/main/java/com/kinderp/global/common/BaseEntity.java
+- src/main/java/com/kinderp/global/exception/BusinessException.java
+- src/main/java/com/kinderp/global/exception/ErrorCode.java
+- src/main/java/com/kinderp/global/exception/GlobalExceptionHandler.java
+- src/main/java/com/kinderp/global/config/*
+- src/main/java/com/kinderp/global/security/*
+- src/main/java/com/kinderp/domain/member/*
+- src/main/java/com/kinderp/domain/attendance/*
+- src/main/java/com/kinderp/domain/notepad/*
 - docs/COMPLETED.md#archive-001
 ```
 
@@ -119,7 +119,7 @@ flowchart TD
 
 ### 5-1. `ApiResponse<T>`: 모든 API 응답을 같은 언어로 말하게 만들기
 
-[ApiResponse.java](../src/main/java/com/erp/global/common/ApiResponse.java)의 역할은 아주 분명합니다.
+[ApiResponse.java](../src/main/java/com/kinderp/global/common/ApiResponse.java)의 역할은 아주 분명합니다.
 
 - 성공 여부
 - 데이터
@@ -141,7 +141,7 @@ flowchart TD
 
 ### 5-2. `ErrorCode`: 문자열이 아니라 규격화된 에러 체계
 
-[ErrorCode.java](../src/main/java/com/erp/global/exception/ErrorCode.java)는
+[ErrorCode.java](../src/main/java/com/kinderp/global/exception/ErrorCode.java)는
 
 - HTTP status
 - 비즈니스 code
@@ -163,7 +163,7 @@ flowchart TD
 
 ### 5-3. `GlobalExceptionHandler`: 컨트롤러마다 try-catch를 반복하지 않기
 
-[GlobalExceptionHandler.java](../src/main/java/com/erp/global/exception/GlobalExceptionHandler.java)는
+[GlobalExceptionHandler.java](../src/main/java/com/kinderp/global/exception/GlobalExceptionHandler.java)는
 
 - `handleBusinessException(...)`
 - `handleValidationException(...)`
@@ -184,14 +184,14 @@ flowchart TD
 
 ### 5-4. `BaseEntity`: 공통 필드는 모든 엔티티의 부모로 올린다
 
-[BaseEntity.java](../src/main/java/com/erp/global/common/BaseEntity.java)는
+[BaseEntity.java](../src/main/java/com/kinderp/global/common/BaseEntity.java)는
 
 - `createdAt`
 - `updatedAt`
 
 을 모든 주요 엔티티의 공통 부모로 제공합니다.
 
-여기에 [JpaConfig.java](../src/main/java/com/erp/global/config/JpaConfig.java)의 `@EnableJpaAuditing`이 연결됩니다.
+여기에 [JpaConfig.java](../src/main/java/com/kinderp/global/config/JpaConfig.java)의 `@EnableJpaAuditing`이 연결됩니다.
 
 즉, 엔티티마다 생성/수정 시각을 중복 작성하지 않아도 됩니다.
 
@@ -296,21 +296,21 @@ sequenceDiagram
 
 ```text
 - 공통 응답 / 엔티티:
-  - src/main/java/com/erp/global/common/ApiResponse.java
-  - src/main/java/com/erp/global/common/BaseEntity.java
+  - src/main/java/com/kinderp/global/common/ApiResponse.java
+  - src/main/java/com/kinderp/global/common/BaseEntity.java
 - 공통 예외:
-  - src/main/java/com/erp/global/exception/BusinessException.java
-  - src/main/java/com/erp/global/exception/ErrorCode.java
-  - src/main/java/com/erp/global/exception/GlobalExceptionHandler.java
+  - src/main/java/com/kinderp/global/exception/BusinessException.java
+  - src/main/java/com/kinderp/global/exception/ErrorCode.java
+  - src/main/java/com/kinderp/global/exception/GlobalExceptionHandler.java
 - 대표 도메인 구조 예시:
-  - src/main/java/com/erp/domain/member/controller/MemberApiController.java
-  - src/main/java/com/erp/domain/member/service/MemberService.java
-  - src/main/java/com/erp/domain/member/repository/MemberRepository.java
+  - src/main/java/com/kinderp/domain/member/controller/MemberApiController.java
+  - src/main/java/com/kinderp/domain/member/service/MemberService.java
+  - src/main/java/com/kinderp/domain/member/repository/MemberRepository.java
 - 결정 로그:
   - docs/COMPLETED.md#archive-001
 - 검증:
-  - src/test/java/com/erp/KinderpApplicationTests.java
-  - src/test/java/com/erp/api/MemberApiIntegrationTest.java
+  - src/test/java/com/kinderp/KinderpApplicationTests.java
+  - src/test/java/com/kinderp/api/MemberApiIntegrationTest.java
 ```
 
 ## 12. 구현 체크리스트

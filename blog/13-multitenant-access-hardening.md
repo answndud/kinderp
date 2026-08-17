@@ -43,17 +43,17 @@
 ## 3. 이번 글에서 다룰 파일
 
 ```text
-- src/main/java/com/erp/global/security/access/AccessPolicyService.java
-- src/main/java/com/erp/domain/kid/service/KidService.java
-- src/main/java/com/erp/domain/attendance/service/AttendanceService.java
-- src/main/java/com/erp/domain/notepad/service/NotepadService.java
-- src/main/java/com/erp/domain/announcement/service/AnnouncementService.java
-- src/main/java/com/erp/domain/notification/service/NotificationService.java
-- src/test/java/com/erp/api/KidApiIntegrationTest.java
-- src/test/java/com/erp/api/AttendanceApiIntegrationTest.java
-- src/test/java/com/erp/api/NotepadApiIntegrationTest.java
-- src/test/java/com/erp/api/AnnouncementApiIntegrationTest.java
-- src/test/java/com/erp/api/NotificationApiIntegrationTest.java
+- src/main/java/com/kinderp/global/security/access/AccessPolicyService.java
+- src/main/java/com/kinderp/domain/kid/service/KidService.java
+- src/main/java/com/kinderp/domain/attendance/service/AttendanceService.java
+- src/main/java/com/kinderp/domain/notepad/service/NotepadService.java
+- src/main/java/com/kinderp/domain/announcement/service/AnnouncementService.java
+- src/main/java/com/kinderp/domain/notification/service/NotificationService.java
+- src/test/java/com/kinderp/api/KidApiIntegrationTest.java
+- src/test/java/com/kinderp/api/AttendanceApiIntegrationTest.java
+- src/test/java/com/kinderp/api/NotepadApiIntegrationTest.java
+- src/test/java/com/kinderp/api/AnnouncementApiIntegrationTest.java
+- src/test/java/com/kinderp/api/NotificationApiIntegrationTest.java
 - docs/COMPLETED.md#archive-002
 ```
 
@@ -79,7 +79,7 @@ flowchart TD
 
 ### 5-1. `AccessPolicyService`: 인가 정책을 한 곳으로 모은다
 
-[AccessPolicyService.java](../src/main/java/com/erp/global/security/access/AccessPolicyService.java)의 핵심 메서드는 아래입니다.
+[AccessPolicyService.java](../src/main/java/com/kinderp/global/security/access/AccessPolicyService.java)의 핵심 메서드는 아래입니다.
 
 - `getRequester(...)`
 - `validateSameKindergarten(...)`
@@ -200,19 +200,19 @@ sequenceDiagram
 
 ```text
 - 공통 인가 정책:
-  - src/main/java/com/erp/global/security/access/AccessPolicyService.java
+  - src/main/java/com/kinderp/global/security/access/AccessPolicyService.java
 - 정책을 사용하는 서비스:
-  - src/main/java/com/erp/domain/kid/service/KidService.java
-  - src/main/java/com/erp/domain/attendance/service/AttendanceService.java
-  - src/main/java/com/erp/domain/notepad/service/NotepadService.java
-  - src/main/java/com/erp/domain/announcement/service/AnnouncementService.java
-  - src/main/java/com/erp/domain/notification/service/NotificationService.java
+  - src/main/java/com/kinderp/domain/kid/service/KidService.java
+  - src/main/java/com/kinderp/domain/attendance/service/AttendanceService.java
+  - src/main/java/com/kinderp/domain/notepad/service/NotepadService.java
+  - src/main/java/com/kinderp/domain/announcement/service/AnnouncementService.java
+  - src/main/java/com/kinderp/domain/notification/service/NotificationService.java
 - 검증 파일:
-  - src/test/java/com/erp/api/KidApiIntegrationTest.java
-  - src/test/java/com/erp/api/AttendanceApiIntegrationTest.java
-  - src/test/java/com/erp/api/NotepadApiIntegrationTest.java
-  - src/test/java/com/erp/api/AnnouncementApiIntegrationTest.java
-  - src/test/java/com/erp/api/NotificationApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/KidApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/AttendanceApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/NotepadApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/AnnouncementApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/NotificationApiIntegrationTest.java
 ```
 
 ## 12. 구현 체크리스트

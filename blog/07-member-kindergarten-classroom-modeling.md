@@ -62,15 +62,15 @@
 ## 3. 이번 글에서 다룰 파일
 
 ```text
-- src/main/java/com/erp/domain/member/entity/Member.java
-- src/main/java/com/erp/domain/member/entity/MemberRole.java
-- src/main/java/com/erp/domain/member/entity/MemberStatus.java
-- src/main/java/com/erp/domain/kindergarten/entity/Kindergarten.java
-- src/main/java/com/erp/domain/classroom/entity/Classroom.java
-- src/main/java/com/erp/domain/member/service/MemberService.java
-- src/main/java/com/erp/domain/classroom/service/ClassroomService.java
-- src/test/java/com/erp/api/ClassroomApiIntegrationTest.java
-- src/test/java/com/erp/api/MemberApiIntegrationTest.java
+- src/main/java/com/kinderp/domain/member/entity/Member.java
+- src/main/java/com/kinderp/domain/member/entity/MemberRole.java
+- src/main/java/com/kinderp/domain/member/entity/MemberStatus.java
+- src/main/java/com/kinderp/domain/kindergarten/entity/Kindergarten.java
+- src/main/java/com/kinderp/domain/classroom/entity/Classroom.java
+- src/main/java/com/kinderp/domain/member/service/MemberService.java
+- src/main/java/com/kinderp/domain/classroom/service/ClassroomService.java
+- src/test/java/com/kinderp/api/ClassroomApiIntegrationTest.java
+- src/test/java/com/kinderp/api/MemberApiIntegrationTest.java
 - docs/COMPLETED.md#archive-001
 - docs/COMPLETED.md#archive-003
 ```
@@ -98,7 +98,7 @@ flowchart TD
 
 ### 5-1. `Member`: 이 프로젝트의 모든 사용자 시작점
 
-[Member.java](../src/main/java/com/erp/domain/member/entity/Member.java)의 핵심 필드는 아래입니다.
+[Member.java](../src/main/java/com/kinderp/domain/member/entity/Member.java)의 핵심 필드는 아래입니다.
 
 - `email`
 - `password`
@@ -129,7 +129,7 @@ flowchart TD
 
 ### 5-2. `Kindergarten`: 소속과 경계를 만드는 엔티티
 
-[Kindergarten.java](../src/main/java/com/erp/domain/kindergarten/entity/Kindergarten.java)는
+[Kindergarten.java](../src/main/java/com/kinderp/domain/kindergarten/entity/Kindergarten.java)는
 
 - `name`
 - `address`
@@ -152,7 +152,7 @@ flowchart TD
 
 ### 5-3. `Classroom`: 유치원과 교사를 묶는 단위
 
-[Classroom.java](../src/main/java/com/erp/domain/classroom/entity/Classroom.java)의 핵심 필드는 아래입니다.
+[Classroom.java](../src/main/java/com/kinderp/domain/classroom/entity/Classroom.java)의 핵심 필드는 아래입니다.
 
 - `kindergarten`
 - `name`
@@ -274,21 +274,21 @@ sequenceDiagram
 
 ```text
 - 회원:
-  - src/main/java/com/erp/domain/member/entity/Member.java
-  - src/main/java/com/erp/domain/member/entity/MemberRole.java
-  - src/main/java/com/erp/domain/member/entity/MemberStatus.java
-  - src/main/java/com/erp/domain/member/controller/MemberApiController.java
+  - src/main/java/com/kinderp/domain/member/entity/Member.java
+  - src/main/java/com/kinderp/domain/member/entity/MemberRole.java
+  - src/main/java/com/kinderp/domain/member/entity/MemberStatus.java
+  - src/main/java/com/kinderp/domain/member/controller/MemberApiController.java
 - 유치원 / 반:
-  - src/main/java/com/erp/domain/kindergarten/entity/Kindergarten.java
-  - src/main/java/com/erp/domain/kindergarten/controller/KindergartenController.java
-  - src/main/java/com/erp/domain/classroom/entity/Classroom.java
-  - src/main/java/com/erp/domain/classroom/controller/ClassroomController.java
+  - src/main/java/com/kinderp/domain/kindergarten/entity/Kindergarten.java
+  - src/main/java/com/kinderp/domain/kindergarten/controller/KindergartenController.java
+  - src/main/java/com/kinderp/domain/classroom/entity/Classroom.java
+  - src/main/java/com/kinderp/domain/classroom/controller/ClassroomController.java
 - 스키마:
   - src/main/resources/db/migration/V1__init_schema.sql
 - 검증:
-  - src/test/java/com/erp/api/MemberApiIntegrationTest.java
-  - src/test/java/com/erp/api/KindergartenApiIntegrationTest.java
-  - src/test/java/com/erp/api/ClassroomApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/MemberApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/KindergartenApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/ClassroomApiIntegrationTest.java
 - 결정 로그:
   - docs/COMPLETED.md#archive-001
   - docs/COMPLETED.md#archive-003

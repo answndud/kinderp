@@ -56,9 +56,9 @@ CI 실패 시에도 test report를 artifact로 올려 두면
 ```text
 - build.gradle
 - .github/workflows/ci.yml
-- src/test/java/com/erp/KinderpApplicationTests.java
-- src/test/java/com/erp/api/AuthApiIntegrationTest.java
-- src/test/java/com/erp/performance/AuditConsolePerformanceSmokeTest.java
+- src/test/java/com/kinderp/KinderpApplicationTests.java
+- src/test/java/com/kinderp/api/AuthApiIntegrationTest.java
+- src/test/java/com/kinderp/performance/AuditConsolePerformanceSmokeTest.java
 - docs/COMPLETED.md#archive-002
 - docs/COMPLETED.md#archive-003
 - docs/COMPLETED.md#archive-005
@@ -219,9 +219,9 @@ CI 자체는 GitHub Actions run에서 검증되고, 로컬에서도 아래처럼
 ```text
 - 테스트 task / 태그:
   - build.gradle
-  - src/test/java/com/erp/global/security/oauth2/OAuth2AuthenticationSuccessHandlerTest.java
-  - src/test/java/com/erp/api/AuthApiIntegrationTest.java
-  - src/test/java/com/erp/performance/AuditConsolePerformanceSmokeTest.java
+  - src/test/java/com/kinderp/global/security/oauth2/OAuth2AuthenticationSuccessHandlerTest.java
+  - src/test/java/com/kinderp/api/AuthApiIntegrationTest.java
+  - src/test/java/com/kinderp/performance/AuditConsolePerformanceSmokeTest.java
 - CI:
   - .github/workflows/ci.yml
 - 결정 로그:

@@ -75,13 +75,13 @@ JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home ./gradl
 
 ## 백엔드
 
-- `src/main/java/com/erp/domain/*`
+- `src/main/java/com/kinderp/domain/*`
   - `controller`: API/뷰 진입점
   - `service`: 비즈니스 로직, 트랜잭션 경계
   - `repository`: 데이터 접근
   - `entity`: JPA 엔티티
   - `dto`: 요청/응답 객체
-- `src/main/java/com/erp/global/*`
+- `src/main/java/com/kinderp/global/*`
   - `config`: JPA, QueryDSL, Security, MVC Interceptor, Cache
   - `security`: JWT 필터/프로바이더/UserDetails
   - `exception`: `ErrorCode`, `BusinessException`, `GlobalExceptionHandler`
@@ -224,9 +224,9 @@ npm run e2e:smoke
 
 참고 테스트 클래스:
 
-- `src/test/java/com/erp/api/*IntegrationTest.java`
-- `src/test/java/com/erp/integration/PageAccessIntegrationTest.java`
-- `src/test/java/com/erp/performance/*PerformanceStoryTest.java`
+- `src/test/java/com/kinderp/api/*IntegrationTest.java`
+- `src/test/java/com/kinderp/integration/PageAccessIntegrationTest.java`
+- `src/test/java/com/kinderp/performance/*PerformanceStoryTest.java`
 
 ---
 

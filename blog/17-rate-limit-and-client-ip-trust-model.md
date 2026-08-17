@@ -54,12 +54,12 @@
 ## 3. 이번 글에서 다룰 파일
 
 ```text
-- src/main/java/com/erp/domain/auth/service/AuthRateLimitService.java
-- src/main/java/com/erp/global/security/ClientIpResolver.java
-- src/main/java/com/erp/global/security/ClientIpProperties.java
-- src/main/java/com/erp/domain/auth/controller/AuthApiController.java
-- src/main/java/com/erp/domain/auth/service/AuthService.java
-- src/test/java/com/erp/api/AuthApiIntegrationTest.java
+- src/main/java/com/kinderp/domain/auth/service/AuthRateLimitService.java
+- src/main/java/com/kinderp/global/security/ClientIpResolver.java
+- src/main/java/com/kinderp/global/security/ClientIpProperties.java
+- src/main/java/com/kinderp/domain/auth/controller/AuthApiController.java
+- src/main/java/com/kinderp/domain/auth/service/AuthService.java
+- src/test/java/com/kinderp/api/AuthApiIntegrationTest.java
 - docs/COMPLETED.md#archive-002
 ```
 
@@ -86,7 +86,7 @@ flowchart TD
 
 ### 5-1. `AuthRateLimitService`: 단순하지만 설명 가능한 제한
 
-[AuthRateLimitService.java](../src/main/java/com/erp/domain/auth/service/AuthRateLimitService.java)의 핵심 메서드는 아래입니다.
+[AuthRateLimitService.java](../src/main/java/com/kinderp/domain/auth/service/AuthRateLimitService.java)의 핵심 메서드는 아래입니다.
 
 - `validateLoginAllowed(...)`
 - `recordLoginFailure(...)`
@@ -116,7 +116,7 @@ refresh 정책은 아래입니다.
 
 ### 5-3. `ClientIpResolver`: 헤더 스푸핑을 그대로 믿지 않는다
 
-[ClientIpResolver.java](../src/main/java/com/erp/global/security/ClientIpResolver.java)의 핵심 메서드는 아래입니다.
+[ClientIpResolver.java](../src/main/java/com/kinderp/global/security/ClientIpResolver.java)의 핵심 메서드는 아래입니다.
 
 - `resolve(...)`
 - `isTrustedProxy(...)`
@@ -133,10 +133,10 @@ refresh 정책은 아래입니다.
 
 ### 5-4. `AuthApiController`와 `AuthService` 연결
 
-[AuthApiController.java](../src/main/java/com/erp/domain/auth/controller/AuthApiController.java)는
+[AuthApiController.java](../src/main/java/com/kinderp/domain/auth/controller/AuthApiController.java)는
 로그인/refresh 진입 전에 `clientIpResolver.resolve(request)`를 통해 client IP를 확보합니다.
 
-[AuthService.java](../src/main/java/com/erp/domain/auth/service/AuthService.java)는 이 값을 받아
+[AuthService.java](../src/main/java/com/kinderp/domain/auth/service/AuthService.java)는 이 값을 받아
 
 - rate limit
 - audit log
@@ -221,16 +221,16 @@ sequenceDiagram
 
 ```text
 - rate limit:
-  - src/main/java/com/erp/domain/auth/service/AuthRateLimitService.java
-  - src/main/java/com/erp/domain/auth/service/AuthService.java
+  - src/main/java/com/kinderp/domain/auth/service/AuthRateLimitService.java
+  - src/main/java/com/kinderp/domain/auth/service/AuthService.java
 - client IP trust model:
-  - src/main/java/com/erp/global/security/ClientIpResolver.java
-  - src/main/java/com/erp/global/security/ClientIpProperties.java
+  - src/main/java/com/kinderp/global/security/ClientIpResolver.java
+  - src/main/java/com/kinderp/global/security/ClientIpProperties.java
   - src/main/resources/application.yml
 - API 연결:
-  - src/main/java/com/erp/domain/auth/controller/AuthApiController.java
+  - src/main/java/com/kinderp/domain/auth/controller/AuthApiController.java
 - 검증:
-  - src/test/java/com/erp/api/AuthApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/AuthApiIntegrationTest.java
 - 결정 로그:
   - docs/COMPLETED.md#archive-002
 ```

@@ -58,19 +58,19 @@ KinderP는 이 문제를
 ## 3. 이번 글에서 다룰 파일
 
 ```text
-- src/main/java/com/erp/domain/attendance/entity/AttendanceChangeRequest.java
-- src/main/java/com/erp/domain/attendance/service/AttendanceChangeRequestService.java
-- src/main/java/com/erp/domain/attendance/controller/AttendanceChangeRequestController.java
-- src/main/java/com/erp/domain/attendance/controller/AttendanceChangeRequestViewController.java
+- src/main/java/com/kinderp/domain/attendance/entity/AttendanceChangeRequest.java
+- src/main/java/com/kinderp/domain/attendance/service/AttendanceChangeRequestService.java
+- src/main/java/com/kinderp/domain/attendance/controller/AttendanceChangeRequestController.java
+- src/main/java/com/kinderp/domain/attendance/controller/AttendanceChangeRequestViewController.java
 - src/main/resources/templates/attendance/requests.html
-- src/main/java/com/erp/domain/domainaudit/entity/DomainAuditLog.java
-- src/main/java/com/erp/domain/domainaudit/service/DomainAuditLogService.java
-- src/main/java/com/erp/domain/domainaudit/service/DomainAuditLogQueryService.java
-- src/main/java/com/erp/domain/domainaudit/controller/DomainAuditLogController.java
-- src/main/java/com/erp/domain/domainaudit/controller/DomainAuditLogViewController.java
+- src/main/java/com/kinderp/domain/domainaudit/entity/DomainAuditLog.java
+- src/main/java/com/kinderp/domain/domainaudit/service/DomainAuditLogService.java
+- src/main/java/com/kinderp/domain/domainaudit/service/DomainAuditLogQueryService.java
+- src/main/java/com/kinderp/domain/domainaudit/controller/DomainAuditLogController.java
+- src/main/java/com/kinderp/domain/domainaudit/controller/DomainAuditLogViewController.java
 - src/main/resources/templates/domainaudit/audit-logs.html
-- src/test/java/com/erp/api/AttendanceChangeRequestApiIntegrationTest.java
-- src/test/java/com/erp/api/DomainAuditApiIntegrationTest.java
+- src/test/java/com/kinderp/api/AttendanceChangeRequestApiIntegrationTest.java
+- src/test/java/com/kinderp/api/DomainAuditApiIntegrationTest.java
 - docs/COMPLETED.md#archive-003
 ```
 
@@ -97,7 +97,7 @@ flowchart TD
 
 ### 5-1. `AttendanceChangeRequest`: 요청 자체가 상태를 가진다
 
-[AttendanceChangeRequest.java](../src/main/java/com/erp/domain/attendance/entity/AttendanceChangeRequest.java)의 핵심 메서드는 아래입니다.
+[AttendanceChangeRequest.java](../src/main/java/com/kinderp/domain/attendance/entity/AttendanceChangeRequest.java)의 핵심 메서드는 아래입니다.
 
 - `create(...)`
 - `approve(...)`
@@ -113,7 +113,7 @@ flowchart TD
 
 ### 5-2. `AttendanceChangeRequestService.create(...)`: 학부모 요청 생성
 
-[AttendanceChangeRequestService.java](../src/main/java/com/erp/domain/attendance/service/AttendanceChangeRequestService.java)의
+[AttendanceChangeRequestService.java](../src/main/java/com/kinderp/domain/attendance/service/AttendanceChangeRequestService.java)의
 `create(...)`는 아래 순서로 동작합니다.
 
 1. requester 조회
@@ -169,7 +169,7 @@ flowchart TD
 
 ### 5-5. `DomainAuditLog`: 업무 상태 전이 기록 전용 엔티티
 
-[DomainAuditLog.java](../src/main/java/com/erp/domain/domainaudit/entity/DomainAuditLog.java)는 아래 정보를 담습니다.
+[DomainAuditLog.java](../src/main/java/com/kinderp/domain/domainaudit/entity/DomainAuditLog.java)는 아래 정보를 담습니다.
 
 - `kindergartenId`
 - `actorId`
@@ -190,7 +190,7 @@ flowchart TD
 
 ### 5-6. `DomainAuditLogService`: 기록은 여기서 통일
 
-[DomainAuditLogService.java](../src/main/java/com/erp/domain/domainaudit/service/DomainAuditLogService.java)의 핵심 메서드는 아래입니다.
+[DomainAuditLogService.java](../src/main/java/com/kinderp/domain/domainaudit/service/DomainAuditLogService.java)의 핵심 메서드는 아래입니다.
 
 - `record(...)`
 - `recordSystem(...)`
@@ -203,19 +203,19 @@ flowchart TD
 
 ### 5-7. `DomainAuditLogQueryService`와 운영 화면
 
-[DomainAuditLogQueryService.java](../src/main/java/com/erp/domain/domainaudit/service/DomainAuditLogQueryService.java)의 핵심 메서드는 아래입니다.
+[DomainAuditLogQueryService.java](../src/main/java/com/kinderp/domain/domainaudit/service/DomainAuditLogQueryService.java)의 핵심 메서드는 아래입니다.
 
 - `getAuditLogsForPrincipal(...)`
 - `exportAuditLogsCsvForPrincipal(...)`
 
-[DomainAuditLogController.java](../src/main/java/com/erp/domain/domainaudit/controller/DomainAuditLogController.java)는
+[DomainAuditLogController.java](../src/main/java/com/kinderp/domain/domainaudit/controller/DomainAuditLogController.java)는
 
 - `/api/v1/domain-audit-logs`
 - `/api/v1/domain-audit-logs/export`
 
 를 제공하고,
 
-[DomainAuditLogViewController.java](../src/main/java/com/erp/domain/domainaudit/controller/DomainAuditLogViewController.java)와
+[DomainAuditLogViewController.java](../src/main/java/com/kinderp/domain/domainaudit/controller/DomainAuditLogViewController.java)와
 [audit-logs.html](../src/main/resources/templates/domainaudit/audit-logs.html)은
 원장용 운영 콘솔을 제공합니다.
 
@@ -253,11 +253,11 @@ sequenceDiagram
 
 대표 테스트는 아래입니다.
 
-- [AttendanceChangeRequestApiIntegrationTest.java](../src/test/java/com/erp/api/AttendanceChangeRequestApiIntegrationTest.java)
+- [AttendanceChangeRequestApiIntegrationTest.java](../src/test/java/com/kinderp/api/AttendanceChangeRequestApiIntegrationTest.java)
   - 학부모 요청 생성
   - 교사/원장 승인/거절
   - 권한 실패
-- [DomainAuditApiIntegrationTest.java](../src/test/java/com/erp/api/DomainAuditApiIntegrationTest.java)
+- [DomainAuditApiIntegrationTest.java](../src/test/java/com/kinderp/api/DomainAuditApiIntegrationTest.java)
   - principal 범위 조회
   - CSV export
 
@@ -319,23 +319,23 @@ sequenceDiagram
 
 ```text
 - 요청 aggregate:
-  - src/main/java/com/erp/domain/attendance/entity/AttendanceChangeRequest.java
-  - src/main/java/com/erp/domain/attendance/entity/AttendanceChangeRequestStatus.java
-  - src/main/java/com/erp/domain/attendance/service/AttendanceChangeRequestService.java
-  - src/main/java/com/erp/domain/attendance/controller/AttendanceChangeRequestController.java
-  - src/main/java/com/erp/domain/attendance/controller/AttendanceChangeRequestViewController.java
+  - src/main/java/com/kinderp/domain/attendance/entity/AttendanceChangeRequest.java
+  - src/main/java/com/kinderp/domain/attendance/entity/AttendanceChangeRequestStatus.java
+  - src/main/java/com/kinderp/domain/attendance/service/AttendanceChangeRequestService.java
+  - src/main/java/com/kinderp/domain/attendance/controller/AttendanceChangeRequestController.java
+  - src/main/java/com/kinderp/domain/attendance/controller/AttendanceChangeRequestViewController.java
 - 업무 감사:
-  - src/main/java/com/erp/domain/domainaudit/service/DomainAuditLogService.java
-  - src/main/java/com/erp/domain/domainaudit/service/DomainAuditLogQueryService.java
-  - src/main/java/com/erp/domain/domainaudit/controller/DomainAuditLogController.java
-  - src/main/java/com/erp/domain/domainaudit/controller/DomainAuditLogViewController.java
+  - src/main/java/com/kinderp/domain/domainaudit/service/DomainAuditLogService.java
+  - src/main/java/com/kinderp/domain/domainaudit/service/DomainAuditLogQueryService.java
+  - src/main/java/com/kinderp/domain/domainaudit/controller/DomainAuditLogController.java
+  - src/main/java/com/kinderp/domain/domainaudit/controller/DomainAuditLogViewController.java
   - src/main/resources/templates/domainaudit/audit-logs.html
 - 스키마:
   - src/main/resources/db/migration/V13__add_admission_workflow_attendance_requests_and_domain_audit.sql
   - src/main/resources/db/migration/V14__guard_pending_attendance_change_requests.sql
 - 검증:
-  - src/test/java/com/erp/api/AttendanceChangeRequestApiIntegrationTest.java
-  - src/test/java/com/erp/api/DomainAuditApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/AttendanceChangeRequestApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/DomainAuditApiIntegrationTest.java
 - 결정 로그:
   - docs/COMPLETED.md#archive-003
 ```

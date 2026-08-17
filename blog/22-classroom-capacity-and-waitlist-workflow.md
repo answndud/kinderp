@@ -82,15 +82,15 @@ KinderP는 이 문제를
 ## 3. 이번 글에서 다룰 파일
 
 ```text
-- src/main/java/com/erp/domain/classroom/entity/Classroom.java
-- src/main/java/com/erp/domain/classroom/service/ClassroomCapacityService.java
-- src/main/java/com/erp/domain/kidapplication/entity/KidApplication.java
-- src/main/java/com/erp/domain/kidapplication/entity/ApplicationStatus.java
-- src/main/java/com/erp/domain/kidapplication/service/KidApplicationService.java
+- src/main/java/com/kinderp/domain/classroom/entity/Classroom.java
+- src/main/java/com/kinderp/domain/classroom/service/ClassroomCapacityService.java
+- src/main/java/com/kinderp/domain/kidapplication/entity/KidApplication.java
+- src/main/java/com/kinderp/domain/kidapplication/entity/ApplicationStatus.java
+- src/main/java/com/kinderp/domain/kidapplication/service/KidApplicationService.java
 - src/main/resources/db/migration/V13__add_admission_workflow_attendance_requests_and_domain_audit.sql
-- src/test/java/com/erp/api/KidApplicationApiIntegrationTest.java
-- src/test/java/com/erp/api/ClassroomApiIntegrationTest.java
-- src/test/java/com/erp/api/KidApiIntegrationTest.java
+- src/test/java/com/kinderp/api/KidApplicationApiIntegrationTest.java
+- src/test/java/com/kinderp/api/ClassroomApiIntegrationTest.java
+- src/test/java/com/kinderp/api/KidApiIntegrationTest.java
 - docs/COMPLETED.md#archive-003
 ```
 
@@ -121,7 +121,7 @@ stateDiagram-v2
 
 ### 5-1. `Classroom`: 정원 규칙을 갖는 엔티티
 
-[Classroom.java](../src/main/java/com/erp/domain/classroom/entity/Classroom.java)는
+[Classroom.java](../src/main/java/com/kinderp/domain/classroom/entity/Classroom.java)는
 이제 단순히 반 이름만 갖는 엔티티가 아닙니다.
 
 이 글에서 주목할 메서드는 아래입니다.
@@ -136,7 +136,7 @@ stateDiagram-v2
 
 ### 5-2. `ClassroomCapacityService`: 정원 계산을 공통 규칙으로 만든다
 
-[ClassroomCapacityService.java](../src/main/java/com/erp/domain/classroom/service/ClassroomCapacityService.java)의 핵심 메서드는 아래입니다.
+[ClassroomCapacityService.java](../src/main/java/com/kinderp/domain/classroom/service/ClassroomCapacityService.java)의 핵심 메서드는 아래입니다.
 
 - `lockClassroom(...)`
 - `summarize(...)`
@@ -162,7 +162,7 @@ stateDiagram-v2
 
 ### 5-3. `KidApplication`: 신청 엔티티가 직접 상태 전이를 가진다
 
-[KidApplication.java](../src/main/java/com/erp/domain/kidapplication/entity/KidApplication.java)의 핵심 메서드는 아래입니다.
+[KidApplication.java](../src/main/java/com/kinderp/domain/kidapplication/entity/KidApplication.java)의 핵심 메서드는 아래입니다.
 
 - `placeOnWaitlist(...)`
 - `offerSeat(...)`
@@ -178,7 +178,7 @@ stateDiagram-v2
 
 ### 5-4. `KidApplicationService.approve(...)`: 좌석이 있으면 바로 승인
 
-[KidApplicationService.java](../src/main/java/com/erp/domain/kidapplication/service/KidApplicationService.java)의
+[KidApplicationService.java](../src/main/java/com/kinderp/domain/kidapplication/service/KidApplicationService.java)의
 `approve(...)`는 아래 순서로 동작합니다.
 
 1. 신청서 잠금 조회
@@ -268,11 +268,11 @@ sequenceDiagram
 
 대표 테스트는 아래입니다.
 
-- [KidApplicationApiIntegrationTest.java](../src/test/java/com/erp/api/KidApplicationApiIntegrationTest.java)
+- [KidApplicationApiIntegrationTest.java](../src/test/java/com/kinderp/api/KidApplicationApiIntegrationTest.java)
   - waitlist / offer / accept / expire
-- [ClassroomApiIntegrationTest.java](../src/test/java/com/erp/api/ClassroomApiIntegrationTest.java)
+- [ClassroomApiIntegrationTest.java](../src/test/java/com/kinderp/api/ClassroomApiIntegrationTest.java)
   - 정원 변경 검증
-- [KidApiIntegrationTest.java](../src/test/java/com/erp/api/KidApiIntegrationTest.java)
+- [KidApiIntegrationTest.java](../src/test/java/com/kinderp/api/KidApiIntegrationTest.java)
   - 정원 초과 차단이나 실제 원생 생성 연동 검증
 
 이 테스트들이 중요한 이유는
@@ -327,20 +327,20 @@ sequenceDiagram
 
 ```text
 - 정원 계산:
-  - src/main/java/com/erp/domain/classroom/service/ClassroomCapacityService.java
-  - src/main/java/com/erp/domain/classroom/entity/Classroom.java
+  - src/main/java/com/kinderp/domain/classroom/service/ClassroomCapacityService.java
+  - src/main/java/com/kinderp/domain/classroom/entity/Classroom.java
 - 입학 신청 상태 머신:
-  - src/main/java/com/erp/domain/kidapplication/entity/KidApplication.java
-  - src/main/java/com/erp/domain/kidapplication/controller/KidApplicationController.java
-  - src/main/java/com/erp/domain/kidapplication/service/KidApplicationService.java
+  - src/main/java/com/kinderp/domain/kidapplication/entity/KidApplication.java
+  - src/main/java/com/kinderp/domain/kidapplication/controller/KidApplicationController.java
+  - src/main/java/com/kinderp/domain/kidapplication/service/KidApplicationService.java
 - 대시보드 연계:
-  - src/main/java/com/erp/domain/dashboard/service/DashboardService.java
+  - src/main/java/com/kinderp/domain/dashboard/service/DashboardService.java
 - 스키마:
   - src/main/resources/db/migration/V13__add_admission_workflow_attendance_requests_and_domain_audit.sql
 - 검증:
-  - src/test/java/com/erp/api/KidApplicationApiIntegrationTest.java
-  - src/test/java/com/erp/api/ClassroomApiIntegrationTest.java
-  - src/test/java/com/erp/api/KidApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/KidApplicationApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/ClassroomApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/KidApiIntegrationTest.java
 - 결정 로그:
   - docs/COMPLETED.md#archive-003
 ```

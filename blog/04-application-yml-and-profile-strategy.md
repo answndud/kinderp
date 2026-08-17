@@ -85,7 +85,7 @@ spring:
 
 환경별 차이는 YAML만으로 끝나지 않습니다.
 
-예를 들어 이 프로젝트의 [OpenApiConfig.java](../src/main/java/com/erp/global/config/OpenApiConfig.java)는 아래 조건으로만 로드됩니다.
+예를 들어 이 프로젝트의 [OpenApiConfig.java](../src/main/java/com/kinderp/global/config/OpenApiConfig.java)는 아래 조건으로만 로드됩니다.
 
 ```java
 @ConditionalOnProperty(
@@ -107,11 +107,11 @@ Swagger 관련 빈도 그 환경에서만 올라옵니다.
 - src/main/resources/application-demo.yml
 - src/main/resources/application-prod.yml
 - src/main/resources/logback-spring.xml
-- src/main/java/com/erp/global/config/DataLoader.java
-- src/main/java/com/erp/global/config/OpenApiConfig.java
-- src/main/java/com/erp/global/config/SecurityConfig.java
-- src/main/java/com/erp/global/security/ManagementSurfaceProperties.java
-- src/test/java/com/erp/integration/ObservabilityIntegrationTest.java
+- src/main/java/com/kinderp/global/config/DataLoader.java
+- src/main/java/com/kinderp/global/config/OpenApiConfig.java
+- src/main/java/com/kinderp/global/config/SecurityConfig.java
+- src/main/java/com/kinderp/global/security/ManagementSurfaceProperties.java
+- src/test/java/com/kinderp/integration/ObservabilityIntegrationTest.java
 - docs/COMPLETED.md
 - docs/COMPLETED.md#archive-002
 - docs/COMPLETED.md#archive-003
@@ -383,7 +383,7 @@ Spring은 사실상 `demo + local`을 함께 활성화합니다.
 
 ### demo에서 시드 데이터가 들어가는 이유
 
-[DataLoader.java](../src/main/java/com/erp/global/config/DataLoader.java)를 보면 클래스 위에 아래가 붙어 있습니다.
+[DataLoader.java](../src/main/java/com/kinderp/global/config/DataLoader.java)를 보면 클래스 위에 아래가 붙어 있습니다.
 
 ```java
 @Profile("local")
@@ -479,7 +479,7 @@ local에서는 개발 편의를 위해 Flyway clean을 열 수 있지만, 운영
 
 ### `OpenApiConfig`: Swagger 빈 자체를 조건부 등록
 
-[OpenApiConfig.java](../src/main/java/com/erp/global/config/OpenApiConfig.java)는 아래 조건을 가집니다.
+[OpenApiConfig.java](../src/main/java/com/kinderp/global/config/OpenApiConfig.java)는 아래 조건을 가집니다.
 
 ```java
 @ConditionalOnProperty(
@@ -500,7 +500,7 @@ Swagger UI만 가려지는 것이 아니라 관련 빈 등록 자체가 막힙�
 
 ### `ManagementSurfaceProperties`: 운영 노출 정책을 타입으로 묶기
 
-[ManagementSurfaceProperties.java](../src/main/java/com/erp/global/security/ManagementSurfaceProperties.java)는 아래 두 값을 타입 안전하게 받습니다.
+[ManagementSurfaceProperties.java](../src/main/java/com/kinderp/global/security/ManagementSurfaceProperties.java)는 아래 두 값을 타입 안전하게 받습니다.
 
 - `publicApiDocs`
 - `exposePrometheusOnAppPort`
@@ -513,7 +513,7 @@ YAML 문자열을 여기저기 직접 읽지 않고, 설정 객체로 모은 이
 
 ### `SecurityConfig.buildPublicEndpoints()`: 같은 코드에서 local/demo와 prod를 다르게 처리
 
-[SecurityConfig.java](../src/main/java/com/erp/global/config/SecurityConfig.java)의 핵심 메서드 중 하나는 `buildPublicEndpoints()`입니다.
+[SecurityConfig.java](../src/main/java/com/kinderp/global/config/SecurityConfig.java)의 핵심 메서드 중 하나는 `buildPublicEndpoints()`입니다.
 
 이 메서드는 기본 공개 경로 리스트를 만든 뒤, 설정값에 따라 아래를 추가합니다.
 
@@ -632,7 +632,7 @@ sequenceDiagram
 
 ### 7-2. 통합 테스트로 검증
 
-[ObservabilityIntegrationTest.java](../src/test/java/com/erp/integration/ObservabilityIntegrationTest.java)는 프로파일 전략과 맞물린 운영 경로를 검증합니다.
+[ObservabilityIntegrationTest.java](../src/test/java/com/kinderp/integration/ObservabilityIntegrationTest.java)는 프로파일 전략과 맞물린 운영 경로를 검증합니다.
 
 대표 테스트는 아래입니다.
 
@@ -717,9 +717,9 @@ sequenceDiagram
   - src/main/resources/application-demo.yml
   - src/main/resources/application-prod.yml
 - 연결되는 코드:
-  - src/main/java/com/erp/global/config/DataLoader.java
-  - src/main/java/com/erp/global/config/OpenApiConfig.java
-  - src/main/java/com/erp/global/config/SecurityConfig.java
+  - src/main/java/com/kinderp/global/config/DataLoader.java
+  - src/main/java/com/kinderp/global/config/OpenApiConfig.java
+  - src/main/java/com/kinderp/global/config/SecurityConfig.java
 ```
 
 ## 12. 구현 체크리스트

@@ -104,17 +104,17 @@ Cache는 자주 읽는 결과를 잠깐 저장해 두었다가 같은 계산을 
 - src/main/resources/db/migration/V5__add_performance_indexes_for_dashboard_and_notepad.sql
 - src/main/resources/db/migration/V8__normalize_member_social_accounts.sql
 - src/main/resources/db/migration/V13__add_admission_workflow_attendance_requests_and_domain_audit.sql
-- src/main/java/com/erp/global/config/JpaConfig.java
-- src/main/java/com/erp/global/common/BaseEntity.java
-- src/main/java/com/erp/global/config/QuerydslConfig.java
-- src/main/java/com/erp/global/config/RedisConfig.java
-- src/main/java/com/erp/global/config/CacheConfig.java
-- src/main/java/com/erp/domain/member/entity/Member.java
-- src/main/java/com/erp/domain/attendance/entity/Attendance.java
-- src/main/java/com/erp/domain/dashboard/service/DashboardService.java
-- src/main/java/com/erp/domain/auth/service/AuthSessionRegistryService.java
-- src/test/java/com/erp/common/TestcontainersSupport.java
-- src/test/java/com/erp/KinderpApplicationTests.java
+- src/main/java/com/kinderp/global/config/JpaConfig.java
+- src/main/java/com/kinderp/global/common/BaseEntity.java
+- src/main/java/com/kinderp/global/config/QuerydslConfig.java
+- src/main/java/com/kinderp/global/config/RedisConfig.java
+- src/main/java/com/kinderp/global/config/CacheConfig.java
+- src/main/java/com/kinderp/domain/member/entity/Member.java
+- src/main/java/com/kinderp/domain/attendance/entity/Attendance.java
+- src/main/java/com/kinderp/domain/dashboard/service/DashboardService.java
+- src/main/java/com/kinderp/domain/auth/service/AuthSessionRegistryService.java
+- src/test/java/com/kinderp/common/TestcontainersSupport.java
+- src/test/java/com/kinderp/KinderpApplicationTests.java
 - docs/COMPLETED.md#archive-001
 - docs/COMPLETED.md#archive-002
 ```
@@ -149,7 +149,7 @@ flowchart TD
 
 ### 4-1. JPA는 객체 상태와 연관관계에 집중한다
 
-예를 들어 [Member.java](../src/main/java/com/erp/domain/member/entity/Member.java)나 [Attendance.java](../src/main/java/com/erp/domain/attendance/entity/Attendance.java)는
+예를 들어 [Member.java](../src/main/java/com/kinderp/domain/member/entity/Member.java)나 [Attendance.java](../src/main/java/com/kinderp/domain/attendance/entity/Attendance.java)는
 
 - 어떤 필드가 필요한지
 - 어떤 연관관계가 있는지
@@ -279,7 +279,7 @@ JPA는 “이 엔티티와 현재 스키마가 맞는가?”만 확인하게 했
 
 ### 5-3. `JpaConfig`와 `BaseEntity`: 엔티티의 공통 규약을 먼저 만든다
 
-[JpaConfig.java](../src/main/java/com/erp/global/config/JpaConfig.java)는 매우 짧습니다.
+[JpaConfig.java](../src/main/java/com/kinderp/global/config/JpaConfig.java)는 매우 짧습니다.
 
 ```java
 @Configuration
@@ -293,7 +293,7 @@ public class JpaConfig {
 - JPA Auditing 활성화
 - `@CreatedDate`, `@LastModifiedDate`가 자동 동작하게 만들기
 
-이 설정은 [BaseEntity.java](../src/main/java/com/erp/global/common/BaseEntity.java)와 연결됩니다.
+이 설정은 [BaseEntity.java](../src/main/java/com/kinderp/global/common/BaseEntity.java)와 연결됩니다.
 
 핵심 필드는 두 개입니다.
 
@@ -304,10 +304,10 @@ public class JpaConfig {
 
 예를 들어 아래 엔티티들이 `BaseEntity`를 상속합니다.
 
-- [Member.java](../src/main/java/com/erp/domain/member/entity/Member.java)
-- [Attendance.java](../src/main/java/com/erp/domain/attendance/entity/Attendance.java)
-- [Announcement.java](../src/main/java/com/erp/domain/announcement/entity/Announcement.java)
-- [Notification.java](../src/main/java/com/erp/domain/notification/entity/Notification.java)
+- [Member.java](../src/main/java/com/kinderp/domain/member/entity/Member.java)
+- [Attendance.java](../src/main/java/com/kinderp/domain/attendance/entity/Attendance.java)
+- [Announcement.java](../src/main/java/com/kinderp/domain/announcement/entity/Announcement.java)
+- [Notification.java](../src/main/java/com/kinderp/domain/notification/entity/Notification.java)
 
 이 설계의 장점은 간단합니다.
 
@@ -350,7 +350,7 @@ CREATE INDEX idx_announcement_created ON announcement(created_at DESC);
 
 #### JPA 엔티티와 SQL이 서로 맞물리게 설계한다
 
-예를 들어 [Attendance.java](../src/main/java/com/erp/domain/attendance/entity/Attendance.java)는
+예를 들어 [Attendance.java](../src/main/java/com/kinderp/domain/attendance/entity/Attendance.java)는
 
 - `@Table(name = "attendance", uniqueConstraints = ...)`
 - `@ManyToOne(fetch = FetchType.LAZY)`
@@ -408,14 +408,14 @@ CREATE INDEX idx_announcement_created ON announcement(created_at DESC);
 
 ### 5-6. `QuerydslConfig`: 아직 많이 안 써도, 진입점은 미리 열어 둔다
 
-[QuerydslConfig.java](../src/main/java/com/erp/global/config/QuerydslConfig.java)는 `JPAQueryFactory` 빈 하나를 등록합니다.
+[QuerydslConfig.java](../src/main/java/com/kinderp/global/config/QuerydslConfig.java)는 `JPAQueryFactory` 빈 하나를 등록합니다.
 
 핵심 메서드는 아래입니다.
 
 - `jpaQueryFactory()`
   - `EntityManager`를 받아 `JPAQueryFactory`를 생성
 
-초기에는 회원 repository에도 QueryDSL 확장 스텁을 열어 두었습니다. 이후 실제 동적 쿼리가 없는 빈 스텁은 제거하고, 현재는 [MemberRepository.java](../src/main/java/com/erp/domain/member/repository/MemberRepository.java)의 명시적 JPQL과 Spring Data 메서드만 유지합니다.
+초기에는 회원 repository에도 QueryDSL 확장 스텁을 열어 두었습니다. 이후 실제 동적 쿼리가 없는 빈 스텁은 제거하고, 현재는 [MemberRepository.java](../src/main/java/com/kinderp/domain/member/repository/MemberRepository.java)의 명시적 JPQL과 Spring Data 메서드만 유지합니다.
 
 정직하게 말하면, 현재 코드베이스에서 QueryDSL 활용도는 아직 높지 않습니다.
 하지만 이건 오히려 입문자에게 중요한 교훈입니다.
@@ -424,7 +424,7 @@ CREATE INDEX idx_announcement_created ON announcement(created_at DESC);
 
 ### 5-7. `RedisConfig`: 짧게 살아야 하는 상태를 관계형 DB에서 분리한다
 
-[RedisConfig.java](../src/main/java/com/erp/global/config/RedisConfig.java)는 두 핵심 빈을 만듭니다.
+[RedisConfig.java](../src/main/java/com/kinderp/global/config/RedisConfig.java)는 두 핵심 빈을 만듭니다.
 
 - `redisConnectionFactory()`
 - `redisTemplate()`
@@ -436,7 +436,7 @@ CREATE INDEX idx_announcement_created ON announcement(created_at DESC);
 
 즉, 키는 문자열로, 값은 JSON으로 다루게 했습니다.
 
-이 설정은 나중에 [AuthSessionRegistryService.java](../src/main/java/com/erp/domain/auth/service/AuthSessionRegistryService.java)에서 바로 힘을 발휘합니다.
+이 설정은 나중에 [AuthSessionRegistryService.java](../src/main/java/com/kinderp/domain/auth/service/AuthSessionRegistryService.java)에서 바로 힘을 발휘합니다.
 
 예를 들어 이 서비스의 핵심 메서드들은 아래입니다.
 
@@ -457,7 +457,7 @@ CREATE INDEX idx_announcement_created ON announcement(created_at DESC);
 
 ### 5-8. `CacheConfig`: 계산 결과는 메모리 캐시로 짧게 보호한다
 
-[CacheConfig.java](../src/main/java/com/erp/global/config/CacheConfig.java)는 Caffeine 기반 캐시 매니저를 등록합니다.
+[CacheConfig.java](../src/main/java/com/kinderp/global/config/CacheConfig.java)는 Caffeine 기반 캐시 매니저를 등록합니다.
 
 현재 설정은 아래 하나입니다.
 
@@ -465,7 +465,7 @@ CREATE INDEX idx_announcement_created ON announcement(created_at DESC);
 - `expireAfterWrite(60초)`
 - `maximumSize(500)`
 
-이 캐시는 [DashboardService.java](../src/main/java/com/erp/domain/dashboard/service/DashboardService.java)와 연결됩니다.
+이 캐시는 [DashboardService.java](../src/main/java/com/kinderp/domain/dashboard/service/DashboardService.java)와 연결됩니다.
 
 핵심 메서드는 두 개입니다.
 
@@ -504,7 +504,7 @@ spring:
 - Flyway가 실제 마이그레이션을 적용하며
 - 엔티티와 스키마 일치 여부는 validate로 확인합니다.
 
-그리고 [TestcontainersSupport.java](../src/test/java/com/erp/common/TestcontainersSupport.java)는
+그리고 [TestcontainersSupport.java](../src/test/java/com/kinderp/common/TestcontainersSupport.java)는
 
 - MySQL 8.0.36 컨테이너
 - Redis 7 컨테이너
@@ -581,7 +581,7 @@ sequenceDiagram
 
 ### 7-1. 컨텍스트 로드 테스트
 
-[KinderpApplicationTests.java](../src/test/java/com/erp/KinderpApplicationTests.java)는 가장 단순한 테스트처럼 보이지만 의미가 큽니다.
+[KinderpApplicationTests.java](../src/test/java/com/kinderp/KinderpApplicationTests.java)는 가장 단순한 테스트처럼 보이지만 의미가 큽니다.
 
 - `@SpringBootTest`
 - `@ActiveProfiles("test")`
@@ -598,7 +598,7 @@ sequenceDiagram
 
 ### 7-2. 통합 테스트 기반 클래스
 
-[BaseIntegrationTest.java](../src/test/java/com/erp/common/BaseIntegrationTest.java)는
+[BaseIntegrationTest.java](../src/test/java/com/kinderp/common/BaseIntegrationTest.java)는
 
 - `@SpringBootTest`
 - `@ActiveProfiles("test")`
@@ -685,12 +685,12 @@ sequenceDiagram
   - src/main/resources/application-local.yml
   - src/test/resources/application-test.yml
 - 공통 config:
-  - src/main/java/com/erp/global/config/JpaConfig.java
-  - src/main/java/com/erp/global/config/QuerydslConfig.java
-  - src/main/java/com/erp/global/config/RedisConfig.java
-  - src/main/java/com/erp/global/config/CacheConfig.java
+  - src/main/java/com/kinderp/global/config/JpaConfig.java
+  - src/main/java/com/kinderp/global/config/QuerydslConfig.java
+  - src/main/java/com/kinderp/global/config/RedisConfig.java
+  - src/main/java/com/kinderp/global/config/CacheConfig.java
 - 공통 엔티티 / 스키마:
-  - src/main/java/com/erp/global/common/BaseEntity.java
+  - src/main/java/com/kinderp/global/common/BaseEntity.java
   - src/main/resources/db/migration/V1__init_schema.sql
 ```
 

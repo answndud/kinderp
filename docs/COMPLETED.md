@@ -699,18 +699,18 @@
   - `Notepad` entity의 deprecated `isRead` field/method를 제거하고, DB `is_read` column은 compatibility를 위해 유지했다.
   - outbox 동시성 테스트의 `Thread.sleep(300L)`를 latch 기반 동기화로 교체하고, `@MockBean`을 `@MockitoBean`으로 바꿔 Spring Boot 3.5 deprecation warning을 제거했다.
 - 코드/문서:
-  - `src/main/java/com/erp/global/common/PageRequests.java`
-  - `src/main/java/com/erp/domain/**/controller/*Controller.java`
-  - `src/main/java/com/erp/domain/announcement/service/AnnouncementService.java`
-  - `src/main/java/com/erp/domain/attendance/service/AttendanceService.java`
-  - `src/main/java/com/erp/domain/kid/service/KidService.java`
-  - `src/main/java/com/erp/domain/kidapplication/service/KidApplicationService.java`
-  - `src/main/java/com/erp/domain/notepad/entity/Notepad.java`
-  - `src/main/java/com/erp/domain/notepad/service/NotepadService.java`
-  - `src/main/java/com/erp/domain/notification/service/NotificationService.java`
-  - `src/test/java/com/erp/api/*IntegrationTest.java`
-  - `src/test/java/com/erp/integration/*Outbox*Test.java`
-  - `src/test/java/com/erp/performance/*PerformanceStoryTest.java`
+  - `src/main/java/com/kinderp/global/common/PageRequests.java`
+  - `src/main/java/com/kinderp/domain/**/controller/*Controller.java`
+  - `src/main/java/com/kinderp/domain/announcement/service/AnnouncementService.java`
+  - `src/main/java/com/kinderp/domain/attendance/service/AttendanceService.java`
+  - `src/main/java/com/kinderp/domain/kid/service/KidService.java`
+  - `src/main/java/com/kinderp/domain/kidapplication/service/KidApplicationService.java`
+  - `src/main/java/com/kinderp/domain/notepad/entity/Notepad.java`
+  - `src/main/java/com/kinderp/domain/notepad/service/NotepadService.java`
+  - `src/main/java/com/kinderp/domain/notification/service/NotificationService.java`
+  - `src/test/java/com/kinderp/api/*IntegrationTest.java`
+  - `src/test/java/com/kinderp/integration/*Outbox*Test.java`
+  - `src/test/java/com/kinderp/performance/*PerformanceStoryTest.java`
   - `blog/27-spring-boot-refactoring-doctor-100.md`
   - `docs/PLAN.md`
   - `docs/PROGRESS.md`
@@ -792,8 +792,8 @@
   - `~/.zshrc`, `~/.zprofile`의 `JAVA_HOME`을 `/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home`로 고정했다.
 - 코드/문서:
   - `README.md`
-  - `src/main/java/com/erp/domain/attendance/service/AttendanceService.java`
-  - `src/main/java/com/erp/domain/kid/service/KidService.java`
+  - `src/main/java/com/kinderp/domain/attendance/service/AttendanceService.java`
+  - `src/main/java/com/kinderp/domain/kid/service/KidService.java`
   - `src/main/resources/db/migration/V15__drop_notepad_legacy_is_read.sql`
   - `docs/PLAN.md`
   - `docs/PROGRESS.md`
@@ -839,20 +839,20 @@
   - `docs/README.md`
   - `docs/guides/developer-guide.md`
   - `docs/guides/interview-guide.md`
-  - `src/main/java/com/erp/global/exception/GlobalExceptionHandler.java`
-  - `src/main/java/com/erp/domain/attendance/service/AttendanceService.java`
-  - `src/main/java/com/erp/domain/calendar/service/CalendarEventService.java`
-  - `src/main/java/com/erp/domain/calendar/service/RecurrenceExpander.java`
-  - `src/main/java/com/erp/domain/notification/controller/NotificationOutboxOpsController.java`
-  - `src/main/java/com/erp/domain/notification/dto/response/*`
-  - `src/main/java/com/erp/domain/notification/entity/NotificationOutbox.java`
-  - `src/main/java/com/erp/domain/notification/repository/NotificationOutboxRepository.java`
-  - `src/main/java/com/erp/domain/notification/service/NotificationOutboxOpsService.java`
-  - `src/main/java/com/erp/domain/member/repository/MemberRepository.java`
-  - `src/test/java/com/erp/api/AttendanceApiIntegrationTest.java`
-  - `src/test/java/com/erp/api/CalendarApiIntegrationTest.java`
-  - `src/test/java/com/erp/api/NotificationOutboxOpsApiIntegrationTest.java`
-  - `src/test/java/com/erp/domain/calendar/service/RecurrenceExpanderTest.java`
+  - `src/main/java/com/kinderp/global/exception/GlobalExceptionHandler.java`
+  - `src/main/java/com/kinderp/domain/attendance/service/AttendanceService.java`
+  - `src/main/java/com/kinderp/domain/calendar/service/CalendarEventService.java`
+  - `src/main/java/com/kinderp/domain/calendar/service/RecurrenceExpander.java`
+  - `src/main/java/com/kinderp/domain/notification/controller/NotificationOutboxOpsController.java`
+  - `src/main/java/com/kinderp/domain/notification/dto/response/*`
+  - `src/main/java/com/kinderp/domain/notification/entity/NotificationOutbox.java`
+  - `src/main/java/com/kinderp/domain/notification/repository/NotificationOutboxRepository.java`
+  - `src/main/java/com/kinderp/domain/notification/service/NotificationOutboxOpsService.java`
+  - `src/main/java/com/kinderp/domain/member/repository/MemberRepository.java`
+  - `src/test/java/com/kinderp/api/AttendanceApiIntegrationTest.java`
+  - `src/test/java/com/kinderp/api/CalendarApiIntegrationTest.java`
+  - `src/test/java/com/kinderp/api/NotificationOutboxOpsApiIntegrationTest.java`
+  - `src/test/java/com/kinderp/domain/calendar/service/RecurrenceExpanderTest.java`
 - 검증:
   - `./gradlew test --tests "com.kinderp.api.AttendanceApiIntegrationTest"`: 통과
   - `./gradlew fastTest test --tests "com.kinderp.api.CalendarApiIntegrationTest"`: 통과
@@ -902,19 +902,19 @@
   - `README.md`
   - `docs/guides/env-contract.md`
   - `docs/guides/interview-guide.md`
-  - `src/main/java/com/erp/global/security/CorsProperties.java`
-  - `src/main/java/com/erp/global/config/SecurityConfig.java`
+  - `src/main/java/com/kinderp/global/security/CorsProperties.java`
+  - `src/main/java/com/kinderp/global/config/SecurityConfig.java`
   - `src/main/resources/application.yml`
   - `src/main/resources/application-prod.yml`
-  - `src/main/java/com/erp/domain/notification/controller/NotificationOutboxViewController.java`
+  - `src/main/java/com/kinderp/domain/notification/controller/NotificationOutboxViewController.java`
   - `src/main/resources/templates/notifications/outbox.html`
   - `src/main/resources/templates/fragments/header.html`
-  - `src/main/java/com/erp/domain/kidapplication/service/KidApplicationService.java`
-  - `src/main/java/com/erp/domain/kidapplication/service/KidApplicationAdmissionService.java`
-  - `src/main/java/com/erp/domain/kidapplication/service/KidApplicationNotificationService.java`
-  - `src/main/java/com/erp/domain/kidapplication/service/KidApplicationAuditService.java`
-  - `src/test/java/com/erp/integration/ViewEndpointTest.java`
-  - `src/test/java/com/erp/global/config/SecurityCorsConfigTest.java`
+  - `src/main/java/com/kinderp/domain/kidapplication/service/KidApplicationService.java`
+  - `src/main/java/com/kinderp/domain/kidapplication/service/KidApplicationAdmissionService.java`
+  - `src/main/java/com/kinderp/domain/kidapplication/service/KidApplicationNotificationService.java`
+  - `src/main/java/com/kinderp/domain/kidapplication/service/KidApplicationAuditService.java`
+  - `src/test/java/com/kinderp/integration/ViewEndpointTest.java`
+  - `src/test/java/com/kinderp/global/config/SecurityCorsConfigTest.java`
 - 검증:
   - `./gradlew test --tests "com.kinderp.integration.ViewEndpointTest" --tests "com.kinderp.api.NotificationOutboxOpsApiIntegrationTest"`: 통과
   - `./gradlew test --tests "com.kinderp.global.config.SecurityCorsConfigTest"`: 통과
@@ -961,12 +961,12 @@
   - `docs/README.md`
   - `docs/guides/demo-scenario.md`
   - `docs/guides/interview-guide.md`
-  - `src/main/java/com/erp/global/config/DataLoader.java`
+  - `src/main/java/com/kinderp/global/config/DataLoader.java`
   - `src/main/resources/templates/notifications/outbox.html`
-  - `src/main/java/com/erp/domain/notification/controller/NotificationOutboxOpsController.java`
-  - `src/main/java/com/erp/domain/authaudit/controller/AuthAuditLogController.java`
-  - `src/main/java/com/erp/domain/domainaudit/controller/DomainAuditLogController.java`
-  - `src/main/java/com/erp/domain/kidapplication/controller/KidApplicationController.java`
+  - `src/main/java/com/kinderp/domain/notification/controller/NotificationOutboxOpsController.java`
+  - `src/main/java/com/kinderp/domain/authaudit/controller/AuthAuditLogController.java`
+  - `src/main/java/com/kinderp/domain/domainaudit/controller/DomainAuditLogController.java`
+  - `src/main/java/com/kinderp/domain/kidapplication/controller/KidApplicationController.java`
 - 검증:
   - `./gradlew compileJava compileTestJava`: 통과
   - `./gradlew test`: 통과 (`4m 13s`)
@@ -1010,12 +1010,12 @@
   - `docs/PLAN.md`
   - `docs/PROGRESS.md`
   - `docs/COMPLETED.md`
-  - `src/main/java/com/erp/global/config/DataLoader.java`
-  - `src/main/java/com/erp/domain/calendar/repository/CalendarEventRepository.java`
-  - `src/main/java/com/erp/domain/notification/controller/NotificationOutboxOpsController.java`
-  - `src/main/java/com/erp/domain/kidapplication/controller/KidApplicationController.java`
-  - `src/main/java/com/erp/domain/authaudit/controller/AuthAuditLogController.java`
-  - `src/main/java/com/erp/domain/domainaudit/controller/DomainAuditLogController.java`
+  - `src/main/java/com/kinderp/global/config/DataLoader.java`
+  - `src/main/java/com/kinderp/domain/calendar/repository/CalendarEventRepository.java`
+  - `src/main/java/com/kinderp/domain/notification/controller/NotificationOutboxOpsController.java`
+  - `src/main/java/com/kinderp/domain/kidapplication/controller/KidApplicationController.java`
+  - `src/main/java/com/kinderp/domain/authaudit/controller/AuthAuditLogController.java`
+  - `src/main/java/com/kinderp/domain/domainaudit/controller/DomainAuditLogController.java`
   - `src/main/resources/templates/notifications/outbox.html`
 - 검증:
   - `./gradlew compileJava compileTestJava`: 통과
@@ -1058,9 +1058,9 @@
   - `docs/PLAN.md`
   - `docs/PROGRESS.md`
   - `docs/COMPLETED.md`
-  - `src/main/java/com/erp/domain/attendance/controller/AttendanceController.java`
-  - `src/main/java/com/erp/domain/dashboard/controller/DashboardController.java`
-  - `src/main/java/com/erp/domain/auth/controller/AuthApiController.java`
+  - `src/main/java/com/kinderp/domain/attendance/controller/AttendanceController.java`
+  - `src/main/java/com/kinderp/domain/dashboard/controller/DashboardController.java`
+  - `src/main/java/com/kinderp/domain/auth/controller/AuthApiController.java`
 - 검증:
   - `./gradlew compileJava compileTestJava`: 통과
   - `git diff --check`: 통과
@@ -1098,10 +1098,10 @@
   - `docs/PLAN.md`
   - `docs/PROGRESS.md`
   - `docs/COMPLETED.md`
-  - `src/main/java/com/erp/domain/attendance/controller/AttendanceController.java`
-  - `src/main/java/com/erp/domain/auth/controller/AuthApiController.java`
-  - `src/main/java/com/erp/domain/dashboard/controller/DashboardController.java`
-  - `src/main/java/com/erp/global/config/DataLoader.java`
+  - `src/main/java/com/kinderp/domain/attendance/controller/AttendanceController.java`
+  - `src/main/java/com/kinderp/domain/auth/controller/AuthApiController.java`
+  - `src/main/java/com/kinderp/domain/dashboard/controller/DashboardController.java`
+  - `src/main/java/com/kinderp/global/config/DataLoader.java`
 - 검증:
   - `./gradlew compileJava compileTestJava`: 통과
   - `git diff --check`: 통과
@@ -1254,8 +1254,8 @@
   - deployment guide에 `Production Safety Dry-Run` 섹션을 추가하고, prod/local compose config 검증 명령과 기대 결과를 정리했다.
   - env contract, risk response, evidence map, README의 prod safety 설명을 CORS 차단 근거까지 확장했다.
 - 코드/문서:
-  - `src/main/java/com/erp/global/config/StartupSafetyValidator.java`
-  - `src/test/java/com/erp/global/config/StartupSafetyValidatorTest.java`
+  - `src/main/java/com/kinderp/global/config/StartupSafetyValidator.java`
+  - `src/test/java/com/kinderp/global/config/StartupSafetyValidatorTest.java`
   - `deploy/.env.prod.example`
   - `deploy/docker-compose.prod.yml`
   - `README.md`
@@ -1304,8 +1304,8 @@
   - 기존 admission, notification, audit 보조 service 구조는 유지하고 review service가 이를 조합하도록 했다.
   - interview guide와 evidence map의 큰 service 답변을 현재 구조 기준으로 갱신했다.
 - 코드/문서:
-  - `src/main/java/com/erp/domain/kidapplication/service/KidApplicationService.java`
-  - `src/main/java/com/erp/domain/kidapplication/service/KidApplicationReviewService.java`
+  - `src/main/java/com/kinderp/domain/kidapplication/service/KidApplicationService.java`
+  - `src/main/java/com/kinderp/domain/kidapplication/service/KidApplicationReviewService.java`
   - `docs/guides/interview-guide.md`
   - `docs/guides/evidence-map.md`
   - `docs/PROGRESS.md`
@@ -1313,8 +1313,8 @@
   - `./gradlew compileJava compileTestJava`: 통과
   - `./gradlew test --tests "com.kinderp.api.KidApplicationApiIntegrationTest"`: 통과
   - `git diff --check`: 통과
-  - `wc -l src/main/java/com/erp/domain/kidapplication/service/KidApplicationService.java src/main/java/com/erp/domain/kidapplication/service/KidApplicationReviewService.java`: `KidApplicationService` 266 lines, `KidApplicationReviewService` 191 lines
-  - `rg -n "KidApplicationReviewService|review 상태 전이|큰 service|KidApplicationApiIntegrationTest|Phase 2" docs src/main/java/com/erp/domain/kidapplication/service`: 관련 연결 확인
+  - `wc -l src/main/java/com/kinderp/domain/kidapplication/service/KidApplicationService.java src/main/java/com/kinderp/domain/kidapplication/service/KidApplicationReviewService.java`: `KidApplicationService` 266 lines, `KidApplicationReviewService` 191 lines
+  - `rg -n "KidApplicationReviewService|review 상태 전이|큰 service|KidApplicationApiIntegrationTest|Phase 2" docs src/main/java/com/kinderp/domain/kidapplication/service`: 관련 연결 확인
 - Spring Boot Doctor 판정:
   - 변경 surface: `domain`, `security/authorization boundary`, `transaction`, `docs`
   - P0/P1 신규 이슈 없음
@@ -1338,7 +1338,7 @@
   - `acceptOfferedKidApplication_Fail_WhenOfferExpired` 통합 테스트를 추가했다.
   - 만료된 offer를 수락하면 `AP010` 400 응답을 반환하고, application 상태가 `OFFER_EXPIRED`로 전환되며 `kidId`가 생성되지 않는 것을 검증했다.
 - 코드/문서:
-  - `src/test/java/com/erp/api/KidApplicationApiIntegrationTest.java`
+  - `src/test/java/com/kinderp/api/KidApplicationApiIntegrationTest.java`
   - `docs/PROGRESS.md`
   - `docs/COMPLETED.md`
 - 검증:
@@ -1397,11 +1397,11 @@
   - `/notification-outbox` 화면에 채널 선택 필터를 추가하고, page size/refresh/pagination과 같은 목록 조회 흐름에 연결했다.
   - README, evidence map, interview guide의 outbox 운영 설명을 채널 필터 기준으로 갱신했다.
 - 코드/문서:
-  - `src/main/java/com/erp/domain/notification/controller/NotificationOutboxOpsController.java`
-  - `src/main/java/com/erp/domain/notification/service/NotificationOutboxOpsService.java`
-  - `src/main/java/com/erp/domain/notification/repository/NotificationOutboxRepository.java`
+  - `src/main/java/com/kinderp/domain/notification/controller/NotificationOutboxOpsController.java`
+  - `src/main/java/com/kinderp/domain/notification/service/NotificationOutboxOpsService.java`
+  - `src/main/java/com/kinderp/domain/notification/repository/NotificationOutboxRepository.java`
   - `src/main/resources/templates/notifications/outbox.html`
-  - `src/test/java/com/erp/api/NotificationOutboxOpsApiIntegrationTest.java`
+  - `src/test/java/com/kinderp/api/NotificationOutboxOpsApiIntegrationTest.java`
   - `README.md`
   - `docs/guides/evidence-map.md`
   - `docs/guides/interview-guide.md`
@@ -1474,20 +1474,20 @@
     - 조회와 CSV export가 같은 `summary` 조건을 사용한다.
   - README, evidence map, interview guide, demo scenario, risk response, developer guide를 최신 구현 기준으로 갱신했다.
 - 코드/문서:
-  - `src/main/java/com/erp/domain/notification/controller/NotificationOutboxOpsController.java`
-  - `src/main/java/com/erp/domain/notification/service/NotificationOutboxOpsService.java`
-  - `src/main/java/com/erp/domain/notification/repository/NotificationOutboxRepository.java`
-  - `src/main/java/com/erp/domain/notification/service/NotificationDispatchService.java`
-  - `src/main/java/com/erp/domain/notification/service/channel/NotificationChannelSenderRegistry.java`
-  - `src/main/java/com/erp/domain/authaudit/*`
-  - `src/main/java/com/erp/domain/domainaudit/*`
+  - `src/main/java/com/kinderp/domain/notification/controller/NotificationOutboxOpsController.java`
+  - `src/main/java/com/kinderp/domain/notification/service/NotificationOutboxOpsService.java`
+  - `src/main/java/com/kinderp/domain/notification/repository/NotificationOutboxRepository.java`
+  - `src/main/java/com/kinderp/domain/notification/service/NotificationDispatchService.java`
+  - `src/main/java/com/kinderp/domain/notification/service/channel/NotificationChannelSenderRegistry.java`
+  - `src/main/java/com/kinderp/domain/authaudit/*`
+  - `src/main/java/com/kinderp/domain/domainaudit/*`
   - `src/main/resources/templates/notifications/outbox.html`
   - `src/main/resources/templates/authaudit/audit-logs.html`
   - `src/main/resources/templates/domainaudit/audit-logs.html`
-  - `src/test/java/com/erp/api/NotificationOutboxOpsApiIntegrationTest.java`
-  - `src/test/java/com/erp/api/AuthAuditApiIntegrationTest.java`
-  - `src/test/java/com/erp/api/DomainAuditApiIntegrationTest.java`
-  - `src/test/java/com/erp/performance/AuditConsolePerformanceSmokeTest.java`
+  - `src/test/java/com/kinderp/api/NotificationOutboxOpsApiIntegrationTest.java`
+  - `src/test/java/com/kinderp/api/AuthAuditApiIntegrationTest.java`
+  - `src/test/java/com/kinderp/api/DomainAuditApiIntegrationTest.java`
+  - `src/test/java/com/kinderp/performance/AuditConsolePerformanceSmokeTest.java`
   - `README.md`
   - `docs/guides/*`
 - 검증:
@@ -1525,12 +1525,12 @@
   - `NotificationOutboxPerformanceSmokeTest`를 추가해 status/channel timeline과 keyword timeline의 page+count 쿼리 예산을 고정했다.
   - evidence map에 registry test, outbox performance smoke, timeline index 근거를 연결했다.
 - 코드/문서:
-  - `src/main/java/com/erp/domain/notification/service/channel/NotificationChannelSenderRegistry.java`
-  - `src/test/java/com/erp/domain/notification/service/channel/NotificationChannelSenderRegistryTest.java`
-  - `src/main/java/com/erp/domain/notification/entity/NotificationOutbox.java`
+  - `src/main/java/com/kinderp/domain/notification/service/channel/NotificationChannelSenderRegistry.java`
+  - `src/test/java/com/kinderp/domain/notification/service/channel/NotificationChannelSenderRegistryTest.java`
+  - `src/main/java/com/kinderp/domain/notification/entity/NotificationOutbox.java`
   - `src/main/resources/db/migration/V16__add_notification_outbox_timeline_index.sql`
-  - `src/test/java/com/erp/performance/AuditConsolePerformanceSmokeTest.java`
-  - `src/test/java/com/erp/performance/NotificationOutboxPerformanceSmokeTest.java`
+  - `src/test/java/com/kinderp/performance/AuditConsolePerformanceSmokeTest.java`
+  - `src/test/java/com/kinderp/performance/NotificationOutboxPerformanceSmokeTest.java`
   - `docs/guides/evidence-map.md`
   - `docs/PLAN.md`
   - `docs/PROGRESS.md`

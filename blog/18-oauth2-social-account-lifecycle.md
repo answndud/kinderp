@@ -66,16 +66,16 @@ KinderP는 이 문제를 꽤 깊게 다뤘습니다.
 ## 3. 이번 글에서 다룰 파일
 
 ```text
-- src/main/java/com/erp/global/security/oauth2/OAuth2AuthenticationSuccessHandler.java
-- src/main/java/com/erp/global/security/oauth2/OAuth2LinkSessionService.java
-- src/main/java/com/erp/domain/auth/controller/SocialAccountLinkController.java
-- src/main/java/com/erp/domain/auth/service/SocialAccountLinkService.java
-- src/main/java/com/erp/domain/member/entity/Member.java
-- src/main/java/com/erp/domain/member/entity/MemberSocialAccount.java
+- src/main/java/com/kinderp/global/security/oauth2/OAuth2AuthenticationSuccessHandler.java
+- src/main/java/com/kinderp/global/security/oauth2/OAuth2LinkSessionService.java
+- src/main/java/com/kinderp/domain/auth/controller/SocialAccountLinkController.java
+- src/main/java/com/kinderp/domain/auth/service/SocialAccountLinkService.java
+- src/main/java/com/kinderp/domain/member/entity/Member.java
+- src/main/java/com/kinderp/domain/member/entity/MemberSocialAccount.java
 - src/main/resources/db/migration/V8__normalize_member_social_accounts.sql
 - src/main/resources/db/migration/V9__preserve_social_account_history.sql
-- src/test/java/com/erp/global/security/oauth2/OAuth2AuthenticationSuccessHandlerTest.java
-- src/test/java/com/erp/api/MemberApiIntegrationTest.java
+- src/test/java/com/kinderp/global/security/oauth2/OAuth2AuthenticationSuccessHandlerTest.java
+- src/test/java/com/kinderp/api/MemberApiIntegrationTest.java
 - docs/COMPLETED.md#archive-002
 ```
 
@@ -103,7 +103,7 @@ flowchart TD
 
 ### 5-1. `OAuth2AuthenticationSuccessHandler`: 단순 redirect가 아니라 정책 엔진
 
-[OAuth2AuthenticationSuccessHandler.java](../src/main/java/com/erp/global/security/oauth2/OAuth2AuthenticationSuccessHandler.java)의 핵심 메서드는 아래입니다.
+[OAuth2AuthenticationSuccessHandler.java](../src/main/java/com/kinderp/global/security/oauth2/OAuth2AuthenticationSuccessHandler.java)의 핵심 메서드는 아래입니다.
 
 - `onAuthenticationSuccess(...)`
 - `handleSocialLink(...)`
@@ -135,7 +135,7 @@ flowchart TD
 
 ### 5-3. `SocialAccountLinkService`: 연결/해제 정책은 서비스에서 강제한다
 
-[SocialAccountLinkService.java](../src/main/java/com/erp/domain/auth/service/SocialAccountLinkService.java)의 핵심 메서드는 아래입니다.
+[SocialAccountLinkService.java](../src/main/java/com/kinderp/domain/auth/service/SocialAccountLinkService.java)의 핵심 메서드는 아래입니다.
 
 - `linkSocialAccount(...)`
 - `unlinkSocialAccount(...)`
@@ -148,7 +148,7 @@ flowchart TD
 
 ### 5-4. `MemberSocialAccount`: 소셜 계정을 별도 테이블로 정규화한다
 
-[MemberSocialAccount.java](../src/main/java/com/erp/domain/member/entity/MemberSocialAccount.java)는
+[MemberSocialAccount.java](../src/main/java/com/kinderp/domain/member/entity/MemberSocialAccount.java)는
 
 - `provider`
 - `providerId`
@@ -265,22 +265,22 @@ sequenceDiagram
 
 ```text
 - OAuth2 성공 처리 / link intent:
-  - src/main/java/com/erp/global/security/oauth2/OAuth2AuthenticationSuccessHandler.java
-  - src/main/java/com/erp/global/security/oauth2/OAuth2LinkSessionService.java
+  - src/main/java/com/kinderp/global/security/oauth2/OAuth2AuthenticationSuccessHandler.java
+  - src/main/java/com/kinderp/global/security/oauth2/OAuth2LinkSessionService.java
 - 소셜 계정 정책:
-  - src/main/java/com/erp/domain/auth/service/SocialAccountLinkService.java
-  - src/main/java/com/erp/domain/member/entity/MemberSocialAccount.java
-  - src/main/java/com/erp/domain/member/controller/MemberApiController.java
-  - src/main/java/com/erp/domain/auth/controller/SocialAccountLinkController.java
+  - src/main/java/com/kinderp/domain/auth/service/SocialAccountLinkService.java
+  - src/main/java/com/kinderp/domain/member/entity/MemberSocialAccount.java
+  - src/main/java/com/kinderp/domain/member/controller/MemberApiController.java
+  - src/main/java/com/kinderp/domain/auth/controller/SocialAccountLinkController.java
 - 뷰:
-  - src/main/java/com/erp/domain/auth/controller/AuthViewController.java
+  - src/main/java/com/kinderp/domain/auth/controller/AuthViewController.java
   - src/main/resources/templates/auth/settings.html
 - 스키마:
   - src/main/resources/db/migration/V8__normalize_member_social_accounts.sql
   - src/main/resources/db/migration/V9__preserve_social_account_history.sql
 - 검증:
-  - src/test/java/com/erp/global/security/oauth2/OAuth2AuthenticationSuccessHandlerTest.java
-  - src/test/java/com/erp/api/MemberApiIntegrationTest.java
+  - src/test/java/com/kinderp/global/security/oauth2/OAuth2AuthenticationSuccessHandlerTest.java
+  - src/test/java/com/kinderp/api/MemberApiIntegrationTest.java
 - 결정 로그:
   - docs/COMPLETED.md#archive-002
 ```

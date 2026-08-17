@@ -62,13 +62,13 @@ CSRF를 다시 켜는 편이 안전합니다.
 ## 3. 이번 글에서 다룰 파일
 
 ```text
-- src/main/java/com/erp/global/config/SecurityConfig.java
-- src/main/java/com/erp/global/config/CsrfCookieFilter.java
-- src/main/java/com/erp/domain/auth/controller/AuthApiController.java
-- src/main/java/com/erp/domain/auth/service/AuthService.java
-- src/main/java/com/erp/domain/member/service/MemberService.java
-- src/test/java/com/erp/api/AuthApiIntegrationTest.java
-- src/test/java/com/erp/integration/PageAccessIntegrationTest.java
+- src/main/java/com/kinderp/global/config/SecurityConfig.java
+- src/main/java/com/kinderp/global/config/CsrfCookieFilter.java
+- src/main/java/com/kinderp/domain/auth/controller/AuthApiController.java
+- src/main/java/com/kinderp/domain/auth/service/AuthService.java
+- src/main/java/com/kinderp/domain/member/service/MemberService.java
+- src/test/java/com/kinderp/api/AuthApiIntegrationTest.java
+- src/test/java/com/kinderp/integration/PageAccessIntegrationTest.java
 - docs/COMPLETED.md#archive-002
 ```
 
@@ -87,7 +87,7 @@ CSRF를 다시 켜는 편이 안전합니다.
 
 ### 5-1. `SecurityConfig`: 보안 규칙의 시작점
 
-[SecurityConfig.java](../src/main/java/com/erp/global/config/SecurityConfig.java)의 핵심 메서드는 아래입니다.
+[SecurityConfig.java](../src/main/java/com/kinderp/global/config/SecurityConfig.java)의 핵심 메서드는 아래입니다.
 
 - `securityFilterChain(...)`
 - `corsConfigurationSource()`
@@ -143,7 +143,7 @@ CSRF를 다시 켜는 편이 안전합니다.
 
 ### 5-4. `CsrfCookieFilter`: 쿠키 기반 인증에서 CSRF 토큰을 초기에 발급한다
 
-[CsrfCookieFilter.java](../src/main/java/com/erp/global/config/CsrfCookieFilter.java)는 매우 짧지만 중요합니다.
+[CsrfCookieFilter.java](../src/main/java/com/kinderp/global/config/CsrfCookieFilter.java)는 매우 짧지만 중요합니다.
 
 핵심 메서드는 아래입니다.
 
@@ -155,7 +155,7 @@ CSRF를 다시 켜는 편이 안전합니다.
 
 ### 5-5. `AuthApiController`: 인증 API 진입점
 
-[AuthApiController.java](../src/main/java/com/erp/domain/auth/controller/AuthApiController.java)의 핵심 메서드는 아래입니다.
+[AuthApiController.java](../src/main/java/com/kinderp/domain/auth/controller/AuthApiController.java)의 핵심 메서드는 아래입니다.
 
 - `signUp(...)`
 - `login(...)`
@@ -167,7 +167,7 @@ CSRF를 다시 켜는 편이 안전합니다.
 
 ### 5-6. `AuthService`: 컨트롤러보다 아래에서 인증 흐름을 조율한다
 
-[AuthService.java](../src/main/java/com/erp/domain/auth/service/AuthService.java)의 초반 핵심 메서드는 아래입니다.
+[AuthService.java](../src/main/java/com/kinderp/domain/auth/service/AuthService.java)의 초반 핵심 메서드는 아래입니다.
 
 - `signUp(...)`
 - `login(...)`
@@ -265,17 +265,17 @@ sequenceDiagram
 
 ```text
 - 핵심 설정 / 필터:
-  - src/main/java/com/erp/global/config/SecurityConfig.java
-  - src/main/java/com/erp/global/config/CsrfCookieFilter.java
-  - src/main/java/com/erp/global/config/StartupSafetyValidator.java
+  - src/main/java/com/kinderp/global/config/SecurityConfig.java
+  - src/main/java/com/kinderp/global/config/CsrfCookieFilter.java
+  - src/main/java/com/kinderp/global/config/StartupSafetyValidator.java
   - src/main/resources/application.yml
 - 인증 API / 서비스:
-  - src/main/java/com/erp/domain/auth/controller/AuthApiController.java
-  - src/main/java/com/erp/domain/auth/service/AuthService.java
-  - src/main/java/com/erp/domain/auth/dto/request/LoginRequest.java
+  - src/main/java/com/kinderp/domain/auth/controller/AuthApiController.java
+  - src/main/java/com/kinderp/domain/auth/service/AuthService.java
+  - src/main/java/com/kinderp/domain/auth/dto/request/LoginRequest.java
 - 검증 파일:
-  - src/test/java/com/erp/api/AuthApiIntegrationTest.java
-  - src/test/java/com/erp/integration/PageAccessIntegrationTest.java
+  - src/test/java/com/kinderp/api/AuthApiIntegrationTest.java
+  - src/test/java/com/kinderp/integration/PageAccessIntegrationTest.java
 ```
 
 ## 12. 구현 체크리스트

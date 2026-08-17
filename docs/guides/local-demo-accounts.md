@@ -215,7 +215,7 @@ MySQL과 Redis가 실행 중인지 확인한 뒤 Spring Boot를 다시 시작합
 
 ## 9. 구현 근거
 
-- 시드 계정과 데이터 생성: `src/main/java/com/erp/global/config/DataLoader.java`
+- 시드 계정과 데이터 생성: `src/main/java/com/kinderp/global/config/DataLoader.java`
 - demo 프로파일: `src/main/resources/application-demo.yml`
 - 환경 변수 계약: `docs/guides/env-contract.md`
 - 전체 데모 시연 순서: `docs/guides/demo-scenario.md`

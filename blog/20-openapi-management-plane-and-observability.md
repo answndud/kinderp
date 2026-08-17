@@ -62,16 +62,16 @@ OpenAPI, health, Prometheus는 유용하지만
 ## 3. 이번 글에서 다룰 파일
 
 ```text
-- src/main/java/com/erp/global/config/OpenApiConfig.java
-- src/main/java/com/erp/global/config/SecurityConfig.java
-- src/main/java/com/erp/global/security/ManagementSurfaceProperties.java
-- src/main/java/com/erp/global/security/RoleRedirectInterceptor.java
-- src/main/java/com/erp/global/monitoring/CriticalDependenciesHealthIndicator.java
-- src/main/java/com/erp/global/monitoring/PrometheusRegistryConfig.java
-- src/main/java/com/erp/global/monitoring/PrometheusScrapeController.java
-- src/main/java/com/erp/global/logging/CorrelationIdFilter.java
-- src/main/java/com/erp/global/logging/RequestLoggingFilter.java
-- src/test/java/com/erp/integration/ObservabilityIntegrationTest.java
+- src/main/java/com/kinderp/global/config/OpenApiConfig.java
+- src/main/java/com/kinderp/global/config/SecurityConfig.java
+- src/main/java/com/kinderp/global/security/ManagementSurfaceProperties.java
+- src/main/java/com/kinderp/global/security/RoleRedirectInterceptor.java
+- src/main/java/com/kinderp/global/monitoring/CriticalDependenciesHealthIndicator.java
+- src/main/java/com/kinderp/global/monitoring/PrometheusRegistryConfig.java
+- src/main/java/com/kinderp/global/monitoring/PrometheusScrapeController.java
+- src/main/java/com/kinderp/global/logging/CorrelationIdFilter.java
+- src/main/java/com/kinderp/global/logging/RequestLoggingFilter.java
+- src/test/java/com/kinderp/integration/ObservabilityIntegrationTest.java
 - docs/COMPLETED.md#archive-003
 ```
 
@@ -100,7 +100,7 @@ flowchart TD
 
 ### 5-1. `OpenApiConfig`: 실행 중인 API 계약 만들기
 
-[OpenApiConfig.java](../src/main/java/com/erp/global/config/OpenApiConfig.java)의 핵심 메서드는 아래입니다.
+[OpenApiConfig.java](../src/main/java/com/kinderp/global/config/OpenApiConfig.java)의 핵심 메서드는 아래입니다.
 
 - `apiV1GroupedOpenApi()`
 - `kindergartenErpOpenApi(...)`
@@ -116,7 +116,7 @@ flowchart TD
 
 ### 5-2. `SecurityConfig`: management surface를 공개/보호하는 기준점
 
-[SecurityConfig.java](../src/main/java/com/erp/global/config/SecurityConfig.java)의 핵심은 `securityFilterChain(...)`과 `buildPublicEndpoints()`입니다.
+[SecurityConfig.java](../src/main/java/com/kinderp/global/config/SecurityConfig.java)의 핵심은 `securityFilterChain(...)`과 `buildPublicEndpoints()`입니다.
 
 `buildPublicEndpoints()`는 아래 경로를 설정 기반으로 조절합니다.
 
@@ -125,7 +125,7 @@ flowchart TD
 - `/v3/api-docs`
 - `/actuator/prometheus`
 
-여기서 [ManagementSurfaceProperties.java](../src/main/java/com/erp/global/security/ManagementSurfaceProperties.java)가 같이 동작합니다.
+여기서 [ManagementSurfaceProperties.java](../src/main/java/com/kinderp/global/security/ManagementSurfaceProperties.java)가 같이 동작합니다.
 
 - `publicApiDocs`
 - `exposePrometheusOnAppPort`
@@ -140,7 +140,7 @@ flowchart TD
 Spring Security에서 경로를 열어도,
 MVC interceptor가 다시 `/login`으로 보내면 결과적으로 접근이 막힙니다.
 
-[RoleRedirectInterceptor.java](../src/main/java/com/erp/global/security/RoleRedirectInterceptor.java)의
+[RoleRedirectInterceptor.java](../src/main/java/com/kinderp/global/security/RoleRedirectInterceptor.java)의
 
 - `isInfrastructurePath(...)`
 
@@ -156,7 +156,7 @@ MVC interceptor가 다시 `/login`으로 보내면 결과적으로 접근이 막
 
 ### 5-4. `CriticalDependenciesHealthIndicator`: readiness를 실제 의존성 상태로 연결
 
-[CriticalDependenciesHealthIndicator.java](../src/main/java/com/erp/global/monitoring/CriticalDependenciesHealthIndicator.java)의 핵심 메서드는 아래입니다.
+[CriticalDependenciesHealthIndicator.java](../src/main/java/com/kinderp/global/monitoring/CriticalDependenciesHealthIndicator.java)의 핵심 메서드는 아래입니다.
 
 - `health()`
 - `probeDatabase()`
@@ -174,10 +174,10 @@ MVC interceptor가 다시 `/login`으로 보내면 결과적으로 접근이 막
 
 ### 5-5. `PrometheusRegistryConfig`와 `PrometheusScrapeController`
 
-[PrometheusRegistryConfig.java](../src/main/java/com/erp/global/monitoring/PrometheusRegistryConfig.java)는
+[PrometheusRegistryConfig.java](../src/main/java/com/kinderp/global/monitoring/PrometheusRegistryConfig.java)는
 Micrometer Prometheus registry를 등록합니다.
 
-[PrometheusScrapeController.java](../src/main/java/com/erp/global/monitoring/PrometheusScrapeController.java)는
+[PrometheusScrapeController.java](../src/main/java/com/kinderp/global/monitoring/PrometheusScrapeController.java)는
 
 - registry가 있을 때만
 - 앱 포트 노출이 허용된 경우에만
@@ -192,7 +192,7 @@ Micrometer Prometheus registry를 등록합니다.
 
 ### 5-6. `CorrelationIdFilter`와 `RequestLoggingFilter`
 
-[CorrelationIdFilter.java](../src/main/java/com/erp/global/logging/CorrelationIdFilter.java)의 핵심은 아래입니다.
+[CorrelationIdFilter.java](../src/main/java/com/kinderp/global/logging/CorrelationIdFilter.java)의 핵심은 아래입니다.
 
 - `shouldNotFilter(...)`
 - `doFilterInternal(...)`
@@ -204,7 +204,7 @@ Micrometer Prometheus registry를 등록합니다.
 - 없으면 UUID를 생성하고
 - MDC와 응답 헤더에 넣습니다
 
-[RequestLoggingFilter.java](../src/main/java/com/erp/global/logging/RequestLoggingFilter.java)는
+[RequestLoggingFilter.java](../src/main/java/com/kinderp/global/logging/RequestLoggingFilter.java)는
 요청이 끝난 뒤 아래 정보를 key=value 형태로 남깁니다.
 
 - `method`
@@ -237,7 +237,7 @@ sequenceDiagram
 
 ## 7. 테스트로 검증하기
 
-대표 테스트는 [ObservabilityIntegrationTest.java](../src/test/java/com/erp/integration/ObservabilityIntegrationTest.java)입니다.
+대표 테스트는 [ObservabilityIntegrationTest.java](../src/test/java/com/kinderp/integration/ObservabilityIntegrationTest.java)입니다.
 
 이 테스트는 아래를 확인합니다.
 
@@ -305,20 +305,20 @@ sequenceDiagram
 
 ```text
 - OpenAPI / 공개 경로:
-  - src/main/java/com/erp/global/config/OpenApiConfig.java
-  - src/main/java/com/erp/global/config/SecurityConfig.java
-  - src/main/java/com/erp/global/security/RoleRedirectInterceptor.java
+  - src/main/java/com/kinderp/global/config/OpenApiConfig.java
+  - src/main/java/com/kinderp/global/config/SecurityConfig.java
+  - src/main/java/com/kinderp/global/security/RoleRedirectInterceptor.java
 - health / metrics:
-  - src/main/java/com/erp/global/monitoring/CriticalDependenciesHealthIndicator.java
-  - src/main/java/com/erp/global/monitoring/PrometheusRegistryConfig.java
-  - src/main/java/com/erp/global/monitoring/PrometheusScrapeController.java
+  - src/main/java/com/kinderp/global/monitoring/CriticalDependenciesHealthIndicator.java
+  - src/main/java/com/kinderp/global/monitoring/PrometheusRegistryConfig.java
+  - src/main/java/com/kinderp/global/monitoring/PrometheusScrapeController.java
   - src/main/resources/application.yml
 - request tracing:
-  - src/main/java/com/erp/global/logging/CorrelationIdFilter.java
-  - src/main/java/com/erp/global/logging/RequestLoggingFilter.java
+  - src/main/java/com/kinderp/global/logging/CorrelationIdFilter.java
+  - src/main/java/com/kinderp/global/logging/RequestLoggingFilter.java
   - src/main/resources/logback-spring.xml
 - 검증:
-  - src/test/java/com/erp/integration/ObservabilityIntegrationTest.java
+  - src/test/java/com/kinderp/integration/ObservabilityIntegrationTest.java
 - 결정 로그:
   - docs/COMPLETED.md#archive-003
   - docs/COMPLETED.md#archive-005

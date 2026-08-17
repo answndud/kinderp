@@ -67,15 +67,15 @@ Aggregate는 함께 변경되고 함께 검증되어야 하는 객체 묶음이�
 ## 3. 이번 글에서 다룰 파일
 
 ```text
-- src/main/java/com/erp/domain/kid/entity/Kid.java
-- src/main/java/com/erp/domain/kid/entity/ParentKid.java
-- src/main/java/com/erp/domain/kid/entity/Relationship.java
-- src/main/java/com/erp/domain/attendance/entity/Attendance.java
-- src/main/java/com/erp/domain/attendance/entity/AttendanceStatus.java
-- src/main/java/com/erp/domain/kid/service/KidService.java
-- src/main/java/com/erp/domain/attendance/service/AttendanceService.java
-- src/test/java/com/erp/api/KidApiIntegrationTest.java
-- src/test/java/com/erp/api/AttendanceApiIntegrationTest.java
+- src/main/java/com/kinderp/domain/kid/entity/Kid.java
+- src/main/java/com/kinderp/domain/kid/entity/ParentKid.java
+- src/main/java/com/kinderp/domain/kid/entity/Relationship.java
+- src/main/java/com/kinderp/domain/attendance/entity/Attendance.java
+- src/main/java/com/kinderp/domain/attendance/entity/AttendanceStatus.java
+- src/main/java/com/kinderp/domain/kid/service/KidService.java
+- src/main/java/com/kinderp/domain/attendance/service/AttendanceService.java
+- src/test/java/com/kinderp/api/KidApiIntegrationTest.java
+- src/test/java/com/kinderp/api/AttendanceApiIntegrationTest.java
 - docs/COMPLETED.md#archive-001
 ```
 
@@ -102,7 +102,7 @@ flowchart TD
 
 ### 5-1. `Kid`: 반 배정과 보호자 연결의 중심
 
-[Kid.java](../src/main/java/com/erp/domain/kid/entity/Kid.java)의 핵심 필드는 아래입니다.
+[Kid.java](../src/main/java/com/kinderp/domain/kid/entity/Kid.java)의 핵심 필드는 아래입니다.
 
 - `classroom`
 - `name`
@@ -126,7 +126,7 @@ flowchart TD
 
 ### 5-2. `ParentKid`: 관계 자체를 도메인으로 올린다
 
-[ParentKid.java](../src/main/java/com/erp/domain/kid/entity/ParentKid.java)는
+[ParentKid.java](../src/main/java/com/kinderp/domain/kid/entity/ParentKid.java)는
 
 - `kid`
 - `parent`
@@ -149,7 +149,7 @@ flowchart TD
 
 ### 5-3. `Attendance`: 출석 상태를 엔티티 메서드로 다룬다
 
-[Attendance.java](../src/main/java/com/erp/domain/attendance/entity/Attendance.java)의 핵심 필드는 아래입니다.
+[Attendance.java](../src/main/java/com/kinderp/domain/attendance/entity/Attendance.java)의 핵심 필드는 아래입니다.
 
 - `kid`
 - `date`
@@ -177,7 +177,7 @@ flowchart TD
 
 ### 5-4. 날짜 유일성은 엔티티와 스키마 둘 다에서 보장한다
 
-[Attendance.java](../src/main/java/com/erp/domain/attendance/entity/Attendance.java)는
+[Attendance.java](../src/main/java/com/kinderp/domain/attendance/entity/Attendance.java)는
 
 ```java
 @Table(name = "attendance", uniqueConstraints = {
@@ -280,17 +280,17 @@ sequenceDiagram
 
 ```text
 - 원생 / 관계:
-  - src/main/java/com/erp/domain/kid/entity/Kid.java
-  - src/main/java/com/erp/domain/kid/entity/ParentKid.java
-  - src/main/java/com/erp/domain/kid/controller/KidController.java
+  - src/main/java/com/kinderp/domain/kid/entity/Kid.java
+  - src/main/java/com/kinderp/domain/kid/entity/ParentKid.java
+  - src/main/java/com/kinderp/domain/kid/controller/KidController.java
 - 출석:
-  - src/main/java/com/erp/domain/attendance/entity/Attendance.java
-  - src/main/java/com/erp/domain/attendance/controller/AttendanceController.java
+  - src/main/java/com/kinderp/domain/attendance/entity/Attendance.java
+  - src/main/java/com/kinderp/domain/attendance/controller/AttendanceController.java
 - 스키마:
   - src/main/resources/db/migration/V1__init_schema.sql
 - 검증:
-  - src/test/java/com/erp/api/KidApiIntegrationTest.java
-  - src/test/java/com/erp/api/AttendanceApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/KidApiIntegrationTest.java
+  - src/test/java/com/kinderp/api/AttendanceApiIntegrationTest.java
 - 결정 로그:
   - docs/COMPLETED.md#archive-001
 ```
