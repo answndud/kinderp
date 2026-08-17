@@ -93,8 +93,8 @@ if [[ "$PREFLIGHT_ONLY" == "1" ]]; then
     exit 0
 fi
 
-previous_image="$(docker inspect --format '{{.Config.Image}}' kindergarten-erp-app 2>/dev/null || true)"
-previous_version="$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' kindergarten-erp-app 2>/dev/null \
+previous_image="$(docker inspect --format '{{.Config.Image}}' kinderp-app 2>/dev/null || true)"
+previous_version="$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' kinderp-app 2>/dev/null \
     | sed -n 's/^APP_VERSION=//p' | head -n 1 || true)"
 
 compose pull

@@ -1,6 +1,6 @@
 # netcup 단일 VPS 배포 가이드
 
-이 문서는 TownPet과 같은 netcup VPS Lite 2 G12s에 Kindergarten ERP를 배포하기 위한 실행 순서다. 상용 트래픽이 거의 없는 포트폴리오 환경이므로 MySQL·Redis·Spring Boot를 같은 서버에 두되, Compose network와 volume은 TownPet과 분리한다.
+이 문서는 TownPet과 같은 netcup VPS Lite 2 G12s에 KinderP를 배포하기 위한 실행 순서다. 상용 트래픽이 거의 없는 포트폴리오 환경이므로 MySQL·Redis·Spring Boot를 같은 서버에 두되, Compose network와 volume은 TownPet과 분리한다.
 
 ## 배포 자산
 
@@ -15,17 +15,17 @@
 ## 서버 디렉터리
 
 ```text
-/opt/kindergarten-erp/
+/opt/kinderp/
 ├─ deploy/
 └─ secrets/prod.env
 ```
 
 `prod.env`는 Git에 넣지 않고 `chmod 600`으로 보관한다. Compose project directory에서 다음을 실행한다.
 
-실제 secret 파일에서는 `PROD_ENV_FILE=/opt/kindergarten-erp/secrets/prod.env`처럼 절대 경로를 사용한다. 저장소의 example 값은 정적 `docker compose config` 검증을 위한 상대 경로다.
+실제 secret 파일에서는 `PROD_ENV_FILE=/opt/kinderp/secrets/prod.env`처럼 절대 경로를 사용한다. 저장소의 example 값은 정적 `docker compose config` 검증을 위한 상대 경로다.
 
 ```bash
-cd /opt/kindergarten-erp
+cd /opt/kinderp
 chmod 600 secrets/prod.env
 ./scripts/validate-netcup-env.sh secrets/prod.env
 docker network create edge || true
@@ -38,7 +38,7 @@ docker network create edge || true
 저장소 루트의 `.dockerignore`는 Gradle·Node 생성물, 로컬 환경 파일, 백업과 문서를 빌드 컨텍스트에서 제외한다. Dockerfile에 필요한 Gradle wrapper·설정·소스만 컨텍스트에 남기므로 CI 빌드가 로컬 작업물이나 secret에 의존하지 않는다.
 
 ```text
-APP_IMAGE=ghcr.io/<owner>/kindergarten-erp:<commit-sha>
+APP_IMAGE=ghcr.io/<owner>/kinderp:<commit-sha>
 APP_VERSION=<commit-sha>
 MYSQL_DATABASE=erp_db
 MYSQL_USER=erpadmin
@@ -69,8 +69,8 @@ docker compose --env-file secrets/prod.env \\
 ```bash
 docker compose -f deploy/docker-compose.netcup.yml ps
 docker compose -f deploy/docker-compose.netcup.yml logs --tail=200 app
-docker inspect --format '{{.State.Health.Status}}' kindergarten-erp-app
-docker exec kindergarten-erp-app wget -qO- http://127.0.0.1:9091/actuator/info
+docker inspect --format '{{.State.Health.Status}}' kinderp-app
+docker exec kinderp-app wget -qO- http://127.0.0.1:9091/actuator/info
 ss -lntp
 ```
 
@@ -80,9 +80,9 @@ ss -lntp
 
 ```bash
 set -a
-. /opt/kindergarten-erp/secrets/prod.env
+. /opt/kinderp/secrets/prod.env
 set +a
-MYSQL_CONTAINER=kindergarten-erp-mysql \\
+MYSQL_CONTAINER=kinderp-mysql \\
 MYSQL_DATABASE="$MYSQL_DATABASE" \\
 MYSQL_USER="$MYSQL_USER" \\
 MYSQL_PASSWORD="$MYSQL_PASSWORD" \\
@@ -102,11 +102,11 @@ AGE_RECIPIENT='age1...'
 
 ```bash
 set -a
-. /opt/kindergarten-erp/secrets/prod.env
+. /opt/kinderp/secrets/prod.env
 set +a
 ALLOW_DESTRUCTIVE_RESTORE=YES \\
 BACKUP_ROOT=/opt/backups/erp-<backup-id> \\
-MYSQL_CONTAINER=kindergarten-erp-mysql \\
+MYSQL_CONTAINER=kinderp-mysql \\
 MYSQL_DATABASE="$MYSQL_DATABASE" \\
 MYSQL_USER="$MYSQL_USER" \\
 MYSQL_PASSWORD="$MYSQL_PASSWORD" \\

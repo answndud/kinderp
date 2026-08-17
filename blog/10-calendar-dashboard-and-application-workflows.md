@@ -7,7 +7,7 @@
 1. 조회를 더 똑똑하게 만든다
 2. 상태 전이를 더 현실적으로 만든다
 
-Kindergarten ERP에서는 이 확장을 아래 도메인으로 풀었습니다.
+KinderP에서는 이 확장을 아래 도메인으로 풀었습니다.
 
 - `Calendar`
 - `Dashboard`

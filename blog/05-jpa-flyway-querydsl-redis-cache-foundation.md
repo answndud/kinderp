@@ -10,7 +10,7 @@ Spring Boot를 처음 공부할 때 데이터 접근 계층에서 가장 많이 
 - Cache는 성능 이슈가 생긴 뒤에 붙여도 되는 것 아닌가?
 - QueryDSL은 아직 복잡한 검색이 없는데 왜 초반에 넣었지?
 
-Kindergarten ERP 프로젝트는 이 질문을 “나중에 생각하자”로 미루지 않았습니다.
+KinderP 프로젝트는 이 질문을 “나중에 생각하자”로 미루지 않았습니다.
 오히려 초반에 공통 토대를 먼저 잡아 두고, 그 위에서 기능을 키우는 방식을 택했습니다.
 
 이번 글에서 설명할 핵심 결론은 이렇습니다.
@@ -114,7 +114,7 @@ Cache는 자주 읽는 결과를 잠깐 저장해 두었다가 같은 계산을 
 - src/main/java/com/erp/domain/dashboard/service/DashboardService.java
 - src/main/java/com/erp/domain/auth/service/AuthSessionRegistryService.java
 - src/test/java/com/erp/common/TestcontainersSupport.java
-- src/test/java/com/erp/ErpApplicationTests.java
+- src/test/java/com/erp/KinderpApplicationTests.java
 - docs/COMPLETED.md#archive-001
 - docs/COMPLETED.md#archive-002
 ```
@@ -581,7 +581,7 @@ sequenceDiagram
 
 ### 7-1. 컨텍스트 로드 테스트
 
-[ErpApplicationTests.java](../src/test/java/com/erp/ErpApplicationTests.java)는 가장 단순한 테스트처럼 보이지만 의미가 큽니다.
+[KinderpApplicationTests.java](../src/test/java/com/erp/KinderpApplicationTests.java)는 가장 단순한 테스트처럼 보이지만 의미가 큽니다.
 
 - `@SpringBootTest`
 - `@ActiveProfiles("test")`
@@ -706,7 +706,7 @@ sequenceDiagram
 
 ```bash
 ./gradlew compileJava compileTestJava
-./gradlew test --tests "com.erp.ErpApplicationTests"
+./gradlew test --tests "com.kinderp.KinderpApplicationTests"
 ```
 
 성공하면 확인할 것:

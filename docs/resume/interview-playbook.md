@@ -4,11 +4,11 @@
 
 ## 1. 30초 자기소개
 
-저는 Java와 Spring Boot로 복잡한 백엔드 요구사항을 데이터 모델과 API로 구조화하고, 성능·보안·운영 관점에서 검증하는 개발자 지망생입니다. 대표 프로젝트로 Java 21, Spring Boot 3.5.14 기반 Kindergarten ERP를 만들었고, 단순 CRUD보다 원장/교사/학부모 권한 경계, 유치원 tenant 격리, JWT cookie와 Redis 세션 revoke, 입학 신청 상태 전이, audit log, notification outbox dead-letter 재처리 같은 운영형 문제를 구현했습니다. AI는 문제 분해와 누락 점검에 활용했지만, 최종 구조 선택과 검증은 직접 책임졌습니다.
+저는 Java와 Spring Boot로 복잡한 백엔드 요구사항을 데이터 모델과 API로 구조화하고, 성능·보안·운영 관점에서 검증하는 개발자 지망생입니다. 대표 프로젝트로 Java 21, Spring Boot 3.5.14 기반 KinderP를 만들었고, 단순 CRUD보다 원장/교사/학부모 권한 경계, 유치원 tenant 격리, JWT cookie와 Redis 세션 revoke, 입학 신청 상태 전이, audit log, notification outbox dead-letter 재처리 같은 운영형 문제를 구현했습니다. AI는 문제 분해와 누락 점검에 활용했지만, 최종 구조 선택과 검증은 직접 책임졌습니다.
 
 ## 2. 3분 프로젝트 설명
 
-Kindergarten ERP는 유치원 운영 관리 시스템을 주제로 한 Spring Boot 백엔드 포트폴리오입니다. 원장, 교사, 학부모가 같은 유치원 데이터를 보지만 가능한 액션이 다르기 때문에, 이 프로젝트의 핵심은 CRUD 화면 수가 아니라 권한 경계와 운영 흐름을 안전하게 닫는 것입니다.
+KinderP는 유치원 운영 관리 시스템을 주제로 한 Spring Boot 백엔드 포트폴리오입니다. 원장, 교사, 학부모가 같은 유치원 데이터를 보지만 가능한 액션이 다르기 때문에, 이 프로젝트의 핵심은 CRUD 화면 수가 아니라 권한 경계와 운영 흐름을 안전하게 닫는 것입니다.
 
 첫 번째 축은 인증과 권한입니다. JWT는 HTTP-only cookie로 전달하고, refresh token과 active session revoke는 Redis TTL 기반으로 관리합니다. endpoint 추가 시 URL 권한과 service 권한을 같이 확인하고, 유치원 tenant 경계를 `AccessPolicyService`와 통합 테스트로 검증했습니다.
 

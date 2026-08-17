@@ -226,7 +226,7 @@ sequenceDiagram
 ## 13. 실행 / 검증 명령
 
 ```bash
-./gradlew test --tests "com.erp.api.KidApiIntegrationTest" --tests "com.erp.api.AttendanceApiIntegrationTest" --tests "com.erp.api.NotepadApiIntegrationTest" --tests "com.erp.api.AnnouncementApiIntegrationTest" --tests "com.erp.api.NotificationApiIntegrationTest"
+./gradlew test --tests "com.kinderp.api.KidApiIntegrationTest" --tests "com.kinderp.api.AttendanceApiIntegrationTest" --tests "com.kinderp.api.NotepadApiIntegrationTest" --tests "com.kinderp.api.AnnouncementApiIntegrationTest" --tests "com.kinderp.api.NotificationApiIntegrationTest"
 ```
 
 성공하면 확인할 것:

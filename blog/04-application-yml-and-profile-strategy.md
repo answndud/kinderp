@@ -11,7 +11,7 @@ Spring Boot를 처음 배울 때 많은 사람이 `application.yml` 파일 하�
 - 로컬에서는 더미 데이터가 자동으로 들어가면 편하지만 운영에서는 절대 그러면 안 된다
 - 로컬에서는 JWT 쿠키 `Secure=false`여야 테스트가 되지만 운영에서는 `Secure=true`가 맞다
 
-Kindergarten ERP 프로젝트도 똑같은 문제를 겪었습니다.
+KinderP 프로젝트도 똑같은 문제를 겪었습니다.
 그래서 설정을 이렇게 나눴습니다.
 
 - `application.yml`

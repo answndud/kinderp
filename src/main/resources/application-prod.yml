@@ -129,5 +129,5 @@ springdoc:
 logging:
   level:
     root: WARN
-    com.erp: INFO
+    com.kinderp: INFO
     org.hibernate.SQL: WARN

@@ -8,7 +8,7 @@
 - 빠른 테스트와 느린 테스트를 어떻게 나눌지 애매하다
 - CI에서 어떤 순서로 돌려야 신뢰도와 속도를 둘 다 잡을 수 있을까?
 
-Kindergarten ERP는 이 문제를 아래 두 축으로 풀었습니다.
+KinderP는 이 문제를 아래 두 축으로 풀었습니다.
 
 - JUnit `@Tag`
 - GitHub Actions job 분리
@@ -56,7 +56,7 @@ CI 실패 시에도 test report를 artifact로 올려 두면
 ```text
 - build.gradle
 - .github/workflows/ci.yml
-- src/test/java/com/erp/ErpApplicationTests.java
+- src/test/java/com/erp/KinderpApplicationTests.java
 - src/test/java/com/erp/api/AuthApiIntegrationTest.java
 - src/test/java/com/erp/performance/AuditConsolePerformanceSmokeTest.java
 - docs/COMPLETED.md#archive-002
@@ -98,7 +98,7 @@ flowchart TD
 
 예를 들어 아래처럼 나뉩니다.
 
-- `ErpApplicationTests`
+- `KinderpApplicationTests`
   - `@Tag("integration")`
 - `AuthApiIntegrationTest`
   - `@Tag("integration")`

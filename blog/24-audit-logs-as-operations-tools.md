@@ -12,7 +12,7 @@
 즉 “로그를 남긴다” 다음 단계는
 **로그를 운영 도구로 쓸 수 있게 만드는 것**입니다.
 
-Kindergarten ERP는 이 단계를 아래 네 축으로 정리했습니다.
+KinderP는 이 단계를 아래 네 축으로 정리했습니다.
 
 1. auth audit / domain audit 조회 API
 2. 원장용 운영 콘솔과 CSV export

@@ -10,7 +10,7 @@
 | 이메일 | `[입력 필요]` |
 | 휴대폰 | `[입력 필요]` |
 | GitHub 프로필 | `[입력 필요]` |
-| Kindergarten ERP 저장소 URL | `[입력 필요]` |
+| KinderP 저장소 URL | `[입력 필요]` |
 | 최신 main commit hash | `[입력 필요]` |
 | 최신 GitHub Actions 성공 run URL | `[입력 필요]` |
 | README 스크린샷 최신화 여부 | `[확인 필요]` |

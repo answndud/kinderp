@@ -1,4 +1,4 @@
-# Kindergarten ERP 유저 가이드
+# KinderP 유저 가이드
 
 이 문서는 유치원 ERP를 처음 사용하는 분들을 위한 가이드입니다.
 대상은 **원장(PRINCIPAL)**, **선생님(TEACHER)**, **학부모(PARENT)** 입니다.

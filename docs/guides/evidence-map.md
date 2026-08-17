@@ -6,7 +6,7 @@
 
 ## 대표 서사
 
-Kindergarten ERP의 대표 질문은 “하나의 유치원 tenant를 여러 역할이 동시에 처리할 때 권한과 업무 상태의 정합성을 어떻게 보장하는가”입니다. TownPet의 대표 서사인 레거시 이관·모듈 경계·복구와 겹치지 않도록, 이 저장소에서는 승인 workflow, 동시성, 감사, Outbox 운영을 하나의 흐름으로 설명합니다. 상세 흐름은 [`docs/architecture/portfolio-story.md`](../architecture/portfolio-story.md)를 기준으로 합니다.
+KinderP의 대표 질문은 “하나의 유치원 tenant를 여러 역할이 동시에 처리할 때 권한과 업무 상태의 정합성을 어떻게 보장하는가”입니다. TownPet의 대표 서사인 레거시 이관·모듈 경계·복구와 겹치지 않도록, 이 저장소에서는 승인 workflow, 동시성, 감사, Outbox 운영을 하나의 흐름으로 설명합니다. 상세 흐름은 [`docs/architecture/portfolio-story.md`](../architecture/portfolio-story.md)를 기준으로 합니다.
 
 ## 1. 핵심 주장별 증거
 
@@ -64,7 +64,7 @@ Kindergarten ERP의 대표 질문은 “하나의 유치원 tenant를 여러 역
 | push quick CI와 동일 계열 | `./gradlew fastTest` | unit/fast slice 중심의 빠른 실패 신호 |
 | heavy 품질 검증 | `./gradlew integrationTest` | MySQL/Redis Testcontainers 기반 통합 검증 |
 | 성능 smoke | `./gradlew performanceSmokeTest` | query count/elapsed time 회귀 확인 |
-| GitHub 최신 CI | `gh run list --repo answndud/Kindergarten_ERP --branch main --limit 5` | 최신 main push 상태 확인 |
+| GitHub 최신 CI | `gh run list --repo answndud/kinderp --branch main --limit 5` | 최신 main push 상태 확인 |
 
 ## 4. 주의할 점
 

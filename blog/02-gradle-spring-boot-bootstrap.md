@@ -1,4 +1,4 @@
-# [Spring Boot 포트폴리오] 02. `settings.gradle`, `build.gradle`, `ErpApplication`으로 프로젝트를 시작하는 법
+# [Spring Boot 포트폴리오] 02. `settings.gradle`, `build.gradle`, `KinderpApplication`으로 프로젝트를 시작하는 법
 
 ## 1. 이번 글에서 풀 문제
 
@@ -7,11 +7,11 @@ Spring Boot 프로젝트를 처음 시작할 때 가장 흔한 실수는 두 가
 1. 일단 IntelliJ가 만들어준 기본 프로젝트를 띄운 뒤, 왜 그렇게 생겼는지 이해하지 못한 채 기능부터 붙이는 것
 2. 반대로 너무 많은 기술을 한 번에 넣어서, 어떤 설정이 왜 필요한지 설명하지 못하는 것
 
-이 글에서는 Kindergarten ERP 프로젝트의 실제 코드를 기준으로, 프로젝트를 시작할 때 가장 먼저 만들어야 하는 세 파일을 설명합니다.
+이 글에서는 KinderP 프로젝트의 실제 코드를 기준으로, 프로젝트를 시작할 때 가장 먼저 만들어야 하는 세 파일을 설명합니다.
 
 - `settings.gradle`
 - `build.gradle`
-- `src/main/java/com/erp/ErpApplication.java`
+- `src/main/java/com/erp/KinderpApplication.java`
 
 그리고 더 중요한 질문도 같이 다룹니다.
 
@@ -59,14 +59,14 @@ dependency는 프로젝트가 사용하는 외부 라이브러리입니다.
 ### 2-4. Entry Point
 
 Spring Boot 애플리케이션은 보통 `main()` 메서드 하나에서 시작합니다.
-이 프로젝트의 시작점은 `ErpApplication.main()`입니다.
+이 프로젝트의 시작점은 `KinderpApplication.main()`입니다.
 
 ## 3. 이번 글에서 다룰 파일
 
 ```text
 - settings.gradle
 - build.gradle
-- src/main/java/com/erp/ErpApplication.java
+- src/main/java/com/erp/KinderpApplication.java
 - .github/workflows/ci.yml
 - docs/COMPLETED.md#archive-002
 - docs/COMPLETED.md#archive-003
@@ -90,7 +90,7 @@ Spring Boot 애플리케이션은 보통 `main()` 메서드 하나에서 시작�
   - 프로젝트 이름만 담당
 - `build.gradle`
   - 플러그인, 자바 버전, 의존성, 테스트 태스크, 컴파일 옵션 담당
-- `ErpApplication.java`
+- `KinderpApplication.java`
   - 애플리케이션 실행 진입점 담당
 
 즉, 각 파일이 한 가지 책임을 갖도록 나눈 것입니다.
@@ -146,28 +146,28 @@ rootProject.name = 'erp'
 현재 저장소 이름과 실제 서비스 이름 사이에는 차이가 있습니다.
 
 - 저장소 / Gradle 루트 이름: `erp`
-- 실제 서비스 설명: Kindergarten ERP
+- 실제 서비스 설명: KinderP
 
 이건 입문자에게도 좋은 교훈입니다.
 처음 프로젝트를 시작할 때는 이름이 다소 단순할 수 있지만, README와 문서에서 제품 이름을 더 명확하게 발전시킬 수 있습니다.
 
 즉, **빌드 시스템 이름과 포트폴리오 브랜딩 이름은 꼭 완전히 같을 필요는 없습니다.**
 
-### 5-2. `ErpApplication`: Spring Boot의 시작점
+### 5-2. `KinderpApplication`: Spring Boot의 시작점
 
 파일:
 
 ```java
-package com.erp;
+package com.kinderp;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ErpApplication {
+public class KinderpApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(ErpApplication.class, args);
+        SpringApplication.run(KinderpApplication.class, args);
     }
 }
 ```
@@ -190,13 +190,13 @@ public class ErpApplication {
   - Spring Boot가 애플리케이션 컨텍스트를 만들고
   - `@Configuration`, `@Service`, `@Controller`, `@Repository` 등을 스캔해서 빈으로 등록합니다.
 
-#### 왜 `com.erp` 패키지 루트에 두는가
+#### 왜 `com.kinderp` 패키지 루트에 두는가
 
 `@SpringBootApplication`은 내부적으로 컴포넌트 스캔의 시작점을 제공합니다.
-이 클래스가 `com.erp` 루트에 있어야
+이 클래스가 `com.kinderp` 루트에 있어야
 
-- `com.erp.global.*`
-- `com.erp.domain.*`
+- `com.kinderp.global.*`
+- `com.kinderp.domain.*`
 
 아래의 컴포넌트들이 자연스럽게 함께 스캔됩니다.
 
@@ -247,7 +247,7 @@ Spring Boot 버전에 맞는 의존성 버전을 비교적 안전하게 맞춰 �
 #### 5-3-2. 프로젝트 메타데이터
 
 ```groovy
-group = 'com.erp'
+group = 'com.kinderp'
 version = '0.0.1-SNAPSHOT'
 description = 'erp'
 ```
@@ -256,8 +256,8 @@ description = 'erp'
 
 지금 단계에서 가장 중요한 것은 `group`입니다.
 
-- 자바 패키지 구조 `com.erp`
-- Gradle 메타데이터 `group = 'com.erp'`
+- 자바 패키지 구조 `com.kinderp`
+- Gradle 메타데이터 `group = 'com.kinderp'`
 
 이 둘을 맞춰 두면 프로젝트 전체가 훨씬 읽기 쉬워집니다.
 
@@ -544,7 +544,7 @@ flowchart TD
     A["settings.gradle"] --> B["Gradle 프로젝트 이름 결정"]
     B --> C["build.gradle"]
     C --> D["플러그인 / 의존성 / Java 버전 / 테스트 태스크 설정"]
-    D --> E["ErpApplication.main()"]
+    D --> E["KinderpApplication.main()"]
     E --> F["SpringApplication.run(...)"]
     F --> G["Spring Bean 스캔 및 컨텍스트 생성"]
     G --> H["웹 서버 기동"]
@@ -554,7 +554,7 @@ flowchart TD
 
 1. `settings.gradle`이 루트 프로젝트 이름을 정합니다.
 2. `build.gradle`이 어떤 라이브러리와 빌드 규칙을 사용할지 정합니다.
-3. `ErpApplication.main()`이 실행되면 Spring Boot가 애플리케이션을 부팅합니다.
+3. `KinderpApplication.main()`이 실행되면 Spring Boot가 애플리케이션을 부팅합니다.
 4. 이후 `application.yml`, `@Configuration`, `@Controller`, `@Service`들이 연결됩니다.
 
 즉, 이 세 파일은 프로젝트의 “가장 작은 뼈대”입니다.
@@ -639,7 +639,7 @@ flowchart TD
 - 새 파일:
   - settings.gradle
   - build.gradle
-  - src/main/java/com/erp/ErpApplication.java
+  - src/main/java/com/erp/KinderpApplication.java
 - 이후 확장 참고:
   - .github/workflows/ci.yml
 ```
@@ -648,7 +648,7 @@ flowchart TD
 
 1. `settings.gradle`에 루트 프로젝트 이름을 정의합니다.
 2. `build.gradle`에 Java / Spring Boot / dependency 관리 플러그인과 starter 의존성을 넣습니다.
-3. `src/main/java/com/erp/ErpApplication.java`를 만들어 `main()` 진입점을 만듭니다.
+3. `src/main/java/com/erp/KinderpApplication.java`를 만들어 `main()` 진입점을 만듭니다.
 4. `./gradlew tasks`로 Gradle wrapper와 태스크 구성이 정상인지 확인합니다.
 5. `./gradlew bootRun --args='--spring.profiles.active=local'`로 최소 부팅이 되는지 확인합니다.
 
@@ -668,15 +668,15 @@ flowchart TD
 ## 14. 글 종료 체크포인트
 
 - 프로젝트 루트에 `settings.gradle`, `build.gradle`이 존재한다
-- `src/main/java/com/erp/ErpApplication.java`가 존재한다
+- `src/main/java/com/erp/KinderpApplication.java`가 존재한다
 - Gradle wrapper로 애플리케이션이 기동된다
 - 아직 기능이 없어도 “부팅 가능한 Spring Boot 뼈대”가 완성돼 있다
 
 ## 15. 자주 막히는 지점
 
-- 증상: `ErpApplication`이 실행되지 않음
-  - 원인: 패키지 위치가 `com.erp` 루트가 아니어서 컴포넌트 스캔 기준이 꼬일 수 있습니다
-  - 확인할 것: `src/main/java/com/erp/ErpApplication.java` 경로인지 확인
+- 증상: `KinderpApplication`이 실행되지 않음
+  - 원인: 패키지 위치가 `com.kinderp` 루트가 아니어서 컴포넌트 스캔 기준이 꼬일 수 있습니다
+  - 확인할 것: `src/main/java/com/erp/KinderpApplication.java` 경로인지 확인
 
 - 증상: `./gradlew bootRun --args='--spring.profiles.active=local'`에서 Java 버전 오류 발생
   - 원인: 로컬 Java가 17이 아니거나 Gradle 설정과 맞지 않을 수 있습니다

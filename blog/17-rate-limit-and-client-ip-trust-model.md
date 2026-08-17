@@ -254,7 +254,7 @@ sequenceDiagram
 관련 테스트만 빠르게 보고 싶다면 아래 명령을 추가로 쓸 수 있습니다.
 
 ```bash
-./gradlew --no-daemon integrationTest --tests "com.erp.api.AuthApiIntegrationTest"
+./gradlew --no-daemon integrationTest --tests "com.kinderp.api.AuthApiIntegrationTest"
 ```
 
 다만 블로그 기준 안정 검증 경로는 전체 `integrationTest`입니다.

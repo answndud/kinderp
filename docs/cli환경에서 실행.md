@@ -1,7 +1,7 @@
 프로젝트 루트에서 다음 순서로 실행하면 됩니다.
 
 ```bash
-cd /Users/alex/project/kindergarten-erp/erp
+cd /Users/alex/project/kinderp/erp
 ```
 
 1. Docker 의존성 실행
@@ -55,7 +55,7 @@ docker compose --env-file docker/.env -f docker/docker-compose.yml down
 빠른 확인용으로는 다음 흐름이면 충분합니다.
 
 ```bash
-cd /Users/alex/project/kindergarten-erp/erp
+cd /Users/alex/project/kinderp/erp
 export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
 docker compose --env-file docker/.env -f docker/docker-compose.yml up -d
 ./gradlew bootRun --args='--spring.profiles.active=local'

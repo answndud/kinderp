@@ -1,6 +1,6 @@
 # Blog Workspace
 
-이 폴더는 Kindergarten ERP를 기반으로 작성할 **취업용 개발 블로그 시리즈**의 작업 공간입니다.
+이 폴더는 KinderP를 기반으로 작성할 **취업용 개발 블로그 시리즈**의 작업 공간입니다.
 
 목표는 두 가지입니다.
 
@@ -71,7 +71,7 @@
 
 ### Part A. 문제 정의
 
-1. [왜 유치원 ERP를 주제로 잡았는가](./01-why-kindergarten-erp-domain.md)
+1. [왜 유치원 ERP를 주제로 잡았는가](./01-why-kinderp-domain.md)
 
 ### Part B. 부트스트랩과 공통 설정
 

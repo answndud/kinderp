@@ -12,7 +12,7 @@
 이 질문에 대답하지 못하면 기능이 많아도
 “운영 준비가 덜 된 프로젝트”처럼 보이기 쉽습니다.
 
-Kindergarten ERP는 이 문제를 아래 네 묶음으로 풀었습니다.
+KinderP는 이 문제를 아래 네 묶음으로 풀었습니다.
 
 1. OpenAPI / Swagger
 2. management surface 노출 정책
@@ -345,7 +345,7 @@ sequenceDiagram
 관련 테스트만 빠르게 보고 싶다면 아래 명령을 추가로 사용할 수 있습니다.
 
 ```bash
-./gradlew --no-daemon integrationTest --tests "com.erp.integration.ObservabilityIntegrationTest"
+./gradlew --no-daemon integrationTest --tests "com.kinderp.integration.ObservabilityIntegrationTest"
 ```
 
 다만 블로그 기준 안정 검증 경로는 전체 `integrationTest`입니다.

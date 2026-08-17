@@ -1,4 +1,4 @@
-# Kindergarten ERP 개발자 가이드
+# KinderP 개발자 가이드
 
 이 문서는 이 저장소에서 기능을 추가/수정하는 개발자를 위한 실무 가이드입니다.
 유저 관점 설명은 `docs/guides/user-guide.md`를 참고하세요.
@@ -9,7 +9,7 @@
 
 ## 1. 프로젝트 개요
 
-- 프로젝트: Kindergarten ERP
+- 프로젝트: KinderP
 - 핵심 역할: `PRINCIPAL`, `TEACHER`, `PARENT`
 - 아키텍처: `domain/{controller,service,repository,entity,dto}` + `global/*`
 - 기술 스택:

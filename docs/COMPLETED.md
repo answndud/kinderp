@@ -34,10 +34,10 @@
   - `CURRENT_FEATURES.md`
 - 검증:
   - `./gradlew compileJava compileTestJava`
-  - `./gradlew test --tests "com.erp.api.AnnouncementApiIntegrationTest"`
-  - `./gradlew test --tests "com.erp.api.AttendanceApiIntegrationTest"`
-  - `./gradlew test --tests "com.erp.api.AuthApiIntegrationTest"`
-  - `./gradlew test --tests "com.erp.domain.kindergartenapplication.service.KindergartenApplicationServiceTest"`
+  - `./gradlew test --tests "com.kinderp.api.AnnouncementApiIntegrationTest"`
+  - `./gradlew test --tests "com.kinderp.api.AttendanceApiIntegrationTest"`
+  - `./gradlew test --tests "com.kinderp.api.AuthApiIntegrationTest"`
+  - `./gradlew test --tests "com.kinderp.domain.kindergartenapplication.service.KindergartenApplicationServiceTest"`
   - 후속으로 classroom/kindergarten/kid application 계열 통합 테스트를 추가 실행했다.
 - 결과:
   - 초기 API 계약과 권한 경계, 문서가 실제 구현 기준으로 다시 맞춰졌고 이후 고도화 배치를 올릴 기반이 정리됐다.
@@ -64,9 +64,9 @@
   - `./gradlew compileJava compileTestJava`
   - `./gradlew test`
   - `./gradlew fastTest integrationTest`
-  - `./gradlew test --tests "com.erp.api.AuthApiIntegrationTest"`
-  - `./gradlew test --tests "com.erp.api.CalendarApiIntegrationTest"`
-  - `./gradlew test --tests "com.erp.performance.DashboardPerformanceStoryTest"`
+  - `./gradlew test --tests "com.kinderp.api.AuthApiIntegrationTest"`
+  - `./gradlew test --tests "com.kinderp.api.CalendarApiIntegrationTest"`
+  - `./gradlew test --tests "com.kinderp.performance.DashboardPerformanceStoryTest"`
   - GitHub Actions 원격 run 성공을 반복 확인했다.
 - 결과:
   - 보안 경계, 테스트 현실성, CI 자동화, 인증 lifecycle, 캘린더 정합성이 한 단계 올라가며 백엔드 포트폴리오의 핵심 축이 만들어졌다.
@@ -202,7 +202,7 @@
   - 로컬 기준에서 이미 제거된 `docs/archive`, `docs/decisions`, `docs/portfolio` 트리 삭제를 이번 배치 범위에 포함해 문서 구조와 git 상태를 일치시켰다.
   - 작업 완료 후 `docs/PLAN.md`, `docs/PROGRESS.md`를 다시 `현재 active 작업 없음` 상태로 비웠다.
 - 코드/문서:
-  - `blog/01-why-kindergarten-erp-domain.md`
+  - `blog/01-why-kinderp-domain.md`
   - `blog/02-gradle-spring-boot-bootstrap.md`
   - `blog/03-docker-mysql-redis-dev-environment.md`
   - `blog/04-application-yml-and-profile-strategy.md`
@@ -231,7 +231,7 @@
   - Impeccable HARNESSES: Codex의 repo-local `.agents/skills` 경로 확인
 - 변경 내용:
   - 공식 Impeccable repo-local skill bundle을 `.agents/skills/*`에 추가했다.
-  - 루트 `.impeccable.md`에 Kindergarten ERP의 사용자, 제품 톤, 화면 원칙, 피해야 할 패턴, 현재 design debt를 정리했다.
+  - 루트 `.impeccable.md`에 KinderP의 사용자, 제품 톤, 화면 원칙, 피해야 할 패턴, 현재 design debt를 정리했다.
   - 전역 npm 설치 없이 detector를 실행하도록 `package.json`, `.npmrc`, `scripts/impeccable-detect.mjs`를 추가했다.
   - `.npmrc`와 스크립트 환경변수로 npm cache/log를 repo 내부 `.cache/npm`에 고정했다.
   - `AGENTS.md`, `docs/guides/developer-guide.md`에 repo-local Impeccable 사용 규칙과 금지 사항을 기록했다.
@@ -675,7 +675,7 @@
   - `docs/PROGRESS.md`
   - `docs/COMPLETED.md`
 - 검증:
-  - `gh run view 24868095291 --repo answndud/Kindergarten_ERP`
+  - `gh run view 24868095291 --repo answndud/kinderp`
   - `ruby -e "require 'yaml'; YAML.load_file('.github/workflows/cd.yml'); puts 'ok'"`
   - `git diff --check`
 - 결과:
@@ -804,7 +804,7 @@
   - `zsh -lc 'java -version; ./gradlew -version'`: Java 21.0.11 / Gradle launcher JVM 21.0.11 확인
   - `zsh -ic 'java -version'`: Java 21.0.11 확인
   - `zsh -lc './gradlew compileJava compileTestJava'`: 통과
-  - `zsh -lc './gradlew test --tests "com.erp.api.NotepadApiIntegrationTest" --tests "com.erp.api.KidApiIntegrationTest" --tests "com.erp.api.AttendanceApiIntegrationTest" --tests "com.erp.api.KidApplicationApiIntegrationTest"'`: 통과
+  - `zsh -lc './gradlew test --tests "com.kinderp.api.NotepadApiIntegrationTest" --tests "com.kinderp.api.KidApiIntegrationTest" --tests "com.kinderp.api.AttendanceApiIntegrationTest" --tests "com.kinderp.api.KidApplicationApiIntegrationTest"'`: 통과
   - `zsh -lc './gradlew fastTest'`: 통과
   - `git diff --check`: 통과
 - 결과:
@@ -854,10 +854,10 @@
   - `src/test/java/com/erp/api/NotificationOutboxOpsApiIntegrationTest.java`
   - `src/test/java/com/erp/domain/calendar/service/RecurrenceExpanderTest.java`
 - 검증:
-  - `./gradlew test --tests "com.erp.api.AttendanceApiIntegrationTest"`: 통과
-  - `./gradlew fastTest test --tests "com.erp.api.CalendarApiIntegrationTest"`: 통과
-  - `./gradlew test --tests "com.erp.api.NotificationOutboxOpsApiIntegrationTest"`: 통과
-  - `./gradlew compileJava compileTestJava fastTest test --tests "com.erp.api.AttendanceApiIntegrationTest" --tests "com.erp.api.CalendarApiIntegrationTest" --tests "com.erp.api.NotificationOutboxOpsApiIntegrationTest"`: 통과
+  - `./gradlew test --tests "com.kinderp.api.AttendanceApiIntegrationTest"`: 통과
+  - `./gradlew fastTest test --tests "com.kinderp.api.CalendarApiIntegrationTest"`: 통과
+  - `./gradlew test --tests "com.kinderp.api.NotificationOutboxOpsApiIntegrationTest"`: 통과
+  - `./gradlew compileJava compileTestJava fastTest test --tests "com.kinderp.api.AttendanceApiIntegrationTest" --tests "com.kinderp.api.CalendarApiIntegrationTest" --tests "com.kinderp.api.NotificationOutboxOpsApiIntegrationTest"`: 통과
   - `./gradlew bootJar`: 통과
   - `./gradlew test`: 통과
   - `rg -n "MemberRepositoryCustom\\.java|MemberRepositoryImpl\\.java|docs/portfolio|docs/decisions|docs/archive|../PLAN.md|../PROGRESS.md" AGENTS.md README.md CURRENT_FEATURES.md blog docs src/main/java src/test/java || true`: 삭제 파일 직접 링크 없음 확인
@@ -916,10 +916,10 @@
   - `src/test/java/com/erp/integration/ViewEndpointTest.java`
   - `src/test/java/com/erp/global/config/SecurityCorsConfigTest.java`
 - 검증:
-  - `./gradlew test --tests "com.erp.integration.ViewEndpointTest" --tests "com.erp.api.NotificationOutboxOpsApiIntegrationTest"`: 통과
-  - `./gradlew test --tests "com.erp.global.config.SecurityCorsConfigTest"`: 통과
-  - `./gradlew compileJava compileTestJava test --tests "com.erp.api.KidApplicationApiIntegrationTest"`: 통과
-  - `./gradlew compileJava compileTestJava fastTest test --tests "com.erp.integration.ViewEndpointTest" --tests "com.erp.api.NotificationOutboxOpsApiIntegrationTest" --tests "com.erp.global.config.SecurityCorsConfigTest" --tests "com.erp.api.KidApplicationApiIntegrationTest"`: 통과
+  - `./gradlew test --tests "com.kinderp.integration.ViewEndpointTest" --tests "com.kinderp.api.NotificationOutboxOpsApiIntegrationTest"`: 통과
+  - `./gradlew test --tests "com.kinderp.global.config.SecurityCorsConfigTest"`: 통과
+  - `./gradlew compileJava compileTestJava test --tests "com.kinderp.api.KidApplicationApiIntegrationTest"`: 통과
+  - `./gradlew compileJava compileTestJava fastTest test --tests "com.kinderp.integration.ViewEndpointTest" --tests "com.kinderp.api.NotificationOutboxOpsApiIntegrationTest" --tests "com.kinderp.global.config.SecurityCorsConfigTest" --tests "com.kinderp.api.KidApplicationApiIntegrationTest"`: 통과
   - `./gradlew bootJar`: 통과
   - `./gradlew test`: 통과
   - `rg -n "notification-outbox|CORS_ALLOWED_ORIGINS|KidApplicationAdmissionService|KidApplicationNotificationService|KidApplicationAuditService|interview-guide" README.md docs src/main/java src/test/java`: 관련 코드/문서 연결 확인
@@ -1184,8 +1184,8 @@
   - `docs/COMPLETED.md`
   - GitHub repository metadata
 - 검증:
-  - `gh run list --repo answndud/Kindergarten_ERP --branch main --limit 3`: 최신 main `Backend CI` success, run `26074225080`, `1m34s` 확인
-  - `gh repo view answndud/Kindergarten_ERP --json description,repositoryTopics,defaultBranchRef,url`: description/topics/main branch 확인
+  - `gh run list --repo answndud/kinderp --branch main --limit 3`: 최신 main `Backend CI` success, run `26074225080`, `1m34s` 확인
+  - `gh repo view answndud/kinderp --json description,repositoryTopics,defaultBranchRef,url`: description/topics/main branch 확인
   - `./gradlew bootJar`: 통과
   - `git diff --check`: 통과
   - `rg -n "30초 요약|제출 전 상태|1m34s|말하기 스크립트|코드 리뷰 유도 포인트" README.md docs/guides/interview-guide.md docs/PLAN.md docs/PROGRESS.md`: 관련 문서 연결 확인
@@ -1219,7 +1219,7 @@
   - `docs/PROGRESS.md`
   - `docs/COMPLETED.md`
 - 검증:
-  - `gh run list --repo answndud/Kindergarten_ERP --branch main --limit 3`: 최신 main `Backend CI` success, run `26074360351`, `1m7s` 확인
+  - `gh run list --repo answndud/kinderp --branch main --limit 3`: 최신 main `Backend CI` success, run `26074360351`, `1m7s` 확인
   - `git diff --check`: 통과
   - `rg -n "1m34s|evidence-map|risk-response|Evidence Map|Risk Response|최근 main push 1분대|Actions" README.md docs`: README 최신 고정값 제거와 새 문서 링크 확인
   - 전체 `./gradlew test`와 `bootJar`는 문서 중심 변경이며 사용자의 최소 검증 선호에 맞춰 실행하지 않았다.
@@ -1265,9 +1265,9 @@
   - `docs/guides/risk-response.md`
   - `docs/PROGRESS.md`
 - 검증:
-  - `./gradlew test --tests "com.erp.global.config.StartupSafetyValidatorTest"`: 통과
-  - `./gradlew test --tests "com.erp.integration.ObservabilityIntegrationTest"`: 통과
-  - `./gradlew test --tests "com.erp.integration.ManagementSurfaceOptInIntegrationTest"`: 통과
+  - `./gradlew test --tests "com.kinderp.global.config.StartupSafetyValidatorTest"`: 통과
+  - `./gradlew test --tests "com.kinderp.integration.ObservabilityIntegrationTest"`: 통과
+  - `./gradlew test --tests "com.kinderp.integration.ManagementSurfaceOptInIntegrationTest"`: 통과
   - `./gradlew bootJar`: 통과
   - `docker compose --env-file docker/.env.example -f docker/docker-compose.yml config >/tmp/docker-compose.base.yml`: 통과
   - `PROD_ENV_FILE=.env.prod.example docker compose --env-file deploy/.env.prod.example -f deploy/docker-compose.prod.yml config >/tmp/docker-compose.prod.yml`: 통과
@@ -1311,7 +1311,7 @@
   - `docs/PROGRESS.md`
 - 검증:
   - `./gradlew compileJava compileTestJava`: 통과
-  - `./gradlew test --tests "com.erp.api.KidApplicationApiIntegrationTest"`: 통과
+  - `./gradlew test --tests "com.kinderp.api.KidApplicationApiIntegrationTest"`: 통과
   - `git diff --check`: 통과
   - `wc -l src/main/java/com/erp/domain/kidapplication/service/KidApplicationService.java src/main/java/com/erp/domain/kidapplication/service/KidApplicationReviewService.java`: `KidApplicationService` 266 lines, `KidApplicationReviewService` 191 lines
   - `rg -n "KidApplicationReviewService|review 상태 전이|큰 service|KidApplicationApiIntegrationTest|Phase 2" docs src/main/java/com/erp/domain/kidapplication/service`: 관련 연결 확인
@@ -1342,7 +1342,7 @@
   - `docs/PROGRESS.md`
   - `docs/COMPLETED.md`
 - 검증:
-  - `./gradlew test --tests "com.erp.api.KidApplicationApiIntegrationTest"`: 통과
+  - `./gradlew test --tests "com.kinderp.api.KidApplicationApiIntegrationTest"`: 통과
 - Spring Boot Doctor 판정:
   - 변경 surface: `test`, `domain workflow regression guard`
   - P0/P1 신규 이슈 없음
@@ -1407,7 +1407,7 @@
   - `docs/guides/interview-guide.md`
   - `docs/PROGRESS.md`
 - 검증:
-  - `./gradlew test --tests "com.erp.api.NotificationOutboxOpsApiIntegrationTest"`: 통과
+  - `./gradlew test --tests "com.kinderp.api.NotificationOutboxOpsApiIntegrationTest"`: 통과
   - `./gradlew compileJava compileTestJava`: 통과
 - Spring Boot Doctor 판정:
   - 변경 surface: `api`, `persistence`, `domain`, `security`, `view`, `docs`
@@ -1444,7 +1444,7 @@
 - 검증:
   - `git diff --check`: 통과
   - `rg -n "TODO|미완료|배포 완료|운영 중인 서비스|1m34s|1m7s|현재 active 작업 없음|dead-letter 채널 summary|dead-letter 목록을 확인" README.md docs`: active 없음 상태와 archive 이력 외 신규 stale 표현 없음
-  - `gh run list --repo answndud/Kindergarten_ERP --branch main --limit 5`: Phase 5 push CI `success`, `1m8s` 확인
+  - `gh run list --repo answndud/kinderp --branch main --limit 5`: Phase 5 push CI `success`, `1m8s` 확인
 - P0/P1 남은 리스크:
   - 제출 패키지 문서 기준 없음.
 - P2/P3 후속:
@@ -1491,7 +1491,7 @@
   - `README.md`
   - `docs/guides/*`
 - 검증:
-  - `./gradlew test --tests "com.erp.api.NotificationOutboxOpsApiIntegrationTest" --tests "com.erp.api.AuthAuditApiIntegrationTest" --tests "com.erp.api.DomainAuditApiIntegrationTest"`: 통과
+  - `./gradlew test --tests "com.kinderp.api.NotificationOutboxOpsApiIntegrationTest" --tests "com.kinderp.api.AuthAuditApiIntegrationTest" --tests "com.kinderp.api.DomainAuditApiIntegrationTest"`: 통과
   - `./gradlew compileJava compileTestJava`: 통과
   - `git diff --check`: 통과
 - Spring Boot Doctor 판정:
@@ -1535,8 +1535,8 @@
   - `docs/PLAN.md`
   - `docs/PROGRESS.md`
 - 검증:
-  - `./gradlew test --tests "com.erp.domain.notification.service.channel.NotificationChannelSenderRegistryTest"`: 통과
-  - `./gradlew test --tests "com.erp.performance.AuditConsolePerformanceSmokeTest" --tests "com.erp.performance.NotificationOutboxPerformanceSmokeTest"`: 통과
+  - `./gradlew test --tests "com.kinderp.domain.notification.service.channel.NotificationChannelSenderRegistryTest"`: 통과
+  - `./gradlew test --tests "com.kinderp.performance.AuditConsolePerformanceSmokeTest" --tests "com.kinderp.performance.NotificationOutboxPerformanceSmokeTest"`: 통과
   - `./gradlew compileJava compileTestJava`: 통과
   - `git diff --check`: 통과
 - Spring Boot Doctor 판정:

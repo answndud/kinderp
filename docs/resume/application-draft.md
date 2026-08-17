@@ -6,7 +6,7 @@
 
 ## 자기소개
 
-저는 복잡한 요구사항을 작은 기술 문제로 나누고, AI를 활용해 구현 속도를 높이되 최종 검증 책임은 직접 지는 백엔드 개발자 지망생입니다. 최근에는 Spring Boot 기반 Kindergarten ERP 프로젝트를 통해 단순 CRUD가 아니라 role/tenant 권한 경계, JWT cookie와 Redis 기반 세션 revoke, 입학 신청 상태 전이, 감사 로그, notification outbox dead-letter 재처리, production-like 안전장치까지 포함한 운영형 백엔드 흐름을 구현했습니다.
+저는 복잡한 요구사항을 작은 기술 문제로 나누고, AI를 활용해 구현 속도를 높이되 최종 검증 책임은 직접 지는 백엔드 개발자 지망생입니다. 최근에는 Spring Boot 기반 KinderP 프로젝트를 통해 단순 CRUD가 아니라 role/tenant 권한 경계, JWT cookie와 Redis 기반 세션 revoke, 입학 신청 상태 전이, 감사 로그, notification outbox dead-letter 재처리, production-like 안전장치까지 포함한 운영형 백엔드 흐름을 구현했습니다.
 
 제가 중요하게 보는 기준은 "작동한다"에서 끝내지 않는 것입니다. AI가 제안한 구조나 코드를 그대로 믿지 않고, 통합 테스트, 성능 smoke, CI, 문서화로 검증 가능한 상태까지 닫는 것을 목표로 작업했습니다. 이 프로젝트에서도 Notepad 조회 query count를 `22 -> 5`, Dashboard cache hit query count를 `5 -> 0`으로 줄였고, 혼자 운영하는 main 프로젝트에 맞게 CI를 quick check와 manual quality workflow로 분리했습니다.
 
@@ -14,7 +14,7 @@
 
 토스뱅크 Server Developer 인턴십에 지원하는 이유는 복잡한 서비스를 빠르고 안정적인 구조로 만들기 위해 비즈니스 요구사항을 데이터 모델과 API로 구체화하고, 성능·자동화·운영까지 연결하는 경험을 쌓고 싶기 때문입니다. 저는 AI를 단순히 코드를 대신 쓰는 도구로 보지 않습니다. 요구사항을 다시 정의하고, 설계 후보를 비교하고, 테스트 누락 지점을 찾고, 문서를 정리하는 보조 수단으로 사용합니다. 다만 최종 결과가 맞는지 판단하고 책임지는 일은 개발자의 몫이라고 생각합니다.
 
-Kindergarten ERP는 이 관점을 보여주기 위한 프로젝트입니다. 실제 클라우드 배포는 비용 문제로 진행하지 않았지만, 그 약점을 숨기지 않고 Dockerfile, prod compose, env contract, startup safety validator, production-like checklist로 운영 전환 전 확인해야 할 항목을 정리했습니다. 특히 역할·tenant 경계, 상태 전이, idempotency, outbox 재처리, MySQL 조회 성능을 구현하고 테스트로 검증했습니다.
+KinderP는 이 관점을 보여주기 위한 프로젝트입니다. 실제 클라우드 배포는 비용 문제로 진행하지 않았지만, 그 약점을 숨기지 않고 Dockerfile, prod compose, env contract, startup safety validator, production-like checklist로 운영 전환 전 확인해야 할 항목을 정리했습니다. 특히 역할·tenant 경계, 상태 전이, idempotency, outbox 재처리, MySQL 조회 성능을 구현하고 테스트로 검증했습니다.
 
 ## AI 활용 경험
 
@@ -29,7 +29,7 @@ AI를 사용했지만, 최종 기준은 항상 저장소의 실제 결과였습�
 
 ## 포트폴리오 설명
 
-대표 포트폴리오는 Kindergarten ERP입니다.
+대표 포트폴리오는 KinderP입니다.
 
 - 저장소: `[GitHub URL 입력]`
 - 주요 기술: Java 21, Spring Boot 3.5.14, JPA, QueryDSL, Spring Security, JWT, Redis, MySQL 8, Flyway, Thymeleaf, HTMX, Alpine.js
@@ -42,7 +42,7 @@ AI를 사용했지만, 최종 기준은 항상 저장소의 실제 결과였습�
 
 ## 짧은 제출 버전
 
-저는 AI를 코드 생성 도구로만 쓰지 않고, 요구사항 분해와 검증 gap 탐색에 적극적으로 활용하는 백엔드 개발자 지망생입니다. 대표 포트폴리오인 Kindergarten ERP에서는 유치원 운영 도메인을 단순 CRUD가 아니라 role/tenant 권한 경계, JWT cookie + Redis 세션 revoke, 입학 신청 상태 전이, audit log, notification outbox dead-letter 재처리, production-like 안전장치 문제로 재구성해 구현했습니다.
+저는 AI를 코드 생성 도구로만 쓰지 않고, 요구사항 분해와 검증 gap 탐색에 적극적으로 활용하는 백엔드 개발자 지망생입니다. 대표 포트폴리오인 KinderP에서는 유치원 운영 도메인을 단순 CRUD가 아니라 role/tenant 권한 경계, JWT cookie + Redis 세션 revoke, 입학 신청 상태 전이, audit log, notification outbox dead-letter 재처리, production-like 안전장치 문제로 재구성해 구현했습니다.
 
 이 프로젝트에서 Notepad 조회 query count를 `22 -> 5`, Dashboard cache hit query count를 `5 -> 0`으로 줄였고, Testcontainers 통합 테스트, performance smoke, GitHub Actions, production-like checklist로 검증 가능한 결과를 남겼습니다. 실제 클라우드 배포는 비용 문제로 아직 하지 않았지만, Dockerfile, prod compose, env contract, startup safety validator를 통해 운영 전환 시 확인해야 할 리스크를 문서화했습니다.
 

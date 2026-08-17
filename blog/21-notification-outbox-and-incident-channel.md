@@ -15,7 +15,7 @@
 - 전달 실패를 운영자가 추적할 수 없다
 - 보안 이벤트를 incident 채널로 보내기도 어렵다
 
-Kindergarten ERP는 이 문제를 `notification_outbox` 패턴으로 풀었습니다.
+KinderP는 이 문제를 `notification_outbox` 패턴으로 풀었습니다.
 
 ## 2. 먼저 알아둘 개념
 
@@ -355,9 +355,9 @@ Outbox를 처음 보면 구조가 복잡해 보일 수 있습니다.
 
 ```bash
 ./gradlew --no-daemon integrationTest \
-  --tests "com.erp.integration.NotificationOutboxIntegrationTest" \
-  --tests "com.erp.integration.NotificationOutboxRetryIntegrationTest" \
-  --tests "com.erp.integration.NotificationOutboxClaimConcurrencyIntegrationTest"
+  --tests "com.kinderp.integration.NotificationOutboxIntegrationTest" \
+  --tests "com.kinderp.integration.NotificationOutboxRetryIntegrationTest" \
+  --tests "com.kinderp.integration.NotificationOutboxClaimConcurrencyIntegrationTest"
 ```
 
 다만 outbox 구간은 일부 환경에서 좁힌 `--tests` 실행 시 Gradle XML result writer 충돌이 재현되므로, 블로그 기준 안정 검증 경로는 전체 `integrationTest`입니다.

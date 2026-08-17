@@ -1,7 +1,7 @@
-# Kindergarten ERP 개편 작업 상세 기록
+# KinderP 개편 작업 상세 기록
 
 기준일: 2026-08-14  
-대상 프로젝트: `kindergarten-erp/erp`  
+대상 프로젝트: `kinderp/erp`  
 목적: 오래된 유치원 ERP를 TownPet과 차별화되는 운영형·다중 테넌트 백엔드 포트폴리오로 재정비한 작업을 기능, 구조, 운영, 검증 관점에서 기록한다.
 
 ## 1. 이 문서의 범위와 시간 해석
@@ -326,5 +326,5 @@ TownPet은 이메일 인증·비밀번호 복구를 위해 SMTP를 사용하고 
 
 ERP 내부 Caddy는 TLS를 직접 종료하지 않고 `http://{$APP_DOMAIN}` site block으로 동작한다. 공용 edge가 upstream 기본 Host를 전달하면 이 site block과 매칭되지 않을 수 있으므로, 내부 reverse proxy에도 원래 요청 Host를 전달하도록 고정했다. TownPet의 media 경로와 함께 두 프로젝트가 하나의 edge를 공유하는 실제 토폴로지에서 발견한 배포 전 결함이다.
 
-- 근거: `deploy/Caddyfile.netcup`, `kindergarten-erp/erp/deploy/Caddyfile.netcup`, TownPet `deploy/compose/Caddyfile.netcup`
+- 근거: `deploy/Caddyfile.netcup`, `kinderp/erp/deploy/Caddyfile.netcup`, TownPet `deploy/compose/Caddyfile.netcup`
 - 검증: Compose config와 shell 문법·문서 링크 검사를 통과했다. 실제 HTTPS·로그인·media 요청은 netcup 승인 후 실행한다.

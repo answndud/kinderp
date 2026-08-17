@@ -1,7 +1,7 @@
 services:
   app:
     image: ${APP_IMAGE:?set APP_IMAGE}
-    container_name: kindergarten-erp-app
+    container_name: kinderp-app
     restart: unless-stopped
     init: true
     stop_grace_period: 30s
@@ -29,7 +29,7 @@ services:
 
   redis:
     image: redis:7-alpine@sha256:e7723ff73d963f5cc6d9c4643ea3d989527a402a319239054e9472a7fb9219a2
-    container_name: kindergarten-erp-redis
+    container_name: kinderp-redis
     restart: unless-stopped
     mem_limit: 256m
     cpus: 0.50
@@ -58,7 +58,7 @@ services:
 
   caddy:
     image: caddy:2@sha256:844f60b64e4724a5aa8245e019dace0d3f199f7433ce6c57676cb30a920dbad9
-    container_name: kindergarten-erp-caddy
+    container_name: kinderp-caddy
     restart: unless-stopped
     mem_limit: 128m
     cpus: 0.50

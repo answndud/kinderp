@@ -15,7 +15,7 @@
 - 소셜 계정을 해제할 때 마지막 로그인 수단이 사라지면 어떻게 할까?
 - 같은 provider의 다른 계정으로 바꾸는 것은 허용할까?
 
-Kindergarten ERP는 이 문제를 꽤 깊게 다뤘습니다.
+KinderP는 이 문제를 꽤 깊게 다뤘습니다.
 
 - 자동 소셜 가입
 - 명시적 소셜 계정 연결
@@ -306,9 +306,9 @@ sequenceDiagram
 
 ```bash
 ./gradlew --no-daemon fastTest \
-  --tests "com.erp.global.security.oauth2.OAuth2AuthenticationSuccessHandlerTest"
+  --tests "com.kinderp.global.security.oauth2.OAuth2AuthenticationSuccessHandlerTest"
 ./gradlew --no-daemon integrationTest \
-  --tests "com.erp.api.MemberApiIntegrationTest"
+  --tests "com.kinderp.api.MemberApiIntegrationTest"
 ```
 
 다만 블로그의 기본 검증 경로는 전체 `fastTest`, `integrationTest`입니다. 일부 환경에서는 좁힌 `--tests` 실행이 XML result writer 충돌로 실패할 수 있기 때문입니다.

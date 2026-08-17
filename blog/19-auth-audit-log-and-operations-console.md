@@ -15,7 +15,7 @@
 - 원장이 자기 유치원 범위의 인증 이력을 직접 볼 수 있는가?
 - 나중에 CSV로 내려 받아 분석할 수 있는가?
 
-Kindergarten ERP는 이 문제를 `auth_audit_log`라는 별도 도메인으로 풀었습니다.
+KinderP는 이 문제를 `auth_audit_log`라는 별도 도메인으로 풀었습니다.
 중요한 점은 단순히 DB에 저장하는 데서 끝나지 않고,
 
 - 저장
@@ -358,8 +358,8 @@ sequenceDiagram
 
 ```bash
 ./gradlew --no-daemon integrationTest \
-  --tests "com.erp.api.AuthApiIntegrationTest" \
-  --tests "com.erp.api.AuthAuditApiIntegrationTest"
+  --tests "com.kinderp.api.AuthApiIntegrationTest" \
+  --tests "com.kinderp.api.AuthAuditApiIntegrationTest"
 ```
 
 다만 블로그 기준 안정 검증 경로는 전체 `integrationTest`입니다.

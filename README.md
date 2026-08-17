@@ -1,4 +1,4 @@
-# Kindergarten ERP
+# KinderP
 
 > 유치원 운영 ERP를 주제로, 인증·권한·상태 전이·감사·관측성을 다룬 Spring Boot 기반 백엔드 시스템입니다.
 
@@ -6,17 +6,17 @@
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.14-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue.svg)](https://www.mysql.com/)
 [![Redis](https://img.shields.io/badge/Redis-7.x-red.svg)](https://redis.io/)
-[![Backend CI](https://github.com/answndud/Kindergarten_ERP/actions/workflows/ci.yml/badge.svg)](https://github.com/answndud/Kindergarten_ERP/actions/workflows/ci.yml)
+[![Backend CI](https://github.com/answndud/kinderp/actions/workflows/ci.yml/badge.svg)](https://github.com/answndud/kinderp/actions/workflows/ci.yml)
 
 ## 프로젝트 개요
 
 - 이 프로젝트의 핵심 문제는 **하나의 유치원 데이터를 원장·교사·학부모가 서로 다른 권한으로 동시에 처리할 때 정합성과 운영 추적성을 어떻게 보장할 것인가**입니다.
 - 단순 CRUD가 아니라 **tenant 경계, 입학·출결 승인 상태 전이, 감사 로그, Outbox dead-letter 운영**까지 하나의 업무 흐름으로 닫았습니다.
 - 성능 개선은 감으로 처리하지 않고 **쿼리 수/응답 시간/CI 시간**을 전후 비교했습니다. Notepad 목록은 `22 queries -> 5 queries`, Dashboard 반복 조회는 cache hit 기준 `5 queries -> 0 queries`로 줄였습니다.
-- `demo` 프로파일과 seed 데이터로 핵심 업무 흐름을 재현할 수 있으며, 빌드·테스트 상태는 상단 [Backend CI](https://github.com/answndud/Kindergarten_ERP/actions/workflows/ci.yml)에서 확인할 수 있습니다.
+- `demo` 프로파일과 seed 데이터로 핵심 업무 흐름을 재현할 수 있으며, 빌드·테스트 상태는 상단 [Backend CI](https://github.com/answndud/kinderp/actions/workflows/ci.yml)에서 확인할 수 있습니다.
 - 실제 클라우드 배포 전이며, 확정 대상은 TownPet과 공유하는 netcup VPS Lite 2 단일 VPS입니다. Docker/배포 자산/runbook과 local/demo/prod 환경 계약을 분리해 준비했습니다.
 
-> TownPet이 레거시 이관과 서비스 구조의 안전성을 보여준다면, Kindergarten ERP는 운영 중 발생하는 권한·승인·동시성·실패 복구를 통제하는 내부 플랫폼을 다룹니다. 상세 설계는 [설계 서사](./docs/architecture/portfolio-story.md)에서 확인할 수 있습니다.
+> TownPet이 레거시 이관과 서비스 구조의 안전성을 보여준다면, KinderP는 운영 중 발생하는 권한·승인·동시성·실패 복구를 통제하는 내부 플랫폼을 다룹니다. 상세 설계는 [설계 서사](./docs/architecture/portfolio-story.md)에서 확인할 수 있습니다.
 
 ## 한눈에 보기
 
@@ -201,8 +201,8 @@ erp/
 ### 1. 저장소 클론
 
 ```bash
-git clone https://github.com/answndud/Kindergarten_ERP.git
-cd Kindergarten_ERP
+git clone https://github.com/answndud/kinderp.git
+cd kinderp
 ```
 
 ### 2. 로컬 infra 실행

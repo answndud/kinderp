@@ -15,7 +15,7 @@
 - 나중에 자리가 생기면 입학 제안을 보내야 한다면?
 - 제안이 일정 시간 내 수락되지 않으면?
 
-Kindergarten ERP는 이 문제를
+KinderP는 이 문제를
 **정원(capacity) + 대기열(waitlist) + 제안(offer) + 만료(expiry)** 모델로 풀었습니다.
 
 ## 2. 먼저 알아둘 개념

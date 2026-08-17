@@ -5,7 +5,7 @@
 
 ## 1) Project Snapshot
 
-- 프로젝트: Kindergarten ERP (유치원 운영 관리 시스템)
+- 프로젝트: KinderP (유치원 운영 관리 시스템)
 - 주요 사용자: 원장(PRINCIPAL), 교사(TEACHER), 학부모(PARENT)
 - 철학: **Simple is Best**
 - 기술: Java 21, Spring Boot 3.5.14, JPA, QueryDSL, Security, JWT, Flyway
@@ -50,19 +50,19 @@ docker compose --env-file docker/.env -f docker/docker-compose.yml down
 ./gradlew test
 
 # 특정 테스트 클래스
-./gradlew test --tests "com.erp.api.AttendanceApiIntegrationTest"
+./gradlew test --tests "com.kinderp.api.AttendanceApiIntegrationTest"
 
 # Nested 클래스
-./gradlew test --tests "com.erp.api.AttendanceApiIntegrationTest$CreateAttendanceTest"
+./gradlew test --tests "com.kinderp.api.AttendanceApiIntegrationTest$CreateAttendanceTest"
 
 # 특정 테스트 메서드
-./gradlew test --tests "com.erp.api.AttendanceApiIntegrationTest.createAttendance_Success_Principal"
+./gradlew test --tests "com.kinderp.api.AttendanceApiIntegrationTest.createAttendance_Success_Principal"
 
 # 패턴 기반 실행
 ./gradlew test --tests "*MemberServiceTest"
 
 # 캐시 무시 재실행
-./gradlew test --tests "com.erp.api.AuthApiIntegrationTest" --rerun
+./gradlew test --tests "com.kinderp.api.AuthApiIntegrationTest" --rerun
 ```
 
 ## 5) Code Style Guidelines
@@ -78,7 +78,7 @@ docker compose --env-file docker/.env -f docker/docker-compose.yml down
 
 - 기존 코드에 wildcard import가 존재하므로 파일 단위 일관성 우선.
 - 신규 코드에서는 explicit import를 권장.
-- FQCN(`com.erp...`) 반복 사용은 지양하고 import로 정리.
+- FQCN(`com.kinderp...`) 반복 사용은 지양하고 import로 정리.
 
 ### 5.3 Types / DTO
 

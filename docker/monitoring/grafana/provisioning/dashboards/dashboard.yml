@@ -1,9 +1,9 @@
 apiVersion: 1
 
 providers:
-  - name: "Kindergarten ERP"
+  - name: "KinderP"
     orgId: 1
-    folder: "Kindergarten ERP"
+    folder: "KinderP"
     type: file
     disableDeletion: false
     updateIntervalSeconds: 10

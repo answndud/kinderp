@@ -36,13 +36,13 @@ if [[ "$PREFLIGHT_ONLY" == "1" ]]; then
   exit 0
 fi
 
-previous_image="$(docker inspect --format '{{.Config.Image}}' kindergarten-erp-app 2>/dev/null || true)"
+previous_image="$(docker inspect --format '{{.Config.Image}}' kinderp-app 2>/dev/null || true)"
 compose pull
 compose up -d mysql redis app caddy
 
 ready=1
 for _ in $(seq 1 "$MAX_ATTEMPTS"); do
-  health="$(docker inspect --format '{{.State.Health.Status}}' kindergarten-erp-app 2>/dev/null || true)"
+  health="$(docker inspect --format '{{.State.Health.Status}}' kinderp-app 2>/dev/null || true)"
   if [[ "$health" == "healthy" ]]; then
     ready=0
     break
@@ -67,7 +67,7 @@ if [[ -z "$previous_image" ]]; then
 fi
 APP_IMAGE="$previous_image" compose up -d app caddy
 for _ in $(seq 1 "$MAX_ATTEMPTS"); do
-  health="$(docker inspect --format '{{.State.Health.Status}}' kindergarten-erp-app 2>/dev/null || true)"
+  health="$(docker inspect --format '{{.State.Health.Status}}' kinderp-app 2>/dev/null || true)"
   [[ "$health" == "healthy" ]] && {
     echo "rollback restored $previous_image" >&2
     exit 1

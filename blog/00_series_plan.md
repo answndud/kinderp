@@ -1,4 +1,4 @@
-# Kindergarten ERP 개발 블로그 시리즈 요약 인덱스
+# KinderP 개발 블로그 시리즈 요약 인덱스
 
 이 문서는 공개용 목차다.
 
@@ -8,11 +8,11 @@
 
 ### Part A. 문제 정의
 
-1. [왜 유치원 ERP를 주제로 잡았는가](./01-why-kindergarten-erp-domain.md)
+1. [왜 유치원 ERP를 주제로 잡았는가](./01-why-kinderp-domain.md)
 
 ### Part B. 부트스트랩과 공통 설정
 
-2. [`settings.gradle`, `build.gradle`, `ErpApplication`으로 시작하기](./02-gradle-spring-boot-bootstrap.md)
+2. [`settings.gradle`, `build.gradle`, `KinderpApplication`으로 시작하기](./02-gradle-spring-boot-bootstrap.md)
 3. [Docker로 MySQL / Redis / monitoring overlay 만들기](./03-docker-mysql-redis-dev-environment.md)
 4. [`application.yml`과 profile 전략 설계하기](./04-application-yml-and-profile-strategy.md)
 5. [JPA / Flyway / QueryDSL / Redis / Cache 공통 설정 잡기](./05-jpa-flyway-querydsl-redis-cache-foundation.md)

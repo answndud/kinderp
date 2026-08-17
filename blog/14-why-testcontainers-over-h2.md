@@ -57,7 +57,7 @@ Testcontainers는 테스트 실행 중 Docker 컨테이너를 띄워
 - src/test/resources/application-test.yml
 - src/test/java/com/erp/common/TestcontainersSupport.java
 - src/test/java/com/erp/common/BaseIntegrationTest.java
-- src/test/java/com/erp/ErpApplicationTests.java
+- src/test/java/com/erp/KinderpApplicationTests.java
 - docs/COMPLETED.md#archive-002
 ```
 
@@ -149,7 +149,7 @@ sequenceDiagram
 
 핵심 검증 파일은 아래입니다.
 
-- `ErpApplicationTests`
+- `KinderpApplicationTests`
   - 컨텍스트 로드
 - `BaseIntegrationTest`
   - 모든 API 통합 테스트의 기반
@@ -210,7 +210,7 @@ Testcontainers는 신뢰도를 크게 올리지만 **속도 비용과 Docker 의
 - 컨테이너 / 테스트 기반:
   - src/test/java/com/erp/common/TestcontainersSupport.java
   - src/test/java/com/erp/common/BaseIntegrationTest.java
-  - src/test/java/com/erp/ErpApplicationTests.java
+  - src/test/java/com/erp/KinderpApplicationTests.java
 - 결정 로그:
   - docs/COMPLETED.md#archive-002
 ```
@@ -233,8 +233,8 @@ Testcontainers는 신뢰도를 크게 올리지만 **속도 비용과 Docker 의
 빠르게 관련 테스트만 보고 싶다면 아래 명령을 추가로 사용할 수 있습니다.
 
 ```bash
-./gradlew test --tests "com.erp.ErpApplicationTests"
-./gradlew test --tests "com.erp.api.AuthApiIntegrationTest"
+./gradlew test --tests "com.kinderp.KinderpApplicationTests"
+./gradlew test --tests "com.kinderp.api.AuthApiIntegrationTest"
 ```
 
 성공하면 확인할 것:
@@ -258,7 +258,7 @@ Testcontainers는 신뢰도를 크게 올리지만 **속도 비용과 Docker 의
 - `build.gradle`에 Testcontainers 관련 의존성이 존재한다
 - `application-test.yml`이 `Flyway + validate`를 사용한다
 - `TestcontainersSupport`, `BaseIntegrationTest`가 공통 기반으로 연결돼 있다
-- `ErpApplicationTests`와 대표 integration 테스트가 컨테이너 기반으로 실행된다
+- `KinderpApplicationTests`와 대표 integration 테스트가 컨테이너 기반으로 실행된다
 
 ## 15. 글 종료 체크포인트
 

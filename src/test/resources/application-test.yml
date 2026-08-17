@@ -64,7 +64,7 @@ jwt:
 # Logging
 logging:
   level:
-    com.erp: INFO
+    com.kinderp: INFO
     org.springframework.security: INFO
     org.springframework.test.web.servlet: INFO
     org.hibernate.SQL: INFO

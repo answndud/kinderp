@@ -4,7 +4,7 @@
 
 도메인이 어느 정도 만들어졌다면 이제 “누가 이 기능을 쓸 수 있는가”를 정해야 합니다.
 
-Kindergarten ERP에서 인증의 첫 단계는 아래 문제를 푸는 것이었습니다.
+KinderP에서 인증의 첫 단계는 아래 문제를 푸는 것이었습니다.
 
 - 비로그인 사용자는 어디까지 접근 가능한가?
 - 회원가입과 로그인은 어떤 API로 시작되는가?
@@ -301,8 +301,8 @@ sequenceDiagram
 
 ```bash
 ./gradlew --no-daemon integrationTest \
-  --tests "com.erp.api.AuthApiIntegrationTest" \
-  --tests "com.erp.integration.PageAccessIntegrationTest"
+  --tests "com.kinderp.api.AuthApiIntegrationTest" \
+  --tests "com.kinderp.integration.PageAccessIntegrationTest"
 ```
 
 다만 일부 환경에서는 좁힌 `--tests` 실행 시 Gradle XML result writer 충돌이 날 수 있으므로, 블로그의 기본 검증 경로는 전체 `integrationTest`로 둡니다.

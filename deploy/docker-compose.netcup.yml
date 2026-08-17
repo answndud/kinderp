@@ -1,7 +1,7 @@
 services:
   mysql:
     image: mysql:8.4
-    container_name: kindergarten-erp-mysql
+    container_name: kinderp-mysql
     restart: unless-stopped
     mem_limit: 768m
     cpus: 1.0
@@ -27,7 +27,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: kindergarten-erp-redis
+    container_name: kinderp-redis
     restart: unless-stopped
     mem_limit: 256m
     cpus: 0.5
@@ -48,7 +48,7 @@ services:
 
   app:
     image: $APP_IMAGE
-    container_name: kindergarten-erp-app
+    container_name: kinderp-app
     restart: unless-stopped
     init: true
     stop_grace_period: 30s
@@ -89,7 +89,7 @@ services:
 
   caddy:
     image: caddy:2-alpine
-    container_name: kindergarten-erp-caddy
+    container_name: kinderp-caddy
     restart: unless-stopped
     mem_limit: 128m
     cpus: 0.5

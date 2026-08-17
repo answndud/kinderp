@@ -92,6 +92,6 @@ app:
 #logging:
 #  level:
 #    root: INFO
-#    com.erp: DEBUG
+#    com.kinderp: DEBUG
 #    org.hibernate.SQL: DEBUG
 #    org.hibernate.orm.jdbc.bind: TRACE  # 바인딩 파라미터 출력

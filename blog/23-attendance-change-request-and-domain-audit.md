@@ -15,7 +15,7 @@
 - 교사/원장 검토 흐름이 없다
 - 잘못 바꾸면 원본 상태가 바로 오염된다
 
-Kindergarten ERP는 이 문제를
+KinderP는 이 문제를
 `Attendance`와 `AttendanceChangeRequest`를 분리해서 풀었습니다.
 그리고 중요한 상태 변화는 `domain_audit_log`에 남기도록 설계했습니다.
 

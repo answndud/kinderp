@@ -62,14 +62,14 @@ jobs:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
-          IMAGE_TAG: ghcr.io/${{ github.repository_owner }}/kindergarten-erp:${{ github.sha }}
+          IMAGE_TAG: ghcr.io/${{ github.repository_owner }}/kinderp:${{ github.sha }}
         run: |
           printf '%s' "$GHCR_READ_TOKEN" | ssh "$DEPLOY_USER@$DEPLOY_HOST" \
             "docker login ghcr.io -u '$GHCR_USERNAME' --password-stdin && \
              cd '$DEPLOY_PATH' && chmod 700 scripts/deploy-netcup.sh scripts/validate-netcup-env.sh && \
              APP_IMAGE='$IMAGE_TAG' APP_VERSION='${{ github.sha }}' \
              COMPOSE_FILE=deploy/docker-compose.netcup.yml \
-             COMPOSE_ENV_FILE=/opt/kindergarten-erp/secrets/prod.env \
+             COMPOSE_ENV_FILE=/opt/kinderp/secrets/prod.env \
              DEPLOY_LOCK_FILE=/tmp/portfolio-deploy.lock \
              ENV_VALIDATOR=scripts/validate-netcup-env.sh \
              scripts/deploy-netcup.sh"

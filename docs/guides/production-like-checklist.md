@@ -26,12 +26,12 @@
 ## 3. 명령
 
 ```bash
-./gradlew test --tests "com.erp.global.config.StartupSafetyValidatorTest"
-./gradlew test --tests "com.erp.integration.ObservabilityIntegrationTest"
-./gradlew test --tests "com.erp.integration.ManagementSurfaceOptInIntegrationTest"
+./gradlew test --tests "com.kinderp.global.config.StartupSafetyValidatorTest"
+./gradlew test --tests "com.kinderp.integration.ObservabilityIntegrationTest"
+./gradlew test --tests "com.kinderp.integration.ManagementSurfaceOptInIntegrationTest"
 ./gradlew bootJar
-docker build --tag kindergarten-erp:quality-check .
-docker image inspect kindergarten-erp:quality-check --format 'user={{.Config.User}}'
+docker build --tag kinderp:quality-check .
+docker image inspect kinderp:quality-check --format 'user={{.Config.User}}'
 docker compose --env-file docker/.env.example -f docker/docker-compose.yml config >/tmp/docker-compose.base.yml
 PROD_ENV_FILE=.env.prod.example docker compose --env-file deploy/.env.prod.example -f deploy/docker-compose.prod.yml config >/tmp/docker-compose.prod.yml
 ALERTMANAGER_WEBHOOK_URL=https://hooks.example.com/alerts docker compose --profile alerting -f docker/docker-compose.monitoring.yml config >/tmp/docker-compose.monitoring-alerting.yml
@@ -69,14 +69,14 @@ git diff --check
 
 | 명령 | 결과 |
 | --- | --- |
-| `./gradlew test --tests "com.erp.global.config.StartupSafetyValidatorTest"` | 통과 |
-| `./gradlew test --tests "com.erp.integration.ObservabilityIntegrationTest"` | 통과 |
-| `./gradlew test --tests "com.erp.integration.ManagementSurfaceOptInIntegrationTest"` | 통과 |
+| `./gradlew test --tests "com.kinderp.global.config.StartupSafetyValidatorTest"` | 통과 |
+| `./gradlew test --tests "com.kinderp.integration.ObservabilityIntegrationTest"` | 통과 |
+| `./gradlew test --tests "com.kinderp.integration.ManagementSurfaceOptInIntegrationTest"` | 통과 |
 | `./gradlew bootJar` | 통과 |
 | `docker compose --env-file docker/.env.example -f docker/docker-compose.yml config >/tmp/docker-compose.base.yml` | 통과 |
 | `PROD_ENV_FILE=.env.prod.example docker compose --env-file deploy/.env.prod.example -f deploy/docker-compose.prod.yml config >/tmp/docker-compose.prod.yml` | 통과 |
-| `docker build --tag kindergarten-erp:quality-check .` | 통과 |
-| `docker image inspect kindergarten-erp:quality-check --format 'user={{.Config.User}}'` | `user=10001:10001` |
+| `docker build --tag kinderp:quality-check .` | 통과 |
+| `docker image inspect kinderp:quality-check --format 'user={{.Config.User}}'` | `user=10001:10001` |
 | `docker run --rm -e APP_DOMAIN=erp.example.com -v "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2 caddy validate --config /etc/caddy/Caddyfile` | 통과 |
 | `bash -n scripts/deploy-with-rollback.sh scripts/backup-production.sh scripts/verify-production-backup.sh scripts/restore-production-backup.sh` | 통과 |
 | `PREFLIGHT_ONLY=1 PROD_ENV_FILE=.env.prod.example COMPOSE_ENV_FILE=deploy/.env.prod.example COMPOSE_FILE=deploy/docker-compose.prod.yml ./scripts/deploy-with-rollback.sh` | 통과 |
@@ -85,8 +85,8 @@ git diff --check
 | Docker k6 `k6-auth-notepad-dashboard.js` | 15 VU, 30초, 1,068 requests, error 0.00%, 전체 p95 362.13ms / p99 464.86ms |
 | `scripts/backup-production.sh` + `scripts/verify-production-backup.sh` | 로컬 MySQL/Redis backup artifact 생성, staging 정리·atomic promote 및 SHA-256 검증 통과 |
 | 임시 MySQL/Redis restore drill | dump/RDB를 별도 disposable container에 복원하고 MySQL `member=12`, `notepad=10`, `notification_outbox=4`, Redis `dbsize=1496` 확인 |
-| Docker production-like stack (`kindergarten-erp:local-prod`) | MySQL + prod Redis + Spring Boot + Caddy 기동, readiness `200/UP`, 이미지 사용자 `10001:10001` 확인 |
-| Docker production-like stack (`kindergarten-erp:healthcheck`) | app 컨테이너 `healthy` 확인 후 Caddy가 시작되고 HTTPS `/login` `200` 응답 |
+| Docker production-like stack (`kinderp:local-prod`) | MySQL + prod Redis + Spring Boot + Caddy 기동, readiness `200/UP`, 이미지 사용자 `10001:10001` 확인 |
+| Docker production-like stack (`kinderp:healthcheck`) | app 컨테이너 `healthy` 확인 후 Caddy가 시작되고 HTTPS `/login` `200` 응답 |
 | Caddy HTTPS smoke | `https://localhost/login` `200`, HTTP `/login` `308` HTTPS redirect, `401` unauthenticated API, HSTS/X-Content-Type-Options/X-Frame-Options/Referrer-Policy 확인 |
 | Graceful restart recovery | app `docker restart -t 30` 후 readiness `UP`(6번째 polling, 약 10초 이내), HTTPS `/login` `200` |
 | Outbox V17 EXPLAIN 비교 | `Using filesort` → `Backward index scan` |

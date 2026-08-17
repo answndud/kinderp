@@ -1,6 +1,6 @@
 # 로컬 데모 계정과 테스트 시나리오
 
-이 문서는 Kindergarten ERP를 로컬에서 실행한 뒤 브라우저로 로그인하고, 역할별 기능을 빠르게 확인하기 위한 안내서입니다.
+이 문서는 KinderP를 로컬에서 실행한 뒤 브라우저로 로그인하고, 역할별 기능을 빠르게 확인하기 위한 안내서입니다.
 
 아래 계정과 비밀번호는 합성 시드 데이터 전용입니다. 실제 개인정보는 포함하지 않으며, 공개 포트폴리오 showcase에서는 방문자가 역할별 화면을 확인할 수 있도록 사용할 수 있습니다. 상용 운영이나 실제 사용자 데이터가 있는 환경에서는 재사용하지 않습니다.
 
@@ -15,7 +15,7 @@ netcup showcase에서는 `SPRING_PROFILES_ACTIVE=prod`, `APP_PUBLIC_DEMO_ENABLED
 `demo` 프로파일은 `local` 설정을 포함하고 시드 데이터가 자동으로 활성화됩니다.
 
 ```bash
-cd /Users/alex/project/kindergarten-erp/erp
+cd /Users/alex/project/kinderp/erp
 docker compose --env-file docker/.env -f docker/docker-compose.yml up -d
 SPRING_PROFILES_ACTIVE=demo ./gradlew bootRun
 ```
@@ -31,7 +31,7 @@ SPRING_PROFILES_ACTIVE=demo ./gradlew bootRun
 `local`은 기본적으로 시드가 꺼져 있으므로 계정과 샘플 데이터가 필요하면 `APP_SEED_ENABLED=true`를 함께 지정합니다.
 
 ```bash
-cd /Users/alex/project/kindergarten-erp/erp
+cd /Users/alex/project/kinderp/erp
 docker compose --env-file docker/.env -f docker/docker-compose.yml up -d
 APP_SEED_ENABLED=true SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
 ```

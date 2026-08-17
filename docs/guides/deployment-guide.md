@@ -1,4 +1,4 @@
-# Kindergarten ERP 배포 가이드
+# KinderP 배포 가이드
 
 > 이 문서는 AWS EC2+RDS 대안의 비교·참고 기록으로 유지한다. 실제 실행 순서와 현재 확정된 포트폴리오 배포 대상은 [netcup 단일 VPS 배포 가이드](./netcup-deployment.md)다.
 
@@ -273,7 +273,7 @@ AWS에서는 아래를 순서대로 합니다.
 예시:
 
 - `erp.yourdomain.com`
-- `kindergarten-erp.yourdomain.com`
+- `kinderp.yourdomain.com`
 
 이 문서에서는 예시 도메인을 아래처럼 쓰겠습니다.
 
@@ -473,9 +473,9 @@ docker compose version
 ### 10.2 배포 디렉토리 준비
 
 ```bash
-sudo mkdir -p /opt/kindergarten-erp
-sudo chown -R $USER:$USER /opt/kindergarten-erp
-cd /opt/kindergarten-erp
+sudo mkdir -p /opt/kinderp
+sudo chown -R $USER:$USER /opt/kinderp
+cd /opt/kinderp
 mkdir -p deploy
 ```
 
@@ -511,7 +511,7 @@ mkdir -p deploy
 필수 변수:
 
 ```bash
-APP_IMAGE=ghcr.io/<YOUR_GITHUB_USERNAME>/kindergarten-erp:latest
+APP_IMAGE=ghcr.io/<YOUR_GITHUB_USERNAME>/kinderp:latest
 
 SPRING_PROFILES_ACTIVE=prod
 SERVER_FORWARD_HEADERS_STRATEGY=framework
@@ -637,16 +637,16 @@ Kakao Developers에서 해야 할 핵심은 아래입니다.
 예시:
 
 ```bash
-scp -i ~/Downloads/erp-prod-key.pem deploy/docker-compose.prod.yml ubuntu@<EC2_PUBLIC_IP>:/opt/kindergarten-erp/deploy/
-scp -i ~/Downloads/erp-prod-key.pem deploy/Caddyfile ubuntu@<EC2_PUBLIC_IP>:/opt/kindergarten-erp/deploy/
-scp -i ~/Downloads/erp-prod-key.pem deploy/.env.prod ubuntu@<EC2_PUBLIC_IP>:/opt/kindergarten-erp/deploy/
+scp -i ~/Downloads/erp-prod-key.pem deploy/docker-compose.prod.yml ubuntu@<EC2_PUBLIC_IP>:/opt/kinderp/deploy/
+scp -i ~/Downloads/erp-prod-key.pem deploy/Caddyfile ubuntu@<EC2_PUBLIC_IP>:/opt/kinderp/deploy/
+scp -i ~/Downloads/erp-prod-key.pem deploy/.env.prod ubuntu@<EC2_PUBLIC_IP>:/opt/kinderp/deploy/
 ```
 
 서버에서 확인:
 
 ```bash
 ssh -i ~/Downloads/erp-prod-key.pem ubuntu@<EC2_PUBLIC_IP>
-cd /opt/kindergarten-erp/deploy
+cd /opt/kinderp/deploy
 ls -la
 ```
 
@@ -678,7 +678,7 @@ ls -la
 ### 17.2 서버에서 실행
 
 ```bash
-cd /opt/kindergarten-erp/deploy
+cd /opt/kinderp/deploy
 PREFLIGHT_ONLY=1 ./deploy-with-rollback.sh
 SMOKE_URL=https://erp.example.com/login ./deploy-with-rollback.sh
 docker compose --env-file .env.prod -f docker-compose.prod.yml ps
@@ -767,7 +767,7 @@ Repository Secrets에 아래 값을 넣습니다.
 | `DEPLOY_USER` | 보통 `ubuntu` |
 | `DEPLOY_SSH_KEY` | `.pem` 파일 내용 |
 | `DEPLOY_KNOWN_HOSTS` | `ssh-keyscan -H <host>`를 운영자가 별도 검증한 뒤 저장한 서버 host key 한 줄 이상 |
-| `DEPLOY_PATH` | `/opt/kindergarten-erp/deploy` |
+| `DEPLOY_PATH` | `/opt/kinderp/deploy` |
 | `GHCR_USERNAME` | GitHub username |
 | `GHCR_READ_TOKEN` | 서버에서 GHCR 이미지를 pull할 때 사용할 token |
 | `DEPLOY_SMOKE_URL` | 선택값. 배포 후 외부 HTTPS login/health URL. 설정하면 실패 시 자동 rollback |
@@ -877,7 +877,7 @@ export REDIS_PASSWORD='disposable-redis-password'
 예시:
 
 ```bash
-APP_IMAGE=ghcr.io/alex/kindergarten-erp:latest
+APP_IMAGE=ghcr.io/alex/kinderp:latest
 ```
 
 ### 22.2 롤백 절차
@@ -887,7 +887,7 @@ APP_IMAGE=ghcr.io/alex/kindergarten-erp:latest
 3. 아래 명령 실행
 
 ```bash
-cd /opt/kindergarten-erp/deploy
+cd /opt/kinderp/deploy
 ./deploy-with-rollback.sh
 curl --fail http://127.0.0.1:9091/actuator/health/readiness
 ```
@@ -895,7 +895,7 @@ curl --fail http://127.0.0.1:9091/actuator/health/readiness
 예시:
 
 ```bash
-APP_IMAGE=ghcr.io/alex/kindergarten-erp:9f6ab2c
+APP_IMAGE=ghcr.io/alex/kinderp:9f6ab2c
 ```
 
 ---
@@ -931,8 +931,8 @@ APP_IMAGE=ghcr.io/alex/kindergarten-erp:9f6ab2c
 실제 클라우드 배포 전에도 아래 항목은 로컬/CI에서 반복 확인할 수 있습니다.
 
 ```bash
-./gradlew test --tests "com.erp.global.config.StartupSafetyValidatorTest"
-./gradlew test --tests "com.erp.integration.ObservabilityIntegrationTest"
+./gradlew test --tests "com.kinderp.global.config.StartupSafetyValidatorTest"
+./gradlew test --tests "com.kinderp.integration.ObservabilityIntegrationTest"
 ./gradlew bootJar
 docker compose --env-file docker/.env.example -f docker/docker-compose.yml config >/tmp/docker-compose.base.yml
 PROD_ENV_FILE=.env.prod.example docker compose --env-file deploy/.env.prod.example -f deploy/docker-compose.prod.yml config >/tmp/docker-compose.prod.yml
@@ -1084,7 +1084,7 @@ deploy/.env.prod
 services:
   app:
     image: ${APP_IMAGE}
-    container_name: kindergarten-erp-app
+    container_name: kinderp-app
     restart: unless-stopped
     env_file:
       - ${PROD_ENV_FILE:-.env.prod}
@@ -1098,7 +1098,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: kindergarten-erp-redis
+    container_name: kinderp-redis
     restart: unless-stopped
     command: sh -c "redis-server --appendonly yes --requirepass $$REDIS_PASSWORD"
     env_file:
@@ -1112,7 +1112,7 @@ services:
 
   caddy:
     image: caddy:2
-    container_name: kindergarten-erp-caddy
+    container_name: kinderp-caddy
     restart: unless-stopped
     depends_on:
       - app
@@ -1163,7 +1163,7 @@ erp.example.com {
 ## 31. 템플릿: deploy/.env.prod.example
 
 ```bash
-APP_IMAGE=ghcr.io/<YOUR_GITHUB_USERNAME>/kindergarten-erp:latest
+APP_IMAGE=ghcr.io/<YOUR_GITHUB_USERNAME>/kinderp:latest
 
 SPRING_PROFILES_ACTIVE=prod
 SERVER_FORWARD_HEADERS_STRATEGY=framework
@@ -1228,7 +1228,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/kindergarten-erp
+          images: ghcr.io/${{ github.repository_owner }}/kinderp
           tags: |
             type=raw,value=latest
             type=sha
@@ -1274,7 +1274,7 @@ jobs:
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
           SMOKE_URL: ${{ secrets.DEPLOY_SMOKE_URL }}
-          IMAGE_TAG: ghcr.io/${{ github.repository_owner }}/kindergarten-erp:${{ github.sha }}
+          IMAGE_TAG: ghcr.io/${{ github.repository_owner }}/kinderp:${{ github.sha }}
         run: |
           ssh -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
             "$DEPLOY_USER@$DEPLOY_HOST" \

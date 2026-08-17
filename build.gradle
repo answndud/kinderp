@@ -12,7 +12,7 @@ ext {
     set('tomcat.version', '10.1.55')
 }
 
-group = 'com.erp'
+group = 'com.kinderp'
 version = '0.0.1-SNAPSHOT'
 description = 'erp'
 

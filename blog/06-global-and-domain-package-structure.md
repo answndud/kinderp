@@ -9,7 +9,7 @@ Spring Boot 입문 프로젝트에서 기능을 빨리 붙이다 보면 코드�
 - 공통 설정과 도메인 코드가 한 패키지에 섞인다
 - 나중에 기능이 늘수록 파일을 어디 둬야 할지 헷갈린다
 
-Kindergarten ERP는 초반부터 이 문제를 피하려고 구조를 두 갈래로 나눴습니다.
+KinderP는 초반부터 이 문제를 피하려고 구조를 두 갈래로 나눴습니다.
 
 - `global/*`
   - 전역 규약과 설정
@@ -309,7 +309,7 @@ sequenceDiagram
 - 결정 로그:
   - docs/COMPLETED.md#archive-001
 - 검증:
-  - src/test/java/com/erp/ErpApplicationTests.java
+  - src/test/java/com/erp/KinderpApplicationTests.java
   - src/test/java/com/erp/api/MemberApiIntegrationTest.java
 ```
 
@@ -347,7 +347,7 @@ sequenceDiagram
   - `ErrorCode`
   - `GlobalExceptionHandler`
 - 대표 검증 대상:
-  - `ErpApplicationTests`
+  - `KinderpApplicationTests`
   - `MemberApiIntegrationTest`
 - 이후 모든 도메인이 따르는 패키지 규칙:
   - `domain/{controller,service,repository,entity,dto}`

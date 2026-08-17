@@ -8,7 +8,7 @@
 - Access Token과 Refresh Token은 어디서 만들까?
 - 요청마다 쿠키에서 토큰을 꺼내 인증으로 바꾸는 작업은 누가 할까?
 
-Kindergarten ERP는 이 문제를 아래 세 축으로 풀었습니다.
+KinderP는 이 문제를 아래 세 축으로 풀었습니다.
 
 - `JwtTokenProvider`
 - `JwtFilter`
@@ -264,7 +264,7 @@ local/demo만 개발용 fallback secret을 허용하고, 그 외 환경은 `JWT_
 빠르게 관련 테스트만 보고 싶다면 아래 명령을 추가로 사용할 수 있습니다.
 
 ```bash
-./gradlew --no-daemon integrationTest --tests "com.erp.api.AuthApiIntegrationTest"
+./gradlew --no-daemon integrationTest --tests "com.kinderp.api.AuthApiIntegrationTest"
 ```
 
 다만 일부 환경에서는 좁힌 `--tests` 실행이 불안정할 수 있으므로, 블로그 기준 안정 검증 경로는 전체 `integrationTest`입니다.

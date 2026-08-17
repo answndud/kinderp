@@ -45,7 +45,7 @@ server:
 logging:
   level:
     root: INFO
-    com.erp: DEBUG
+    com.kinderp: DEBUG
     org.hibernate.SQL: DEBUG
 
 management:
@@ -73,7 +73,7 @@ management:
 info:
   app:
     name: ${spring.application.name}
-    description: Kindergarten ERP backend portfolio project
+    description: KinderP backend portfolio project
     version: ${APP_VERSION:0.0.1-SNAPSHOT}
 
 # 알림 발송 설정 (외부 채널은 선택 사항)

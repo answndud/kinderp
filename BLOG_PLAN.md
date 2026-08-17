@@ -1,7 +1,7 @@
 # BLOG_PLAN.md
 
 ## 작업명
-- Kindergarten ERP 취업용 개발 블로그 시리즈 설계 4차 (보안/운영/Java 21 기준선 싱크 포함)
+- KinderP 취업용 개발 블로그 시리즈 설계 4차 (보안/운영/Java 21 기준선 싱크 포함)
 
 ## 문서 역할
 - 이 문서는 `blog/` 아래 실제 글을 쓰기 전에 기준이 되는 **블로그 집필 SSOT**다.
@@ -181,7 +181,7 @@
 - `src/main/resources/application-demo.yml`
 - `src/main/resources/application-prod.yml`
 - `src/main/resources/logback-spring.xml`
-- `src/main/java/com/erp/ErpApplication.java`
+- `src/main/java/com/erp/KinderpApplication.java`
 - `src/main/java/com/erp/global/config/DataLoader.java`
 
 ### 3-2. DB / 스키마 진화
@@ -275,7 +275,7 @@
 ## 5) 실제 코드 기준 개발 연대기
 
 ### Stage A. 기초 구축
-- `settings.gradle`, `build.gradle`, `ErpApplication`
+- `settings.gradle`, `build.gradle`, `KinderpApplication`
 - `application.yml`, `application-local.yml`
 - `V1__init_schema.sql`
 - 초기 도메인: `Member`, `Kindergarten`, `Classroom`, `Kid`
@@ -318,7 +318,7 @@
 
 ### Part B. 부트스트랩과 공통 설정
 - `02. Gradle과 Spring Boot 뼈대 만들기`
-  - `settings.gradle`, `build.gradle`, `ErpApplication`
+  - `settings.gradle`, `build.gradle`, `KinderpApplication`
 - `03. Docker로 MySQL / Redis 개발 환경 만들기`
   - `docker-compose.yml`, monitoring overlay
 - `04. application.yml과 profile 전략 설계하기`

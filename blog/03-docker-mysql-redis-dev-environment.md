@@ -10,7 +10,7 @@ Spring Boot 프로젝트를 처음 만들 때 많은 사람이 애플리케이�
 - 로컬 개발 환경을 팀원이나 면접관도 같은 방식으로 재현할 수 있는가
 - 관측성 도구는 애플리케이션과 어떻게 분리할 것인가
 
-Kindergarten ERP 프로젝트는 이 문제를 다음 방식으로 풀었습니다.
+KinderP 프로젝트는 이 문제를 다음 방식으로 풀었습니다.
 
 - 애플리케이션은 로컬 호스트에서 실행
 - MySQL / Redis는 Docker Compose로 실행
@@ -336,7 +336,7 @@ Prometheus는 메트릭을 주기적으로 수집합니다.
 
 ```yaml
 scrape_configs:
-  - job_name: "kindergarten-erp"
+  - job_name: "kinderp"
     metrics_path: /actuator/prometheus
     static_configs:
       - targets:
