@@ -24,6 +24,8 @@ spring:
     enabled: true
     baseline-on-migrate: true
     locations: classpath:db/migration
+    user: ${FLYWAY_DB_USERNAME:${DB_USERNAME:}}
+    password: ${FLYWAY_DB_PASSWORD:${DB_PASSWORD:}}
 
 # JWT 설정
 jwt:
@@ -36,6 +38,14 @@ jwt:
 # 서버 설정
 server:
   port: 8080
+  max-http-request-header-size: 16KB
+  tomcat:
+    max-http-form-post-size: 1MB
+    max-swallow-size: 1MB
+  request-limits:
+    max-request-size: 1MB
+    max-header-count: 100
+    max-parameter-count: 100
   servlet:
     encoding:
       charset: UTF-8
@@ -110,6 +120,10 @@ notification:
       enabled: false
       webhook-url: ${NOTIFICATION_INCIDENT_WEBHOOK:}
       signature-secret: ${NOTIFICATION_INCIDENT_WEBHOOK_SECRET:}
+    rate-limit:
+      window: ${NOTIFICATION_RATE_LIMIT_WINDOW:1m}
+      user-limit: ${NOTIFICATION_RATE_LIMIT_USER:30}
+      ip-limit: ${NOTIFICATION_RATE_LIMIT_IP:100}
 
 app:
   seed:

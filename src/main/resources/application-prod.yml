@@ -47,6 +47,8 @@ spring:
   flyway:
     enabled: true
     clean-disabled: true  # 운영에서는 clean 절대 금지
+    user: ${FLYWAY_DB_USERNAME}
+    password: ${FLYWAY_DB_PASSWORD}
 
   security:
     oauth2:
@@ -82,6 +84,14 @@ jwt:
 
 server:
   shutdown: graceful
+  max-http-request-header-size: 16KB
+  tomcat:
+    max-http-form-post-size: 1MB
+    max-swallow-size: 1MB
+  request-limits:
+    max-request-size: 1MB
+    max-header-count: 100
+    max-parameter-count: 100
 
 management:
   server:
@@ -118,6 +128,10 @@ notification:
       signature-secret: ${NOTIFICATION_APP_WEBHOOK_SECRET:}
     incident-webhook:
       signature-secret: ${NOTIFICATION_INCIDENT_WEBHOOK_SECRET:}
+    rate-limit:
+      window: ${NOTIFICATION_RATE_LIMIT_WINDOW:1m}
+      user-limit: ${NOTIFICATION_RATE_LIMIT_USER:30}
+      ip-limit: ${NOTIFICATION_RATE_LIMIT_IP:100}
 
 springdoc:
   api-docs:

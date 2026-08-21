@@ -73,6 +73,9 @@ logging:
 notification:
   delivery:
     worker-enabled: false
+    rate-limit:
+      user-limit: 2
+      ip-limit: 3
     push:
       signature-secret: test-push-webhook-secret
     app:

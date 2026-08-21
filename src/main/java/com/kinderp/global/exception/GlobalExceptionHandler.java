@@ -44,7 +44,8 @@ public class GlobalExceptionHandler {
             log.warn("BusinessException: {}", e.getMessage());
         }
         ResponseEntity.BodyBuilder response = ResponseEntity.status(e.getErrorCode().getStatus());
-        if (e.getErrorCode() == ErrorCode.AUTH_RATE_LIMITED) {
+        if (e.getErrorCode() == ErrorCode.AUTH_RATE_LIMITED
+                || e.getErrorCode() == ErrorCode.EXTERNAL_API_RATE_LIMITED) {
             response.header(HttpHeaders.RETRY_AFTER, "60");
         }
         return response.body(ApiResponse.error(e.getErrorCode(), e.getMessage()));

@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily KinderP backup schedule
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+Persistent=true
+RandomizedDelaySec=15m
+Unit=kinderp-backup.service
+
+[Install]
+WantedBy=timers.target

@@ -64,6 +64,75 @@ class NotificationApiIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("외부 알림 생성 - 실패 (사용자별 rate limit 초과)")
+    void createNotification_Fail_RateLimitedByUser() throws Exception {
+        String requestBody = """
+                {
+                    "receiverId": %d,
+                    "type": "SYSTEM",
+                    "title": "rate limit 테스트",
+                    "content": "반복 발송 차단"
+                }
+                """.formatted(parentMember.getId());
+
+        for (int attempt = 0; attempt < 2; attempt++) {
+            mockMvc.perform(post("/api/v1/notifications")
+                            .with(authenticated(principalMember))
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isOk());
+        }
+
+        mockMvc.perform(post("/api/v1/notifications")
+                        .with(authenticated(principalMember))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code").value("C005"))
+                .andExpect(result -> org.assertj.core.api.Assertions.assertThat(
+                        result.getResponse().getHeader("Retry-After")).isEqualTo("60"));
+    }
+
+    @Test
+    @DisplayName("외부 알림 생성 - 실패 (IP별 rate limit 초과)")
+    void createNotification_Fail_RateLimitedByIp() throws Exception {
+        String requestBody = """
+                {
+                    "receiverId": %d,
+                    "type": "SYSTEM",
+                    "title": "IP rate limit 테스트",
+                    "content": "반복 발송 차단"
+                }
+                """.formatted(parentMember.getId());
+
+        for (int attempt = 0; attempt < 2; attempt++) {
+            mockMvc.perform(post("/api/v1/notifications")
+                            .with(authenticated(principalMember))
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isOk());
+        }
+
+        mockMvc.perform(post("/api/v1/notifications")
+                        .with(authenticated(teacherMember))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/notifications")
+                        .with(authenticated(teacherMember))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code").value("C005"));
+    }
+
+    @Test
     @WithMockUser(username = "parent@test.com", roles = {"PARENT"})
     @DisplayName("알림 생성 - 실패 (학부모 권한 없음)")
     void createNotification_Fail_Parent() throws Exception {

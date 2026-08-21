@@ -28,6 +28,8 @@
   - `MYSQL_DATABASE`
   - `MYSQL_USER`
   - `MYSQL_PASSWORD`
+  - `FLYWAY_DB_USERNAME`
+  - `FLYWAY_DB_PASSWORD`
   - `GRAFANA_ADMIN_USER`
   - `GRAFANA_ADMIN_PASSWORD`
   - `DOCKER_BIND_HOST`
@@ -78,6 +80,8 @@
 - `DB_URL`
 - `DB_USERNAME`
 - `DB_PASSWORD`
+- `FLYWAY_DB_USERNAME`
+- `FLYWAY_DB_PASSWORD`
 - `REDIS_HOST`
 - `REDIS_PASSWORD`
 - `GOOGLE_CLIENT_ID`
@@ -89,6 +93,8 @@
 `CORS_ALLOWED_ORIGINS`는 실제 HTTPS origin만 허용합니다.
 예: `https://erp.example.com`
 `*`, `http://...`, `localhost` 계열은 `prod` 부팅 안전 검증에서 차단합니다.
+
+`DB_USERNAME`/`DB_PASSWORD`는 애플리케이션 DML 전용 계정이고, `FLYWAY_DB_USERNAME`/`FLYWAY_DB_PASSWORD`는 schema migration 전용 계정이다. 두 계정은 서로 달라야 하며 운영 secret도 별도로 발급한다.
 
 ### 선택
 
@@ -107,6 +113,9 @@
 - `NOTIFICATION_PUSH_WEBHOOK_SECRET` (해당 webhook을 활성화할 때 필수)
 - `NOTIFICATION_APP_WEBHOOK`
 - `NOTIFICATION_APP_WEBHOOK_SECRET` (해당 webhook을 활성화할 때 필수)
+- `NOTIFICATION_RATE_LIMIT_WINDOW`
+- `NOTIFICATION_RATE_LIMIT_USER`
+- `NOTIFICATION_RATE_LIMIT_IP`
 
 ### prod 안전 조건
 
@@ -118,8 +127,11 @@
 - `jwt.cookie-secure=true`
 - CSRF `XSRF-TOKEN` 쿠키도 JWT 쿠키와 동일한 `Secure`/`SameSite` 정책을 사용한다.
 - `CORS_ALLOWED_ORIGINS`에는 실제 HTTPS 서비스 origin만 둔다.
-- rate limit은 기본적으로 login IP 15회/10분, login email 5회/10분, refresh IP 10회/5분, signup IP 10회/1시간이다. 조정 시 window와 limit을 함께 검토한다.
+- rate limit은 기본적으로 login IP 15회/10분, login email 5회/10분, refresh IP 10회/5분, signup IP 10회/1시간이다. 외부 알림 생성 API는 사용자 30회/1분, IP 100회/1분으로 별도 제한한다. 조정 시 window와 limit을 함께 검토한다.
 - rate-limit limit은 양수여야 하며, 잘못된 값은 애플리케이션 설정 바인딩 단계에서 부팅 실패로 차단한다.
+- HTTP 요청은 header 16KB, body/form 1MB, header 100개, parameter 100개 상한을 적용한다. 목록 API는 page size를 최대 100개로 제한하고 감사 로그 CSV export는 최대 10,000행으로 제한한다.
+- 의존성 검사는 `./gradlew dependencyCheckAnalyze`에서 CVSS 7.0 이상이면 실패하고, `npm audit --omit=dev --audit-level=high`에서 high 이상이면 실패한다. Dependabot은 Gradle/npm/GitHub Actions 업데이트 PR을 매주 생성한다.
+- `NVD_API_KEY`는 OWASP Dependency-Check NVD 갱신 속도를 높이는 선택적 CI secret이다. 미설정 시에도 검사는 실행되지만 NVD API rate limit으로 오래 걸릴 수 있다.
 
 ## 4. 테스트
 

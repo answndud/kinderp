@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.14'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.owasp.dependencycheck' version '12.2.2'
 }
 
 // Keep the runtime dependency floor aligned with the latest security fixes.
@@ -15,6 +16,16 @@ ext {
 group = 'com.kinderp'
 version = '0.0.1-SNAPSHOT'
 description = 'erp'
+
+dependencyCheck {
+    failBuildOnCVSS = 7.0
+    failOnError = true
+    formats = ['HTML', 'JSON']
+    outputDirectory = layout.buildDirectory.dir('reports/dependency-check').get().asFile.path
+    nvd {
+        apiKey = System.getenv('NVD_API_KEY')
+    }
+}
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21

@@ -6,6 +6,9 @@ import com.kinderp.domain.notification.dto.request.NotificationCreateRequest;
 import com.kinderp.domain.notification.dto.response.NotificationResponse;
 import com.kinderp.domain.notification.dto.response.UnreadCountResponse;
 import com.kinderp.domain.notification.service.NotificationService;
+import com.kinderp.domain.notification.service.NotificationRateLimitService;
+import com.kinderp.global.security.ClientIpResolver;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +24,8 @@ import java.util.List;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final NotificationRateLimitService notificationRateLimitService;
+    private final ClientIpResolver clientIpResolver;
 
     /**
      * 알림 생성 (관리자용 또는 내부 호출)
@@ -29,7 +34,12 @@ public class NotificationController {
     @PreAuthorize("hasAnyRole('PRINCIPAL', 'TEACHER')")
     public ResponseEntity<ApiResponse<Long>> createNotification(
             @Valid @RequestBody NotificationCreateRequest request,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            HttpServletRequest httpServletRequest) {
+        notificationRateLimitService.validateCreateAllowed(
+                userDetails.getMemberId(),
+                clientIpResolver.resolve(httpServletRequest)
+        );
         Long notificationId = notificationService.create(request, userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(notificationId));
     }

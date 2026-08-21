@@ -74,6 +74,7 @@ deploy/.env.prod
 deploy/.env.production
 deploy/*.secrets
 !deploy/.env.prod.example
+!deploy/.env.netcup.example
 !docker/.env.example
 
 ### 시크릿 설정 ###

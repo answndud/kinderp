@@ -10,7 +10,11 @@
 - `scripts/validate-netcup-env.sh`: secret·hostname·TLS·password 정책 검사
 - Resend SMTP: `NOTIFICATION_EMAIL_ENABLED=true`와 `SPRING_MAIL_*`를 운영 secret에 설정한다.
 - `deploy/backup-mysql.sh`: checksum이 포함된 logical backup
+- `scripts/backup-netcup.sh`: MySQL·Redis container 백업, checksum, 보존 기간 정리
+- `scripts/publish-encrypted-backup.sh`: age 암호화와 별도 SSH 저장소 전송
+- `deploy/systemd/kinderp-backup.{service,timer}`: 매일 03:30 백업 일정
 - `deploy/restore-mysql.sh`: 명시적 destructive restore guard
+- `scripts/provision-mysql-privileges.sh`: 앱 DML 계정과 Flyway DDL 계정의 idempotent 권한 분리
 
 ## 서버 디렉터리
 
@@ -43,13 +47,15 @@ APP_VERSION=<commit-sha>
 MYSQL_DATABASE=erp_db
 MYSQL_USER=erpadmin
 MYSQL_PASSWORD=<secret>
+FLYWAY_DB_USERNAME=erp_migrator
+FLYWAY_DB_PASSWORD=<different-secret>
 MYSQL_ROOT_PASSWORD=<secret>
 REDIS_PASSWORD=<secret>
 ```
 
 `CORS_ALLOWED_ORIGINS`는 실제 `https://erp.example.com`만 허용한다. `DB_URL`은 Compose가 내부 MySQL service로 주입한다.
 Resend SMTP(`smtp.resend.com:587`, STARTTLS)는 인증·알림 이메일에 사용한다. `NOTIFICATION_EMAIL_ENABLED`가 true가 아니거나 SMTP secret이 없으면 validator가 배포를 거부한다.
-배포 스크립트는 Compose를 기동하기 전에 `scripts/validate-netcup-env.sh`를 실행해 placeholder, root 계정, 약한 secret, HTTP CORS, SMTP 누락을 거부한다.
+배포 스크립트는 Compose를 기동하기 전에 `scripts/validate-netcup-env.sh`를 실행해 placeholder, root 계정, 약한 secret, 앱/Flyway 계정 중복, HTTP CORS, SMTP 누락을 거부한다. `scripts/deploy-netcup.sh`는 MySQL health 확인 후 `scripts/provision-mysql-privileges.sh`를 실행하고, 그 뒤에 앱을 기동한다.
 
 ## 기동 순서
 
@@ -60,9 +66,14 @@ docker compose --env-file deploy/.env.netcup.example \\
 docker compose --env-file secrets/prod.env \\
   -f deploy/docker-compose.netcup.yml up -d mysql redis
 
+# 권한 provisioning과 app 기동을 함께 수행하는 권장 경로
+COMPOSE_ENV_FILE=secrets/prod.env ./scripts/deploy-netcup.sh
+
 docker compose --env-file secrets/prod.env \\
   -f deploy/docker-compose.netcup.yml up -d app caddy
 ```
+
+직접 Compose로 `app`을 기동하는 경우에는 먼저 `scripts/provision-mysql-privileges.sh`를 실행해 앱/Flyway 권한을 반영해야 한다.
 
 `mysql`, `redis`, `app`의 health가 순서대로 통과해야 한다. TLS는 공용 edge Caddy에서만 종료하고 ERP 내부 Caddy는 HTTP upstream으로만 동작한다. 공용 edge Caddy는 원래 `Host`를 보존해 내부 Caddy의 site block이 `APP_DOMAIN`과 매칭되도록 한다. 공용 edge Caddy 외에는 `80`, `443`, `3306`, `6379`을 공개하지 않는다.
 
@@ -75,6 +86,20 @@ ss -lntp
 ```
 
 ## 백업과 복구
+
+운영 VPS는 systemd timer로 매일 03:30(서버 시간) MySQL·Redis를 백업한다. 백업 secret은 `/opt/kinderp/secrets/backup.env`에 두고 `chmod 600`을 적용한다.
+
+```bash
+install -m 600 deploy/backup.env.example /opt/kinderp/secrets/backup.env
+install -m 644 deploy/systemd/kinderp-backup.service /etc/systemd/system/
+install -m 644 deploy/systemd/kinderp-backup.timer /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now kinderp-backup.timer
+systemctl list-timers kinderp-backup.timer
+systemctl start kinderp-backup.service
+```
+
+`BACKUP_RETENTION_DAYS` 기본값은 14일이며, wrapper는 atomic staging·SHA-256 검증 후 오래된 백업 디렉터리만 정리한다. systemd 서비스는 `backup-and-publish-netcup.sh`를 통해 age 암호화 후 별도 SSH 저장소로 전송한다. 원격 계정은 백업 전용 계정으로 만들고 `BACKUP_KNOWN_HOSTS_FILE`을 운영 secret으로 고정한다.
 
 백업 전에 MySQL container와 database 이름을 확인한다.
 
@@ -97,6 +122,8 @@ dump나 checksum 단계가 실패하면 `backup-mysql.sh`는 이번 실행의 pa
 AGE_RECIPIENT='age1...'
 ./deploy/encrypt-backup.sh /opt/backups/erp-YYYYMMDDTHHMMSSZ /opt/backups/erp-YYYYMMDDTHHMMSSZ.tar.gz.age
 ```
+
+자동 publish에 사용하는 원격 저장소는 전용 계정과 `700` 디렉터리, `600` 암호화 파일/체크섬 권한만 허용한다. 기존 파일 덮어쓰기는 거부하며, 수신 후 원격에서 checksum을 다시 검증한다.
 
 복구는 임시 MySQL volume에서 먼저 수행한다.
 
