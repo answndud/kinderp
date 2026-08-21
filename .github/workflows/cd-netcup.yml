@@ -30,7 +30,7 @@ jobs:
           for name in DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS DEPLOY_HOST DEPLOY_USER DEPLOY_PATH GHCR_USERNAME GHCR_READ_TOKEN; do
             test -n "${!name}" || { echo "::error::$name is missing"; exit 1; }
           done
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
