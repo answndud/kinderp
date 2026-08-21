@@ -62,7 +62,7 @@ jobs:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
-          IMAGE_TAG: ghcr.io/${{ github.repository_owner }}/kinderp:${{ github.sha }}
+          IMAGE_TAG: ghcr.io/${{ github.repository_owner }}/kinderp:sha-${{ github.sha }}
         run: |
           printf '%s' "$GHCR_READ_TOKEN" | ssh "$DEPLOY_USER@$DEPLOY_HOST" \
             "docker login ghcr.io -u '$GHCR_USERNAME' --password-stdin && \
