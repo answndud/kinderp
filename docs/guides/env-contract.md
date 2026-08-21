@@ -129,6 +129,7 @@
 - `CORS_ALLOWED_ORIGINS`에는 실제 HTTPS 서비스 origin만 둔다.
 - rate limit은 기본적으로 login IP 15회/10분, login email 5회/10분, refresh IP 10회/5분, signup IP 10회/1시간이다. 외부 알림 생성 API는 사용자 30회/1분, IP 100회/1분으로 별도 제한한다. 조정 시 window와 limit을 함께 검토한다.
 - rate-limit limit은 양수여야 하며, 잘못된 값은 애플리케이션 설정 바인딩 단계에서 부팅 실패로 차단한다.
+- HTTP 요청은 header 16KB, body/form 1MB, header 100개, parameter 100개 상한을 적용한다. 목록 API는 page size를 최대 100개로 제한하고 감사 로그 CSV export는 최대 10,000행으로 제한한다.
 
 ## 4. 테스트
 

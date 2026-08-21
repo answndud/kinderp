@@ -38,6 +38,14 @@ jwt:
 # 서버 설정
 server:
   port: 8080
+  max-http-request-header-size: 16KB
+  tomcat:
+    max-http-form-post-size: 1MB
+    max-swallow-size: 1MB
+  request-limits:
+    max-request-size: 1MB
+    max-header-count: 100
+    max-parameter-count: 100
   servlet:
     encoding:
       charset: UTF-8
