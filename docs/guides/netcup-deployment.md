@@ -11,6 +11,7 @@
 - Resend SMTP: `NOTIFICATION_EMAIL_ENABLED=true`와 `SPRING_MAIL_*`를 운영 secret에 설정한다.
 - `deploy/backup-mysql.sh`: checksum이 포함된 logical backup
 - `scripts/backup-netcup.sh`: MySQL·Redis container 백업, checksum, 보존 기간 정리
+- `scripts/publish-encrypted-backup.sh`: age 암호화와 별도 SSH 저장소 전송
 - `deploy/systemd/kinderp-backup.{service,timer}`: 매일 03:30 백업 일정
 - `deploy/restore-mysql.sh`: 명시적 destructive restore guard
 - `scripts/provision-mysql-privileges.sh`: 앱 DML 계정과 Flyway DDL 계정의 idempotent 권한 분리
@@ -98,7 +99,7 @@ systemctl list-timers kinderp-backup.timer
 systemctl start kinderp-backup.service
 ```
 
-`BACKUP_RETENTION_DAYS` 기본값은 14일이며, wrapper는 atomic staging·SHA-256 검증 후 오래된 백업 디렉터리만 정리한다. 외부 암호화 저장소 복제는 다음 백업 보호 단계에서 별도로 설정한다.
+`BACKUP_RETENTION_DAYS` 기본값은 14일이며, wrapper는 atomic staging·SHA-256 검증 후 오래된 백업 디렉터리만 정리한다. systemd 서비스는 `backup-and-publish-netcup.sh`를 통해 age 암호화 후 별도 SSH 저장소로 전송한다. 원격 계정은 백업 전용 계정으로 만들고 `BACKUP_KNOWN_HOSTS_FILE`을 운영 secret으로 고정한다.
 
 백업 전에 MySQL container와 database 이름을 확인한다.
 
@@ -121,6 +122,8 @@ dump나 checksum 단계가 실패하면 `backup-mysql.sh`는 이번 실행의 pa
 AGE_RECIPIENT='age1...'
 ./deploy/encrypt-backup.sh /opt/backups/erp-YYYYMMDDTHHMMSSZ /opt/backups/erp-YYYYMMDDTHHMMSSZ.tar.gz.age
 ```
+
+자동 publish에 사용하는 원격 저장소는 전용 계정과 `700` 디렉터리, `600` 암호화 파일/체크섬 권한만 허용한다. 기존 파일 덮어쓰기는 거부하며, 수신 후 원격에서 checksum을 다시 검증한다.
 
 복구는 임시 MySQL volume에서 먼저 수행한다.
 

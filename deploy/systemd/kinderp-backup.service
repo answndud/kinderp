@@ -6,4 +6,4 @@ After=docker.service
 [Service]
 Type=oneshot
 EnvironmentFile=/opt/kinderp/secrets/backup.env
-ExecStart=/opt/kinderp/scripts/backup-netcup.sh
+ExecStart=/opt/kinderp/scripts/backup-and-publish-netcup.sh
