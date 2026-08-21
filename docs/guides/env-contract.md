@@ -113,6 +113,9 @@
 - `NOTIFICATION_PUSH_WEBHOOK_SECRET` (해당 webhook을 활성화할 때 필수)
 - `NOTIFICATION_APP_WEBHOOK`
 - `NOTIFICATION_APP_WEBHOOK_SECRET` (해당 webhook을 활성화할 때 필수)
+- `NOTIFICATION_RATE_LIMIT_WINDOW`
+- `NOTIFICATION_RATE_LIMIT_USER`
+- `NOTIFICATION_RATE_LIMIT_IP`
 
 ### prod 안전 조건
 
@@ -124,7 +127,7 @@
 - `jwt.cookie-secure=true`
 - CSRF `XSRF-TOKEN` 쿠키도 JWT 쿠키와 동일한 `Secure`/`SameSite` 정책을 사용한다.
 - `CORS_ALLOWED_ORIGINS`에는 실제 HTTPS 서비스 origin만 둔다.
-- rate limit은 기본적으로 login IP 15회/10분, login email 5회/10분, refresh IP 10회/5분, signup IP 10회/1시간이다. 조정 시 window와 limit을 함께 검토한다.
+- rate limit은 기본적으로 login IP 15회/10분, login email 5회/10분, refresh IP 10회/5분, signup IP 10회/1시간이다. 외부 알림 생성 API는 사용자 30회/1분, IP 100회/1분으로 별도 제한한다. 조정 시 window와 limit을 함께 검토한다.
 - rate-limit limit은 양수여야 하며, 잘못된 값은 애플리케이션 설정 바인딩 단계에서 부팅 실패로 차단한다.
 
 ## 4. 테스트

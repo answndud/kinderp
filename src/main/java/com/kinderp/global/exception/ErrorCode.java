@@ -16,6 +16,7 @@ public enum ErrorCode {
     ENTITY_NOT_FOUND(404, "C002", "엔티티를 찾을 수 없습니다"),
     INTERNAL_SERVER_ERROR(500, "C003", "서버 오류가 발생했습니다"),
     METHOD_NOT_ALLOWED(405, "C004", "지원하지 않는 메서드입니다"),
+    EXTERNAL_API_RATE_LIMITED(429, "C005", "외부 서비스 요청이 너무 많습니다. 잠시 후 다시 시도해주세요"),
 
     // ========== Auth ==========
     INVALID_CREDENTIALS(401, "A001", "이메일 또는 비밀번호가 잘못되었습니다"),

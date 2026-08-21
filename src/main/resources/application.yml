@@ -112,6 +112,10 @@ notification:
       enabled: false
       webhook-url: ${NOTIFICATION_INCIDENT_WEBHOOK:}
       signature-secret: ${NOTIFICATION_INCIDENT_WEBHOOK_SECRET:}
+    rate-limit:
+      window: ${NOTIFICATION_RATE_LIMIT_WINDOW:1m}
+      user-limit: ${NOTIFICATION_RATE_LIMIT_USER:30}
+      ip-limit: ${NOTIFICATION_RATE_LIMIT_IP:100}
 
 app:
   seed:
