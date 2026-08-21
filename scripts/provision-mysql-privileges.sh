@@ -52,13 +52,11 @@ read -r -d '' grant_sql <<SQL || true
 CREATE USER IF NOT EXISTS '$app_user'@'%' IDENTIFIED BY '$app_password';
 ALTER USER '$app_user'@'%' IDENTIFIED BY '$app_password';
 REVOKE ALL PRIVILEGES, GRANT OPTION FROM '$app_user'@'%';
-REVOKE ALL PRIVILEGES, GRANT OPTION ON \`$database\`.* FROM '$app_user'@'%';
 GRANT SELECT, INSERT, UPDATE, DELETE ON \`$database\`.* TO '$app_user'@'%';
 
 CREATE USER IF NOT EXISTS '$flyway_user'@'%' IDENTIFIED BY '$flyway_password';
 ALTER USER '$flyway_user'@'%' IDENTIFIED BY '$flyway_password';
 REVOKE ALL PRIVILEGES, GRANT OPTION FROM '$flyway_user'@'%';
-REVOKE ALL PRIVILEGES, GRANT OPTION ON \`$database\`.* FROM '$flyway_user'@'%';
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON \`$database\`.* TO '$flyway_user'@'%';
 
 FLUSH PRIVILEGES;
