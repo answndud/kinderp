@@ -10,6 +10,8 @@
 - `scripts/validate-netcup-env.sh`: secret·hostname·TLS·password 정책 검사
 - Resend SMTP: `NOTIFICATION_EMAIL_ENABLED=true`와 `SPRING_MAIL_*`를 운영 secret에 설정한다.
 - `deploy/backup-mysql.sh`: checksum이 포함된 logical backup
+- `scripts/backup-netcup.sh`: MySQL·Redis container 백업, checksum, 보존 기간 정리
+- `deploy/systemd/kinderp-backup.{service,timer}`: 매일 03:30 백업 일정
 - `deploy/restore-mysql.sh`: 명시적 destructive restore guard
 - `scripts/provision-mysql-privileges.sh`: 앱 DML 계정과 Flyway DDL 계정의 idempotent 권한 분리
 
@@ -83,6 +85,20 @@ ss -lntp
 ```
 
 ## 백업과 복구
+
+운영 VPS는 systemd timer로 매일 03:30(서버 시간) MySQL·Redis를 백업한다. 백업 secret은 `/opt/kinderp/secrets/backup.env`에 두고 `chmod 600`을 적용한다.
+
+```bash
+install -m 600 deploy/backup.env.example /opt/kinderp/secrets/backup.env
+install -m 644 deploy/systemd/kinderp-backup.service /etc/systemd/system/
+install -m 644 deploy/systemd/kinderp-backup.timer /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now kinderp-backup.timer
+systemctl list-timers kinderp-backup.timer
+systemctl start kinderp-backup.service
+```
+
+`BACKUP_RETENTION_DAYS` 기본값은 14일이며, wrapper는 atomic staging·SHA-256 검증 후 오래된 백업 디렉터리만 정리한다. 외부 암호화 저장소 복제는 다음 백업 보호 단계에서 별도로 설정한다.
 
 백업 전에 MySQL container와 database 이름을 확인한다.
 

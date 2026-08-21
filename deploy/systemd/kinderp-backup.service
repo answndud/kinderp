@@ -1,0 +1,9 @@
+[Unit]
+Description=KinderP MySQL and Redis backup
+Wants=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/opt/kinderp/secrets/backup.env
+ExecStart=/opt/kinderp/scripts/backup-netcup.sh
