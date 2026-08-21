@@ -41,6 +41,11 @@ jobs:
       - name: Build bootJar artifact
         run: ./gradlew --no-daemon bootJar
 
+      - name: Scan Java dependencies for known vulnerabilities
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: ./gradlew --no-daemon dependencyCheckAnalyze
+
       - name: Resolve compose configs
         run: |
           docker compose --env-file docker/.env.example -f docker/docker-compose.yml config >/tmp/docker-compose.base.yml
