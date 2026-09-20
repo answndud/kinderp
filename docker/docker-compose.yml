@@ -10,12 +10,15 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:?set MYSQL_DATABASE in docker/.env}
       MYSQL_USER: ${MYSQL_USER:?set MYSQL_USER in docker/.env}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in docker/.env}
+      FLYWAY_DB_USERNAME: ${FLYWAY_DB_USERNAME:?set FLYWAY_DB_USERNAME in docker/.env}
+      FLYWAY_DB_PASSWORD: ${FLYWAY_DB_PASSWORD:?set FLYWAY_DB_PASSWORD in docker/.env}
       TZ: Asia/Seoul
     ports:
       - "${DOCKER_BIND_HOST:-127.0.0.1}:${MYSQL_PUBLISHED_PORT:-3306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./init:/docker-entrypoint-initdb.d
+      - ../scripts:/workspace:ro
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci

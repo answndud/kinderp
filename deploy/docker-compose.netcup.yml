@@ -68,6 +68,8 @@ services:
       DB_URL: jdbc:mysql://mysql:3306/$MYSQL_DATABASE?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useUnicode=true
       DB_USERNAME: $MYSQL_USER
       DB_PASSWORD: $MYSQL_PASSWORD
+      FLYWAY_DB_USERNAME: $FLYWAY_DB_USERNAME
+      FLYWAY_DB_PASSWORD: $FLYWAY_DB_PASSWORD
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: $REDIS_PASSWORD

@@ -28,6 +28,8 @@
   - `MYSQL_DATABASE`
   - `MYSQL_USER`
   - `MYSQL_PASSWORD`
+  - `FLYWAY_DB_USERNAME`
+  - `FLYWAY_DB_PASSWORD`
   - `GRAFANA_ADMIN_USER`
   - `GRAFANA_ADMIN_PASSWORD`
   - `DOCKER_BIND_HOST`
@@ -78,6 +80,8 @@
 - `DB_URL`
 - `DB_USERNAME`
 - `DB_PASSWORD`
+- `FLYWAY_DB_USERNAME`
+- `FLYWAY_DB_PASSWORD`
 - `REDIS_HOST`
 - `REDIS_PASSWORD`
 - `GOOGLE_CLIENT_ID`
@@ -89,6 +93,8 @@
 `CORS_ALLOWED_ORIGINS`는 실제 HTTPS origin만 허용합니다.
 예: `https://erp.example.com`
 `*`, `http://...`, `localhost` 계열은 `prod` 부팅 안전 검증에서 차단합니다.
+
+`DB_USERNAME`/`DB_PASSWORD`는 애플리케이션 DML 전용 계정이고, `FLYWAY_DB_USERNAME`/`FLYWAY_DB_PASSWORD`는 schema migration 전용 계정이다. 두 계정은 서로 달라야 하며 운영 secret도 별도로 발급한다.
 
 ### 선택
 

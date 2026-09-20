@@ -19,6 +19,13 @@ compose() {
   exit 1
 }
 "$ENV_VALIDATOR" "$COMPOSE_ENV_FILE"
+app_image_override="${APP_IMAGE-}"
+app_version_override="${APP_VERSION-}"
+set -a
+. "$COMPOSE_ENV_FILE"
+set +a
+if [[ -n "$app_image_override" ]]; then APP_IMAGE="$app_image_override"; fi
+if [[ -n "$app_version_override" ]]; then APP_VERSION="$app_version_override"; fi
 if command -v flock >/dev/null; then
   exec 9>"$DEPLOY_LOCK_FILE"
   flock -n 9 || { echo "another portfolio deployment is already running" >&2; exit 1; }
@@ -38,7 +45,34 @@ fi
 
 previous_image="$(docker inspect --format '{{.Config.Image}}' kinderp-app 2>/dev/null || true)"
 compose pull
-compose up -d mysql redis app caddy
+compose up -d mysql redis
+
+mysql_ready=1
+for _ in $(seq 1 "$MAX_ATTEMPTS"); do
+  health="$(docker inspect --format '{{.State.Health.Status}}' kinderp-mysql 2>/dev/null || true)"
+  if [[ "$health" == "healthy" ]]; then
+    mysql_ready=0
+    break
+  fi
+  sleep "$SLEEP_SECONDS"
+done
+
+if [[ "$mysql_ready" -ne 0 ]]; then
+  compose logs --tail=200 mysql >&2 || true
+  echo "MySQL did not become healthy; refusing to start the application" >&2
+  exit 1
+fi
+
+MYSQL_CONTAINER=kinderp-mysql \
+  MYSQL_DATABASE="$MYSQL_DATABASE" \
+  MYSQL_USER="$MYSQL_USER" \
+  MYSQL_PASSWORD="$MYSQL_PASSWORD" \
+  FLYWAY_DB_USERNAME="$FLYWAY_DB_USERNAME" \
+  FLYWAY_DB_PASSWORD="$FLYWAY_DB_PASSWORD" \
+  MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" \
+  scripts/provision-mysql-privileges.sh
+
+compose up -d app caddy
 
 ready=1
 for _ in $(seq 1 "$MAX_ATTEMPTS"); do
