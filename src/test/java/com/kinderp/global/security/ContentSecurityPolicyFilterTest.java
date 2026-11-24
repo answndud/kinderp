@@ -4,11 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.servlet.ServletException;
 import java.io.IOException;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+@Tag("fast")
 class ContentSecurityPolicyFilterTest {
 
     private final ContentSecurityPolicyFilter filter = new ContentSecurityPolicyFilter();

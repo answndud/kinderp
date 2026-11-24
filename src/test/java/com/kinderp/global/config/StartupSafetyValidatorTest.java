@@ -5,6 +5,7 @@ import com.kinderp.global.security.CorsProperties;
 import com.kinderp.global.security.ManagementSurfaceProperties;
 import com.kinderp.global.security.jwt.JwtProperties;
 import java.util.List;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
@@ -12,6 +13,7 @@ import org.springframework.mock.env.MockEnvironment;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@Tag("fast")
 class StartupSafetyValidatorTest {
 
     @Test

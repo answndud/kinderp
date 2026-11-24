@@ -26,7 +26,7 @@
 6. 파일 수정은 Edit/Write 도구로 한다 (CLAUDE.md의 `apply_patch`는 Codex 전용 표기다).
 7. 시간은 `ProductTime`을 사용한다. `LocalDateTime.now()`/`LocalDate.now()` 직접 호출 금지 (`npm run security:product-time`이 검사한다).
 8. 비즈니스 오류는 `BusinessException(ErrorCode)`로 던진다. 컨트롤러에서 `ResponseEntity.badRequest().body(...)`를 새로 만들지 않는다.
-9. 통합 테스트는 Docker가 필요하다. 테스트 전에 `docker info`로 Docker가 떠 있는지 확인하고, 안 떠 있으면 사용자에게 Docker Desktop 실행을 요청하고 멈춘다.
+9. Gradle은 **Java 21**로 실행한다. 기본 `java`가 25 이상이면 `Unsupported class file major version`으로 실패하므로, 먼저 `export JAVA_HOME=$(/usr/libexec/java_home -v 21)`를 실행한다. 통합 테스트는 Docker가 필요하다. 테스트 전에 `docker info`로 Docker가 떠 있는지 확인하고, 안 떠 있으면 사용자에게 Docker Desktop 실행을 요청하고 멈춘다.
 10. 테스트가 실패하면 테스트를 지우거나 `@Disabled`로 막지 않는다. 원인을 고치거나, 고칠 수 없으면 실패 로그와 함께 사용자에게 보고한다.
 11. Slice를 끝내면 이 PLAN.md에서 해당 Slice를 **삭제**한다 (AGENTS.md 12절). 완료 기록은 남기지 않는다.
 
@@ -42,48 +42,6 @@
 ```bash
 ./gradlew --no-daemon test --tests "com.kinderp.api.KidApiIntegrationTest"
 ```
-
----
-
-## Slice 3 — CI가 실제로 테스트를 돌리게 만들기
-
-**왜:**
-- `ci.yml`은 `fastTest`만 실행한다. `@Tag("fast")`가 붙은 클래스는 6개뿐이다.
-- 통합 테스트는 수동 실행 workflow인 `backend-quality.yml`(`workflow_dispatch`)에만 있다.
-- 태그가 없는 테스트는 어느 task에도 포함되지 않아 CI에서 한 번도 실행되지 않는다. 현재 확인된 6개:
-  - `architecture/LayerDependencyTest`
-  - `domain/workflow/WorkflowStateTransitionTest`
-  - `global/security/ContentSecurityPolicyFilterTest`
-  - `global/config/StartupSafetyValidatorTest`
-  - `domain/notification/service/channel/WebhookRequestSignerTest`
-  - `domain/auth/service/AuthRateLimitPropertiesTest`
-
-**대상 파일:** 위 6개 테스트, `src/test/java/com/kinderp/KinderpApplicationTests.java`, `.github/workflows/ci.yml`, `build.gradle`, `src/test/java/com/kinderp/api/KidApiSimpleTest.java`
-
-**작업 순서:**
-1. 태그 누락 테스트를 다시 찾는다:
-   ```bash
-   grep -rL '@Tag' src/test/java --include='*Test.java' --include='*Tests.java'
-   ```
-2. 각 파일을 읽고 분류한다. Spring 컨텍스트나 Testcontainers 없이 도는 순수 단위 테스트면 클래스에 `@Tag("fast")`를 붙인다. `BaseIntegrationTest`를 상속하거나 `@SpringBootTest`를 쓰면 `@Tag("integration")`을 붙인다. import는 `org.junit.jupiter.api.Tag`다.
-3. `KidApiSimpleTest`는 status 200만 확인하는 smoke 테스트다. `KidApiIntegrationTest`에 같은 검증이 있으면 파일을 삭제하고, 없으면 해당 케이스를 `KidApiIntegrationTest`로 옮긴 뒤 삭제한다.
-4. `build.gradle`에 태그 누락을 막는 장치를 추가한다. 가장 단순한 방법은 기본 `test` task는 그대로 두고, `check`가 `fastTest`와 `integrationTest`에 의존하게 하는 것이다. 태그 누락 감지 스크립트는 만들지 않는다 (과설계).
-5. `.github/workflows/ci.yml`에 job `integration`을 추가한다:
-   - 트리거는 기존 `ci.yml`과 같게 둔다 (push·pull_request).
-   - 기존 Quick Check job의 Java·Gradle cache 설정을 복사한다. action은 기존 파일처럼 **SHA 고정**을 유지하고, 새 action을 추가하지 않는다.
-   - 실행: `./gradlew --no-daemon integrationTest`. ubuntu-latest에는 Docker가 있으므로 Testcontainers가 동작한다.
-   - `needs: quick-check`(기존 job id 확인 후 사용)로 빠른 검사 실패 시 건너뛰게 한다.
-   - 실패 시 `build/reports/tests/integrationTest`를 `actions/upload-artifact`로 올린다. `backend-quality.yml`에 이미 같은 단계가 있다면 SHA를 그대로 복사하고, 없으면 이 단계는 생략한다.
-6. README의 "Backend CI: 5분 28초 → 1분대" 문구는 Slice 11에서 함께 고친다. 여기서는 건드리지 않는다.
-
-**검증:**
-```bash
-./gradlew --no-daemon fastTest
-./gradlew --no-daemon integrationTest
-```
-CI 실행 결과는 push 후에만 확인할 수 있다. push는 사용자가 결정하므로 로컬 결과만 보고한다.
-
-**완료 조건:** 태그 없는 테스트 클래스가 0개이고, `ci.yml`이 push·PR마다 integrationTest를 실행한다.
 
 ---
 

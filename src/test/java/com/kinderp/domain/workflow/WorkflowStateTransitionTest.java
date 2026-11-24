@@ -19,9 +19,11 @@ import com.kinderp.global.exception.BusinessException;
 import com.kinderp.global.exception.ErrorCode;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@Tag("fast")
 @DisplayName("운영 workflow 상태 전이 테스트")
 class WorkflowStateTransitionTest {
 

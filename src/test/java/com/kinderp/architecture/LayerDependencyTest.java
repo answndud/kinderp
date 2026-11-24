@@ -1,11 +1,14 @@
 package com.kinderp.architecture;
 
+import com.tngtech.archunit.junit.ArchTag;
+
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
+@ArchTag("fast")
 @AnalyzeClasses(packages = "com.kinderp")
 class LayerDependencyTest {
 
