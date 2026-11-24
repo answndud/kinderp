@@ -127,7 +127,7 @@
 - `jwt.cookie-secure=true`
 - CSRF `XSRF-TOKEN` 쿠키도 JWT 쿠키와 동일한 `Secure`/`SameSite` 정책을 사용한다.
 - `CORS_ALLOWED_ORIGINS`에는 실제 HTTPS 서비스 origin만 둔다.
-- rate limit은 기본적으로 login IP 15회/10분, login email 5회/10분, refresh IP 10회/5분, signup IP 10회/1시간이다. 외부 알림 생성 API는 사용자 30회/1분, IP 100회/1분으로 별도 제한한다. 조정 시 window와 limit을 함께 검토한다.
+- rate limit은 기본적으로 login IP 15회/10분, login IP+email 쌍 5회/10분(남이 계정을 잠그지 못하도록 IP와 묶고, 분산 공격에 대한 이메일 전체 backstop은 `AUTH_RATE_LIMIT_LOGIN_EMAIL_GLOBAL` 기본 50회/10분), refresh IP 10회/5분, signup IP 10회/1시간이다. 외부 알림 생성 API는 사용자 30회/1분, IP 100회/1분으로 별도 제한한다. 조정 시 window와 limit을 함께 검토한다.
 - rate-limit limit은 양수여야 하며, 잘못된 값은 애플리케이션 설정 바인딩 단계에서 부팅 실패로 차단한다.
 - HTTP 요청은 header 16KB, body/form 1MB, header 100개, parameter 100개 상한을 적용한다. 목록 API는 page size를 최대 100개로 제한하고 감사 로그 CSV export는 최대 10,000행으로 제한한다.
 - 의존성 검사는 `./gradlew dependencyCheckAnalyze`에서 CVSS 7.0 이상이면 실패하고, `npm audit --omit=dev --audit-level=high`에서 high 이상이면 실패한다. Dependabot은 Gradle/npm/GitHub Actions 업데이트 PR을 매주 생성한다.

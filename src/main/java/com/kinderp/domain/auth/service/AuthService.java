@@ -80,7 +80,7 @@ public class AuthService {
             );
 
             authLoginBootstrapService.afterAuthenticated(email);
-            authRateLimitService.clearLoginFailures(email);
+            authRateLimitService.clearLoginFailures(clientIp, email);
             authAnomalyAlertService.clearLoginFailureCounter(email);
 
             // 2. 회원 정보 조회

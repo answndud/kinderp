@@ -395,6 +395,69 @@ class AuthApiIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
+        @DisplayName("로그인 - 공격자 IP의 반복 실패가 다른 IP에서 접속하는 실제 사용자를 잠그지 않는다")
+        void login_AttackerFailuresDoNotLockOutOwnerFromAnotherIp() throws Exception {
+            String wrong = """
+                    {"email": "parent@test.com", "password": "wrongpassword"}
+                    """;
+            for (int attempt = 0; attempt < 5; attempt++) {
+                mockMvc.perform(post("/api/v1/auth/login")
+                                .with(csrf())
+                                .with(remoteAddr("203.0.113.50"))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(wrong))
+                        .andExpect(status().isUnauthorized());
+            }
+            // 공격자 IP는 이제 막힌다.
+            mockMvc.perform(post("/api/v1/auth/login")
+                            .with(csrf())
+                            .with(remoteAddr("203.0.113.50"))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(wrong))
+                    .andExpect(status().isTooManyRequests());
+
+            // 같은 계정의 실제 사용자는 다른 IP에서 올바른 비밀번호로 로그인할 수 있다.
+            mockMvc.perform(post("/api/v1/auth/login")
+                            .with(csrf())
+                            .with(remoteAddr("198.51.100.60"))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"email": "parent@test.com", "password": "test1234"}
+                                    """))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+        }
+
+        @Test
+        @DisplayName("로그인 - 여러 IP로 분산된 실패가 이메일 전체 한도를 넘으면 모든 IP에서 차단된다")
+        void login_DistributedFailuresHitGlobalEmailLimit() throws Exception {
+            String wrong = """
+                    {"email": "parent@test.com", "password": "wrongpassword"}
+                    """;
+            // IP마다 5회(쌍 한도)씩 10개 IP = 50회
+            for (int ip = 1; ip <= 10; ip++) {
+                for (int attempt = 0; attempt < 5; attempt++) {
+                    mockMvc.perform(post("/api/v1/auth/login")
+                                    .with(csrf())
+                                    .with(remoteAddr("192.0.2." + ip))
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(wrong))
+                            .andExpect(status().isUnauthorized());
+                }
+            }
+
+            mockMvc.perform(post("/api/v1/auth/login")
+                            .with(csrf())
+                            .with(remoteAddr("192.0.2.200"))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"email": "parent@test.com", "password": "test1234"}
+                                    """))
+                    .andExpect(status().isTooManyRequests())
+                    .andExpect(jsonPath("$.code").value("A006"));
+        }
+
+        @Test
         @DisplayName("로그인 - 기존 계정에서 반복 실패가 발생하면 원장에게 이상 징후 알림을 한 번만 보낸다")
         void login_Fail_RepeatedFailures_SendSinglePrincipalAlert() throws Exception {
             String requestBody = """
