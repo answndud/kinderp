@@ -45,25 +45,6 @@
 
 ---
 
-## Slice 9 — QueryDSL 실제 사용 (기술 스택 주장과 일치시키기)
-
-**왜:** `JPAQueryFactory`는 `global/config/QuerydslConfig.java`에서 빈으로 등록만 돼 있고 domain 코드 사용처가 0건이다. README·AGENTS.md에는 QueryDSL을 기술 스택으로 적고 있다. 대신 `NotificationOutboxRepository` 92~121줄에 `(:status IS NULL OR ...)` 형태의 JPQL 동적 쿼리가 있다.
-
-**작업 순서:**
-1. `NotificationOutboxRepository`의 동적 검색 쿼리(운영 화면 검색)를 custom repository로 옮긴다: `NotificationOutboxQueryRepository` 인터페이스 + `NotificationOutboxQueryRepositoryImpl`(JPAQueryFactory 사용). 파라미터별 `BooleanExpression` 메서드가 null이면 조건을 생략하게 한다.
-2. 기존 시그니처를 쓰는 서비스 호출부를 새 메서드로 바꾸고, 예전 JPQL 메서드는 삭제한다.
-3. count 쿼리를 분리한다 (`PageableExecutionUtils.getPage`).
-4. `LIKE '%kw%'` 조건은 기능상 유지한다. 인덱스를 못 탄다는 한계를 메서드 주석 한 줄로 남긴다.
-5. `NotificationOutboxOpsApiIntegrationTest`의 검색 테스트가 그대로 통과해야 한다. 필터 조합 테스트(조건 없음 / status만 / keyword만 / 전부)가 없으면 추가한다.
-6. `ArchUnit LayerDependencyTest`가 새 Impl 클래스 위치를 허용하는지 확인한다.
-
-**검증:**
-```bash
-./gradlew --no-daemon test --tests "com.kinderp.api.NotificationOutboxOpsApiIntegrationTest" --tests "com.kinderp.architecture.LayerDependencyTest" --tests "com.kinderp.performance.NotificationOutboxPerformanceSmokeTest"
-```
-
----
-
 ## Slice 10 — 코드 위생 정리
 
 동작 변경 없는 정리만 한다. 항목마다 컴파일하고 fastTest를 실행한다.
