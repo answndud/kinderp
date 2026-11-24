@@ -18,6 +18,7 @@ import org.springframework.web.filter.GenericFilterBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import java.io.IOException;
 
 /**
@@ -52,16 +53,20 @@ public class JwtFilter extends GenericFilterBean {
         // 쿠키에서 Access Token 추출
         String token = resolveToken(httpRequest);
 
-        if (token != null && jwtTokenProvider.validateToken(token)) {
+        // 서명 검증과 claim 추출을 한 번의 파싱으로 끝낸다.
+        Optional<JwtTokenProvider.TokenClaims> parsed =
+                token != null ? jwtTokenProvider.parseToken(token) : Optional.empty();
+        if (parsed.isPresent()) {
+            JwtTokenProvider.TokenClaims claims = parsed.get();
             try {
-                if (!jwtTokenProvider.isAccessToken(token)) {
+                if (!claims.isAccessToken()) {
                     SecurityContextHolder.clearContext();
                     log.debug("JWT 인증 실패 - access 토큰이 아닌 토큰이 access 쿠키로 전달됨");
                     chain.doFilter(request, response);
                     return;
                 }
-                Long memberId = jwtTokenProvider.getMemberId(token);
-                String sessionId = jwtTokenProvider.getSessionId(token);
+                Long memberId = claims.memberId();
+                String sessionId = claims.sessionId();
                 if (memberId == null || sessionId == null || sessionId.isBlank()) {
                     SecurityContextHolder.clearContext();
                     chain.doFilter(request, response);
@@ -74,7 +79,7 @@ public class JwtFilter extends GenericFilterBean {
                     return;
                 }
 
-                Authentication authentication = getAuthentication(token);
+                Authentication authentication = getAuthentication(claims.email());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
                 if (shouldTrackSessionActivity(httpRequest)) {
                     authSessionRegistryService.touchSession(
@@ -115,9 +120,7 @@ public class JwtFilter extends GenericFilterBean {
     /**
      * 토큰으로 Authentication 객체 생성
      */
-    private Authentication getAuthentication(String token) {
-        String email = jwtTokenProvider.getEmail(token);
-
+    private Authentication getAuthentication(String email) {
         // DB에서 회원 조회 (상태 확인을 위해)
         CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(email);
 

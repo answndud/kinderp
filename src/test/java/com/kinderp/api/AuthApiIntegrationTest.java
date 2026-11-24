@@ -912,6 +912,16 @@ class AuthApiIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
+        @DisplayName("서명이 변조된 access 쿠키는 500이 아니라 미인증(401)으로 처리된다")
+        void tamperedAccessCookie_IsUnauthorized() throws Exception {
+            LoginCookies loginCookies = loginAsParent();
+            Cookie tampered = new Cookie("access_token", loginCookies.accessCookie().getValue() + "tampered");
+
+            mockMvc.perform(get("/api/v1/members/me").cookie(tampered))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        @Test
         @DisplayName("이미 교체된 refresh token을 재사용하면 세션 전체가 폐기된다")
         void reusedRefreshToken_RevokesSession() throws Exception {
             LoginCookies loginCookies = loginAsParent();
