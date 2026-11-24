@@ -18,6 +18,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -97,6 +98,9 @@ public class NotificationOutbox extends BaseEntity {
     @Column(name = "processing_started_at")
     private LocalDateTime processingStartedAt;
 
+    @Column(name = "claim_token", length = 36)
+    private String claimToken;
+
     @Column(name = "last_attempt_at")
     private LocalDateTime lastAttemptAt;
 
@@ -160,7 +164,12 @@ public class NotificationOutbox extends BaseEntity {
     }
 
     public void markProcessing(LocalDateTime now) {
+        markProcessing(now, UUID.randomUUID().toString());
+    }
+
+    public void markProcessing(LocalDateTime now, String claimToken) {
         this.status = NotificationDeliveryStatus.PROCESSING;
+        this.claimToken = claimToken;
         this.processingStartedAt = now;
         this.lastAttemptAt = now;
         this.attemptCount += 1;
@@ -170,6 +179,7 @@ public class NotificationOutbox extends BaseEntity {
         this.status = NotificationDeliveryStatus.DELIVERED;
         this.deliveredAt = now;
         this.processingStartedAt = null;
+        this.claimToken = null;
         this.lastError = null;
     }
 
@@ -177,6 +187,7 @@ public class NotificationOutbox extends BaseEntity {
         this.status = NotificationDeliveryStatus.PENDING;
         this.nextAttemptAt = nextAttemptAt;
         this.processingStartedAt = null;
+        this.claimToken = null;
         this.lastError = truncateError(errorMessage);
     }
 
@@ -184,12 +195,14 @@ public class NotificationOutbox extends BaseEntity {
         this.status = NotificationDeliveryStatus.DEAD_LETTER;
         this.deadLetteredAt = now;
         this.processingStartedAt = null;
+        this.claimToken = null;
         this.lastError = truncateError(errorMessage);
     }
 
     public void resetDeadLetterForRetry(LocalDateTime now, int configuredMaxAttempts) {
         this.status = NotificationDeliveryStatus.PENDING;
         this.processingStartedAt = null;
+        this.claimToken = null;
         this.deadLetteredAt = null;
         this.lastError = null;
         this.nextAttemptAt = now;
@@ -213,7 +226,7 @@ public class NotificationOutbox extends BaseEntity {
         );
     }
 
-    private String truncateError(String errorMessage) {
+    public static String truncateError(String errorMessage) {
         if (errorMessage == null || errorMessage.isBlank()) {
             return null;
         }

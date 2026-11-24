@@ -58,6 +58,8 @@ Controller의 `@PreAuthorize`, service의 요청자 검증, repository의 tenant
 
 업무 transaction과 외부 webhook·email·push 전달을 같은 transaction에 묶지 않는다. Outbox 상태를 `PENDING → PROCESSING → DELIVERED/DEAD_LETTER`로 관리하고, worker 경합은 DB row claim으로 제어한다. 운영자는 실패 원인과 재시도 이력을 확인할 수 있어야 한다.
 
+전달 보장은 **at-least-once**다. worker가 outbox를 claim할 때마다 `claim_token`을 새로 발급하고, 발송은 트랜잭션 밖에서 하며, 결과(성공·재시도·dead-letter)는 "내 token이 아직 유효한 PROCESSING 행"에만 조건부 UPDATE로 기록한다. 발송이 processing-timeout을 넘겨 다른 worker가 같은 건을 재claim하면 늦게 끝난 쪽의 결과는 버려지고(`outcome=fenced` 지표), 최종 상태는 재claim한 쪽이 정한다. 다만 발송 성공 후 결과를 기록하기 전에 프로세스가 죽거나 timeout을 넘기면 같은 알림이 두 번 나갈 수 있으므로, 수신 측은 `notificationId`와 channel로 멱등 처리해야 한다.
+
 ### 측정 없는 확장은 하지 않는다
 
 대시보드 집계와 출결/Outbox 처리를 대표 성능 시나리오로 삼고, 데이터 규모·동시 사용자·쿼리 수·p95·실행계획을 같은 조건에서 전후 비교한다. Kafka, Kubernetes, 별도 서비스 도입은 병목과 운영 비용이 측정된 뒤에만 검토한다.

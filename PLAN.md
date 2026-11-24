@@ -45,57 +45,6 @@
 
 ---
 
-## Slice 5 — 알림 Outbox 중복 발송 방지 (fencing)
-
-**왜:** `NotificationDispatchService` 흐름에 세 가지 문제가 있다.
-- claim 트랜잭션이 PROCESSING으로 바꾸고 커밋한 뒤, `processClaimedDelivery`는 상태나 소유를 재확인하지 않고 발송한다. 발송이 processing-timeout(기본 5분)을 넘기면 다른 워커가 stale로 다시 claim해서 **중복 발송**하고, 두 워커의 결과가 서로 덮어쓴다.
-- 외부 HTTP 발송(`sender.send`)이 DB 트랜잭션 안에서 실행돼 커넥션을 오래 잡는다.
-- stale 회수는 PENDING이 0건일 때만 돈다(88~90줄). 부하가 계속되면 stale 건이 영원히 처리되지 않는다.
-
-**설계 (그대로 따를 것):** claim할 때마다 새 `claim_token`(UUID 문자열)을 발급한다. 결과는 "내 토큰이 아직 유효할 때만" 조건부 UPDATE로 기록한다.
-
-**대상 파일:**
-- 새 마이그레이션 `src/main/resources/db/migration/V19__add_notification_outbox_claim_token.sql`. 먼저 `ls src/main/resources/db/migration | sort -V | tail -1`로 최신 버전이 V18인지 확인한다.
-- `src/main/java/com/kinderp/domain/notification/entity/NotificationOutbox.java`
-- `src/main/java/com/kinderp/domain/notification/repository/NotificationOutboxRepository.java`
-- `src/main/java/com/kinderp/domain/notification/service/NotificationDispatchService.java`
-- `src/test/java/com/kinderp/integration/NotificationOutbox*IntegrationTest.java`
-
-**작업 순서:**
-1. V19: `ALTER TABLE notification_outbox ADD COLUMN claim_token VARCHAR(36) NULL;`
-2. 엔티티:
-   - `claimToken` 필드(`@Column(name = "claim_token", length = 36)`)를 추가한다.
-   - `markProcessing(LocalDateTime now)`를 `markProcessing(LocalDateTime now, String claimToken)`로 바꾼다.
-   - `markDelivered`, `scheduleRetry`, `markDeadLetter`, 운영 재시도 메서드(191줄 부근)는 `claimToken = null`로 초기화한다.
-3. Repository에 조건부 완료 쿼리 3개를 추가한다:
-   - `@Modifying @Query`로 `UPDATE NotificationOutbox o SET ... WHERE o.id = :id AND o.status = PROCESSING AND o.claimToken = :token`
-   - 대상: delivered / retry / dead-letter 각각
-   - 반환형은 `int`. 엔티티의 상태 필드 값은 엔티티 메서드와 똑같이 맞춘다.
-   - 기존 엔티티 메서드는 운영 화면 재시도 등 다른 곳에서도 쓰이므로 삭제하지 않는다.
-4. `NotificationDispatchService`:
-   - `claimReadyDeliveries`: 먼저 PENDING을 batchSize만큼 claim한다. 결과가 batchSize보다 적으면 **남은 개수만큼** stale PROCESSING을 추가로 claim한다 (starvation 해소). 건마다 `UUID.randomUUID().toString()` 토큰으로 `markProcessing(now, token)`하고, 반환값을 `List<Long>` 대신 `List<ClaimedDelivery>`(private record: `id`, `claimToken`)로 바꾼다.
-   - `processClaimedDelivery(ClaimedDelivery claimed)`를 다음 3단계로 나눈다.
-     1) 짧은 읽기 트랜잭션: outbox를 읽어 `status == PROCESSING && claimToken.equals(claimed.claimToken())`인지 확인한다. 아니면 return. 맞으면 발송에 필요한 payload(`outbox.toPayload()`), channel, attemptCount를 꺼낸다. Lazy 연관(`getNotification()`)은 **이 트랜잭션 안에서만** 접근한다.
-     2) **트랜잭션 밖에서** `sender.send(payload)`를 호출한다.
-     3) 짧은 쓰기 트랜잭션: 성공이면 delivered 조건부 UPDATE, 실패면 retry 또는 dead-letter 조건부 UPDATE를 한다. 업데이트된 행이 0이면 "다른 워커가 이미 가져감"이므로 `log.info`만 남기고 metric `outcome=fenced`를 기록한다.
-   - 클래스 레벨 `@Transactional(readOnly = true)`가 `@Scheduled` 메서드에 바깥 트랜잭션을 열어, REQUIRES_NEW와 합쳐 커넥션 2개를 쓴다. `processReadyDeliveriesOnSchedule`·`processReadyDeliveriesBatch`에 `@Transactional(propagation = Propagation.NOT_SUPPORTED)`를 붙여 바깥 트랜잭션을 없앤다. `executeInNewTransaction`(TransactionTemplate) 방식은 유지한다.
-5. at-least-once 한계를 `docs/architecture/portfolio-story.md`의 Outbox 절에 3~5줄로 추가한다: 수신 측은 `notificationId`+`channel`로 멱등 처리해야 하고, 발송 성공 후 결과 기록 전에 프로세스가 죽으면 재발송될 수 있다는 내용.
-
-**추가할 테스트:**
-- 워커 A가 claim한 뒤, 시간을 timeout 이후로 조작하거나 `processingStartedAt`을 과거로 직접 UPDATE해서 워커 B가 stale로 재claim하게 만든다. 이어서 A의 완료 처리가 0건 반영(fenced)되고 최종 상태가 B의 결과인지 검증한다.
-- PENDING이 batchSize보다 적고 stale이 있을 때 한 배치에 둘 다 claim되는지 검증한다.
-- 기존 `NotificationOutboxClaimConcurrencyIntegrationTest`, `NotificationOutboxRetryIntegrationTest`, `NotificationOutboxIntegrationTest`, `NotificationOutboxOpsApiIntegrationTest`, `performance/NotificationOutboxPerformanceSmokeTest`가 통과해야 한다.
-
-**검증:**
-```bash
-./gradlew --no-daemon test --tests "com.kinderp.integration.NotificationOutbox*" --tests "com.kinderp.api.NotificationOutboxOpsApiIntegrationTest"
-./gradlew --no-daemon performanceSmokeTest
-```
-
-**완료 조건:** 발송이 트랜잭션 밖에서 이루어지고, 토큰이 다르면 결과가 반영되지 않는 것이 테스트로 증명된다.
-
----
-
 ## Slice 6 — 입학 Offer 만료 스케줄러 경합 + 정원 동시성 테스트
 
 **왜:**
