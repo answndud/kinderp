@@ -612,7 +612,7 @@ sequenceDiagram
 
 ### 7-3. 왜 H2 대신 이 방식을 택했는가
 
-[phase15_testcontainers_integration_test_stack.md](../docs/COMPLETED.md#archive-002)에 정리된 이유가 명확합니다.
+phase15_testcontainers_integration_test_stack.md에 정리된 이유가 명확합니다.
 
 - H2는 MySQL과 SQL/DDL 차이가 있다
 - `create-drop`은 편하지만 운영 스키마 기준 검증이 아니다

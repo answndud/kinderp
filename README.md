@@ -165,7 +165,7 @@ npm run e2e:smoke
 | [설계 서사](./docs/architecture/portfolio-story.md) | 대표 업무 흐름, 권한·상태 전이, Outbox 설계 |
 | [성능 측정 방법론](./docs/architecture/performance-methodology.md) | 측정 조건, 전후 비교, 한계 |
 | [개발자 가이드](./docs/guides/developer-guide.md) | 구조, 실행, 코드 규칙 |
-| [배포 가이드](./docs/guides/deployment-guide.md) | Docker, 환경 변수, 백업·복구 |
+| [배포 가이드](./docs/guides/netcup-deployment.md) | 단일 VPS 배포, 백업·복구 |
 | [문서 인덱스](./docs/README.md) | 전체 문서 목록 |
 
 ## 라이선스

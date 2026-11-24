@@ -1,4 +1,4 @@
-# 설계 의사결정 기록
+# Architecture Decision Log
 
 각 결정은 사용한 기술보다 문제, 버린 대안, trade-off와 전환 조건을 설명하기 위한 자료입니다.
 

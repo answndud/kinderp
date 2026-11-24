@@ -210,9 +210,9 @@ sequenceDiagram
 
 그리고 설계 변천은 아래 결정 로그와 연결됩니다.
 
-- [phase07_application.md](../docs/COMPLETED.md#archive-001)
-- [phase10_calendar.md](../docs/COMPLETED.md#archive-001)
-- [phase18_dashboard_metric_redefinition.md](../docs/COMPLETED.md#archive-002)
+- phase07_application.md
+- phase10_calendar.md
+- phase18_dashboard_metric_redefinition.md
 
 즉, 이 단계는 “기능을 더 붙였다”가 아니라
 프로젝트가 진짜 운영 흐름을 다루기 시작한 단계입니다.

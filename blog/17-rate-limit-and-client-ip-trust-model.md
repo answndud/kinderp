@@ -170,9 +170,9 @@ sequenceDiagram
 
 그리고 설계 변천은 아래 문서로 이어집니다.
 
-- [phase21_auth_rate_limit.md](../docs/COMPLETED.md#archive-002)
-- [phase24_auth_client_ip_trust_model.md](../docs/COMPLETED.md#archive-002)
-- [phase25_login_rate_limit_policy_refinement.md](../docs/COMPLETED.md#archive-002)
+- phase21_auth_rate_limit.md
+- phase24_auth_client_ip_trust_model.md
+- phase25_login_rate_limit_policy_refinement.md
 
 ## 8. 회고
 

@@ -184,8 +184,8 @@ sequenceDiagram
 
 그리고 설계 의도는 아래 문서에 정리돼 있습니다.
 
-- [phase17_jwt_refresh_session_rotation.md](../docs/COMPLETED.md#archive-002)
-- [phase39_management_plane_and_active_session_control.md](../docs/COMPLETED.md#archive-003)
+- phase17_jwt_refresh_session_rotation.md
+- phase39_management_plane_and_active_session_control.md
 
 > 현재 구현의 한계
 > 이 구조는 access token 자체를 DB에 저장하는 방식이 아니라, Redis에 저장된 세션 활성 여부에 의존합니다.

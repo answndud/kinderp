@@ -1,6 +1,6 @@
 # Blog Workspace
 
-이 폴더는 KinderP를 기반으로 작성할 **취업용 개발 블로그 시리즈**의 작업 공간입니다.
+이 폴더는 KinderP를 기반으로 작성한 **개발 블로그 시리즈** 초안입니다.
 
 목표는 두 가지입니다.
 
@@ -11,37 +11,11 @@
 
 3. 독자가 `blog/`만 보고도 각 단계의 **중간 체크포인트를 재현**할 수 있게 만들기
 
-## 블로그 작업 SSOT
-
-- [BLOG_PLAN.md](../BLOG_PLAN.md)
-  - 블로그 시리즈 전체 계획
-  - 집필 순서와 범위
-- [BLOG_PROGRESS.md](../BLOG_PROGRESS.md)
-  - 블로그 작업 진행 로그
-- [blog/00_rebuild_guide.md](./00_rebuild_guide.md)
-  - 블로그를 재현형 구현 가이드로 강화하는 공통 규칙
-- [blog/00_quality_checklist.md](./00_quality_checklist.md)
-  - 초보자 이해도 / 재현성 / 면접 대응력 기준의 편집 체크리스트
-
-루트 [PLAN.md](../PLAN.md)는 **애플리케이션 개발 작업용 SSOT**로 유지합니다.
-
 ## 링크 정책
 
 - `blog/`와 이 시리즈가 직접 참조하는 저장소 문서는 **repo-relative 링크**로 정리돼 있습니다.
 - 따라서 GitHub 저장소 안에서는 바로 읽을 수 있습니다.
 - 다만 Velog, Notion 같은 외부 플랫폼으로 옮길 때는 GitHub permalink처럼 절대 URL 체계로 한 번 더 변환해야 합니다.
-
-## 이 폴더의 역할
-
-- `00_series_plan.md`
-  - 연재 전체 구조
-  - 글 순서
-  - 글마다 다룰 파일/클래스/설정 범위
-  - 독자 학습 목표
-- `00_rebuild_guide.md`
-  - 재현형 글을 쓸 때 지켜야 할 공통 규칙
-- `00_quality_checklist.md`
-  - 각 글을 실제로 수정할 때 적용할 품질 점검표
 
 ## 이 시리즈가 다루는 범위
 
@@ -56,7 +30,7 @@
 - Testcontainers / GitHub Actions / 테스트 전략
 - 감사 로그 / Outbox / Observability / Incident 대응
 - 운영형 워크플로우
-- 면접/데모/문서 패키징
+- 성능 개선과 측정
 
 ## 집필 원칙
 
@@ -117,22 +91,11 @@
 23. [출결 변경 요청과 업무 감사 로그를 함께 설계하기](./23-attendance-change-request-and-domain-audit.md)
 24. [감사 로그를 운영 도구로 키우기](./24-audit-logs-as-operations-tools.md)
 
-### Part I. 성능과 포트폴리오 마감
+### Part I. 성능
 
 25. [성능 개선을 코드가 아니라 스토리로 설명하는 방법](./25-performance-story-as-portfolio.md)
-26. [데모, 아키텍처, 면접 패키지까지 묶어 프로젝트를 완성하기](./26-demo-architecture-and-interview-pack.md)
 
 ## 독자용 시작 순서
 
-1. `00_rebuild_guide.md`로 이 시리즈를 어떻게 읽고 재현할지 먼저 확인합니다.
-2. `00_quality_checklist.md`로 좋은 구현 글이 무엇을 만족해야 하는지 먼저 봅니다.
-3. `00_series_plan.md`로 전체 지도를 한 번 훑습니다.
-4. 실제 읽기는 위 인덱스를 따라 `01`번부터 `26`번까지 순서대로 진행합니다.
-5. 구현 글에서는 본문보다 먼저 글 하단의 `시작 상태`, `바뀌는 파일`, `산출물 체크리스트`, `실행 / 검증 명령`을 같이 봅니다.
-
-## 작성자용 시작 순서
-
-1. `BLOG_PLAN.md`로 현재 연재 구조와 리라이트 우선순위를 확인합니다.
-2. `BLOG_PROGRESS.md`로 최근 수정 이력과 남은 작업을 확인합니다.
-3. `00_rebuild_guide.md`와 `00_quality_checklist.md`를 기준으로 글 구조와 품질 기준을 맞춥니다.
-4. 단계별 체크포인트는 산출물 체크리스트와 안정 검증 명령을 기준으로 관리하고, 별도 스크립트는 실제 파일이 있을 때만 문서에 노출합니다.
+1. 아래 인덱스를 따라 `01`번부터 `25`번까지 순서대로 읽습니다.
+2. 구현 글에서는 본문보다 먼저 글 하단의 `시작 상태`, `바뀌는 파일`, `산출물 체크리스트`, `실행 / 검증 명령`을 같이 봅니다.

@@ -46,6 +46,6 @@ npm run docs:links
 - OSIV OFF이므로 View/Controller가 lazy loading에 의존하지 않습니다.
 - 비즈니스 오류는 `BusinessException(ErrorCode)`로 반환하고, View flash message에 예외 원문을 노출하지 않습니다.
 - 새 endpoint는 URL 권한과 service/method 권한, 성공·실패·교차 tenant 테스트를 함께 확인합니다.
-- 변경은 `apply_patch`로 수행하고 강제 push·rebase·`--no-verify`는 사용하지 않습니다.
+- 변경은 작은 단위로 수행하고 강제 push·rebase·`--no-verify`는 사용하지 않습니다.
 
 세부 규칙과 커밋 절차는 `AGENTS.md`를 우선합니다.

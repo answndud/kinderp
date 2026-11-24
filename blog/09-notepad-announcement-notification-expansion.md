@@ -242,9 +242,9 @@ sequenceDiagram
 
 그리고 설계 의도는 아래 결정 로그에 남아 있습니다.
 
-- [phase05_notepad.md](../docs/COMPLETED.md#archive-001)
-- [phase06_announcement.md](../docs/COMPLETED.md#archive-001)
-- [phase08_notification.md](../docs/COMPLETED.md#archive-001)
+- phase05_notepad.md
+- phase06_announcement.md
+- phase08_notification.md
 
 즉, 알림장/공지/알림이 단순 CRUD가 아니라
 실제 사용자 소통 흐름으로 검증되고 있습니다.

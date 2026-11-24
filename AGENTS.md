@@ -132,12 +132,6 @@ docker compose --env-file docker/.env -f docker/docker-compose.yml down
 - 기존 API 계약은 **Extension over Modification** 우선.
 - 템플릿에서 ID/데이터 하드코딩 금지, API 동적 로딩 우선.
 - HTMX는 전체 페이지 리로드보다 부분 갱신을 우선 적용.
-- 디자인/프론트엔드 개선은 repo-local Impeccable 컨텍스트를 우선 확인한다.
-  - 디자인 컨텍스트: `.impeccable.md`
-  - repo-local skills: `.agents/skills/*`
-  - detector: `npm run impeccable:detect`
-- Impeccable 적용 시 `~/.codex`, `~/.claude`, global npm install, 사용자 홈 설정을 변경하지 않는다.
-- 새 UI 개선은 `$audit`/`$critique` 성격의 문제 정리 → 구현 → `$polish` 성격의 마무리 → detector/Gradle 검증 순서로 진행한다.
 - 운영형 ERP 화면은 정보 스캔, 명확한 상태/권한/액션 위계, 모바일 핵심 액션 유지가 우선이다. 장식성 gradient/orb/glow, nested cards, 과한 라운드/그림자, 색상만으로 전달되는 상태 표시는 피한다.
 
 ## 7) DB / Migration Rules

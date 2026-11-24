@@ -1,6 +1,6 @@
 # netcup 단일 VPS 배포 가이드
 
-이 문서는 TownPet과 같은 netcup VPS Lite 2 G12s에 KinderP를 배포하기 위한 실행 순서다. 상용 트래픽이 거의 없는 포트폴리오 환경이므로 MySQL·Redis·Spring Boot를 같은 서버에 두되, Compose network와 volume은 TownPet과 분리한다.
+이 문서는 다른 프로젝트와 같은 netcup VPS Lite 2 G12s에 KinderP를 배포하기 위한 실행 순서다. 상용 트래픽이 거의 없는 포트폴리오 환경이므로 MySQL·Redis·Spring Boot를 같은 서버에 두되, Compose network와 volume은 같은 VPS의 다른 프로젝트와 분리한다.
 
 ## 배포 자산
 
@@ -144,7 +144,7 @@ MYSQL_PASSWORD="$MYSQL_PASSWORD" \\
 
 ## 업데이트와 롤백
 
-1. TownPet·ERP DB paired backup을 만든다.
+1. 같은 VPS의 다른 프로젝트 DB와 ERP DB의 paired backup을 만든다.
 2. 새 `APP_IMAGE`와 `APP_VERSION`을 기록한다.
 3. `docker compose pull` 후 app만 교체한다.
 4. readiness와 ERP 로그인 smoke를 확인한다.
@@ -159,5 +159,5 @@ Flyway가 이미 적용된 schema를 애플리케이션 image만으로 되돌릴
 - 공용 edge Caddy에서 `https://erp.example.com`으로 접근된다.
 - 80/443 외부 포트는 공용 edge Caddy만 사용한다.
 - MySQL backup checksum과 disposable restore가 실제로 통과한다.
-- `docker stats`, `free -h`, `df -h` 결과를 TownPet과 함께 기록한다.
+- `docker stats`, `free -h`, `df -h` 결과를 같은 VPS의 다른 프로젝트와 함께 기록한다.
 - 실행하지 않은 netcup·DNS·TLS·backup 결과를 완료로 주장하지 않는다.

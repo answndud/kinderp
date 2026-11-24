@@ -220,7 +220,7 @@ sequenceDiagram
 
 즉, 도메인 모델이 실제 API 계약으로 바로 이어집니다.
 
-또한 최근에는 [phase41_admission_capacity_waitlist_workflow.md](../docs/COMPLETED.md#archive-003)에서
+또한 최근에는 phase41_admission_capacity_waitlist_workflow.md에서
 `Classroom.capacity`가 waitlist/offer 워크플로우와도 연결됐습니다.
 
 ## 8. 회고

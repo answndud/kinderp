@@ -56,7 +56,7 @@
 
 ## 2. demo
 
-면접/시연용 실행입니다.
+시연용 실행입니다.
 
 - 필수
   - `SPRING_PROFILES_ACTIVE=demo`
