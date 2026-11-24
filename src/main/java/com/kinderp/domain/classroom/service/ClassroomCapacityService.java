@@ -44,6 +44,22 @@ public class ClassroomCapacityService {
                 ApplicationStatus.OFFERED,
                 ProductTime.nowDateTime()
         );
+        return toSummary(classroom, enrolledKidCount, reservedOfferCount);
+    }
+
+    /**
+     * 정원을 확정하는 쓰기 경로용. 반을 잠근 뒤 잠금 읽기로 세어, 먼저 커밋된 승인·offer를 반드시 반영한다.
+     */
+    private ClassroomSeatSummary summarizeForUpdate(Classroom classroom) {
+        long enrolledKidCount = kidRepository.countActiveByClassroomIdForShare(classroom.getId());
+        long reservedOfferCount = kidApplicationRepository.countActiveOffersByAssignedClassroomIdForShare(
+                classroom.getId(),
+                ProductTime.nowDateTime()
+        );
+        return toSummary(classroom, enrolledKidCount, reservedOfferCount);
+    }
+
+    private ClassroomSeatSummary toSummary(Classroom classroom, long enrolledKidCount, long reservedOfferCount) {
         long availableSeatCount = classroom.remainingSeats(enrolledKidCount + reservedOfferCount);
         return new ClassroomSeatSummary(
                 classroom.getId(),
@@ -54,15 +70,17 @@ public class ClassroomCapacityService {
         );
     }
 
+    @Transactional
     public void validateSeatAvailable(Classroom classroom) {
-        ClassroomSeatSummary summary = summarize(classroom);
+        ClassroomSeatSummary summary = summarizeForUpdate(classroom);
         if (summary.availableSeatCount() <= 0) {
             throw new BusinessException(ErrorCode.CLASSROOM_CAPACITY_EXCEEDED);
         }
     }
 
+    @Transactional
     public void validateCapacityReduction(Classroom classroom, int requestedCapacity) {
-        ClassroomSeatSummary summary = summarize(classroom);
+        ClassroomSeatSummary summary = summarizeForUpdate(classroom);
         long occupiedSeats = summary.enrolledKidCount() + summary.reservedOfferCount();
         if (!classroom.canResizeTo(occupiedSeats, requestedCapacity)) {
             throw new BusinessException(ErrorCode.CLASSROOM_CAPACITY_REDUCTION_NOT_ALLOWED);

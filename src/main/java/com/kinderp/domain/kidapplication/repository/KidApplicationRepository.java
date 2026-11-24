@@ -117,14 +117,32 @@ public interface KidApplicationRepository extends JpaRepository<KidApplication, 
                                                 @Param("status") ApplicationStatus status,
                                                 @Param("now") LocalDateTime now);
 
-    @Query("""
-            SELECT a
-            FROM KidApplication a
-            WHERE a.status = :status
-              AND a.offerExpiresAt <= :now
-              AND a.deletedAt IS NULL
-            ORDER BY a.offerExpiresAt ASC
-            """)
-    List<KidApplication> findExpiredOffers(@Param("status") ApplicationStatus status,
-                                           @Param("now") LocalDateTime now);
+    /** 정원 검증용 잠금 읽기 (KidRepository.countActiveByClassroomIdForShare 참고). */
+    @Query(value = """
+            SELECT COUNT(*)
+            FROM kid_application
+            WHERE assigned_classroom_id = :classroomId
+              AND status = 'OFFERED'
+              AND deleted_at IS NULL
+              AND (offer_expires_at IS NULL OR offer_expires_at > :now)
+            FOR SHARE
+            """, nativeQuery = true)
+    long countActiveOffersByAssignedClassroomIdForShare(@Param("classroomId") Long classroomId,
+                                                        @Param("now") LocalDateTime now);
+
+    /**
+     * 만료된 offer를 잠그며 가져온다. 다른 트랜잭션(수락·취소·다른 인스턴스의 스케줄러)이 이미 잠근 행은 건너뛰므로
+     * 만료 처리가 진행 중인 수락 결과를 덮어쓰거나 같은 건을 두 번 처리하지 않는다.
+     */
+    @Query(value = """
+            SELECT id
+            FROM kid_application
+            WHERE status = 'OFFERED'
+              AND offer_expires_at <= :now
+              AND deleted_at IS NULL
+            ORDER BY offer_expires_at ASC, id ASC
+            LIMIT :limit
+            FOR UPDATE SKIP LOCKED
+            """, nativeQuery = true)
+    List<Long> claimExpiredOfferIds(@Param("now") LocalDateTime now, @Param("limit") int limit);
 }

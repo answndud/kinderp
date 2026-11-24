@@ -38,6 +38,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class KidApplicationService {
 
+    private static final int EXPIRE_OFFERS_BATCH_SIZE = 100;
     private static final List<ApplicationStatus> ACTIVE_APPLICATION_STATUSES = List.of(
             ApplicationStatus.PENDING,
             ApplicationStatus.WAITLISTED,
@@ -214,9 +215,11 @@ public class KidApplicationService {
         }
 
         LocalDateTime now = ProductTime.nowDateTime();
-        List<KidApplication> expiredOffers = applicationRepository.findExpiredOffers(ApplicationStatus.OFFERED, now);
-        for (KidApplication application : expiredOffers) {
-            if (!application.isOffered()) {
+        // 한 번에 처리하는 건수를 제한하고, 잠긴 행(진행 중인 수락·취소)은 건너뛴다. 남은 건은 다음 주기에 처리한다.
+        List<Long> expiredIds = applicationRepository.claimExpiredOfferIds(now, EXPIRE_OFFERS_BATCH_SIZE);
+        for (Long applicationId : expiredIds) {
+            KidApplication application = applicationRepository.findByIdAndDeletedAtIsNull(applicationId).orElse(null);
+            if (application == null || !application.isOffered()) {
                 continue;
             }
             application.markOfferExpired();

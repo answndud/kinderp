@@ -45,36 +45,6 @@
 
 ---
 
-## Slice 6 — 입학 Offer 만료 스케줄러 경합 + 정원 동시성 테스트
-
-**왜:**
-- `KidApplicationService.expireOffers()`(209~226줄)는 락 없이 읽고 전체를 트랜잭션 하나로 처리한다. 반면 `acceptOffer`는 `FOR UPDATE`를 쓴다.
-- 그래서 만료 직전에 수락된 건을 만료로 덮어쓸 수 있고, 여러 인스턴스가 동시에 돌면 알림·감사 로그가 중복된다.
-- README는 "동시성 제어"를 내세우지만 정원 승인 동시성 테스트가 없다.
-
-**대상 파일:**
-- `src/main/java/com/kinderp/domain/kidapplication/repository/KidApplicationRepository.java` (`findExpiredOffers` 128줄)
-- `src/main/java/com/kinderp/domain/kidapplication/service/KidApplicationService.java`
-- `src/test/java/com/kinderp/api/KidApplicationApiIntegrationTest.java` 또는 새 `src/test/java/com/kinderp/integration/KidApplicationConcurrencyIntegrationTest.java`
-
-**작업 순서:**
-1. `findExpiredOffers`를 native query로 바꾼다. `NotificationOutboxRepository`의 `claimPendingIds`(38~41줄) 패턴을 따라 `... WHERE status = 'OFFERED' AND offer_expires_at <= :now AND deleted_at IS NULL ORDER BY id LIMIT :limit FOR UPDATE SKIP LOCKED`로 **id 목록**을 반환한다. 실제 컬럼명은 엔티티와 마이그레이션에서 확인한다.
-2. `expireOffers`는 id를 잠근 트랜잭션 안에서 엔티티를 로드하고, `isOffered()`를 다시 확인한 뒤 만료 처리한다. batch 크기는 100으로 둔다. 상수로 두며 설정값은 만들지 않는다.
-3. `acceptOffer`가 같은 행을 `FOR UPDATE`로 잡기 때문에, 이제 둘 중 하나만 이긴다. 진 쪽은 재확인한 상태에 따라 아무것도 하지 않거나(만료 쪽), 기존 상태 오류를 던진다(수락 쪽).
-
-**추가할 테스트 (통합, `@Tag("integration")`):**
-- **정원 동시 승인:** 정원 N, 현재 N-1명인 반에 신청 2건을 만든다. `ExecutorService` 스레드 2개와 `CountDownLatch`로 동시에 승인(또는 offer 수락) API를 호출해 정원 확정은 정확히 1건, 나머지는 waitlist나 409 등 **현재 도메인 규칙의 실패 결과**인지 확인한다. 반의 원생 수가 N을 넘지 않는지도 검증한다. 승인 흐름은 `KidApplicationReviewService`와 `ClassroomRepository:40`의 비관적 락을 읽고 파악한다.
-- **만료 vs 수락:** OFFERED 신청의 만료 시각을 과거로 설정하고, `expireOffers()`와 학부모 `acceptOffer`를 동시에 실행한다. 최종 상태는 ACCEPTED/ENROLLED나 OFFER_EXPIRED 중 하나이고, 알림·감사 로그는 결과와 일치하는 1종류만 있어야 한다.
-
-**검증:**
-```bash
-./gradlew --no-daemon test --tests "com.kinderp.api.KidApplicationApiIntegrationTest" --tests "com.kinderp.integration.KidApplicationConcurrencyIntegrationTest" --tests "com.kinderp.domain.workflow.WorkflowStateTransitionTest"
-```
-
-**완료 조건:** 동시성 테스트 2종이 10회 반복 실행(`--rerun`을 10번)해도 모두 통과한다.
-
----
-
 ## Slice 7 — 입학 신청 식별 단위를 "학부모"에서 "원생"으로 바꾸기
 
 **왜:** 지금 입학 신청은 원생이 아니라 **학부모 단위**로 묶여 있어서 문제가 셋 있다.
