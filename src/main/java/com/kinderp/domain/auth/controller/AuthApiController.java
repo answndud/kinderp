@@ -28,6 +28,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import com.kinderp.domain.member.entity.Member;
 
 /**
  * 인증 API 컨트롤러
@@ -70,7 +71,7 @@ public class AuthApiController {
             return ResponseEntity
                     .badRequest()
                     .body(ApiResponse.error(
-                            com.kinderp.global.exception.ErrorCode.INVALID_INPUT_VALUE,
+                            ErrorCode.INVALID_INPUT_VALUE,
                             "비밀번호가 일치하지 않습니다"
                     ));
         }
@@ -86,7 +87,7 @@ public class AuthApiController {
         );
 
         // 회원 정보 조회
-        com.kinderp.domain.member.entity.Member member = memberService.getMemberById(memberId);
+        Member member = memberService.getMemberById(memberId);
 
         return ResponseEntity
                 .ok(ApiResponse.success(MemberResponse.from(member), "회원가입이 완료되었습니다"));
@@ -154,7 +155,7 @@ public class AuthApiController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<MemberResponse>> getCurrentMember(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        com.kinderp.domain.member.entity.Member member = memberService.getMemberByIdWithKindergarten(userDetails.getMemberId());
+        Member member = memberService.getMemberByIdWithKindergarten(userDetails.getMemberId());
 
         return ResponseEntity
                 .ok(ApiResponse.success(MemberResponse.from(member)));

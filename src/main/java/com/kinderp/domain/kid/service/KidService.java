@@ -22,6 +22,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import com.kinderp.domain.kid.dto.response.KidDetailResponse;
+import com.kinderp.domain.member.entity.MemberRole;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * 원생 서비스
@@ -81,8 +85,8 @@ public class KidService {
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Kid> getKidsByClassroom(Long classroomId,
-                                                                         org.springframework.data.domain.Pageable pageable,
+    public Page<Kid> getKidsByClassroom(Long classroomId,
+                                                                         Pageable pageable,
                                                                          Long requesterId) {
         Classroom classroom = classroomService.getClassroom(classroomId);
         Member requester = accessPolicyService.getRequester(requesterId);
@@ -97,8 +101,8 @@ public class KidService {
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Kid> getKidsByKindergarten(Long kindergartenId,
-                                                                            org.springframework.data.domain.Pageable pageable,
+    public Page<Kid> getKidsByKindergarten(Long kindergartenId,
+                                                                            Pageable pageable,
                                                                             Long requesterId) {
         Member requester = accessPolicyService.getRequester(requesterId);
         accessPolicyService.validateStaffSameKindergarten(requester, kindergartenId);
@@ -113,9 +117,9 @@ public class KidService {
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Kid> searchKidsByName(Long classroomId,
+    public Page<Kid> searchKidsByName(Long classroomId,
                                                                        String name,
-                                                                       org.springframework.data.domain.Pageable pageable,
+                                                                       Pageable pageable,
                                                                        Long requesterId) {
         Classroom classroom = classroomService.getClassroom(classroomId);
         Member requester = accessPolicyService.getRequester(requesterId);
@@ -130,9 +134,9 @@ public class KidService {
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Kid> searchKidsByKindergarten(Long kindergartenId,
+    public Page<Kid> searchKidsByKindergarten(Long kindergartenId,
                                                                               String name,
-                                                                              org.springframework.data.domain.Pageable pageable,
+                                                                              Pageable pageable,
                                                                               Long requesterId) {
         Member requester = accessPolicyService.getRequester(requesterId);
         accessPolicyService.validateStaffSameKindergarten(requester, kindergartenId);
@@ -154,7 +158,7 @@ public class KidService {
         Member parent = memberService.getMemberById(parentId);
 
         // 학부모 역할 확인
-        if (parent.getRole() != com.kinderp.domain.member.entity.MemberRole.PARENT) {
+        if (parent.getRole() != MemberRole.PARENT) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 
@@ -190,7 +194,7 @@ public class KidService {
         accessPolicyService.validateKidManageAccess(requester, kid);
 
         Member parent = memberService.getMemberById(request.getParentId());
-        if (parent.getRole() != com.kinderp.domain.member.entity.MemberRole.PARENT) {
+        if (parent.getRole() != MemberRole.PARENT) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 
@@ -227,12 +231,12 @@ public class KidService {
     }
 
     @Transactional(readOnly = true)
-    public com.kinderp.domain.kid.dto.response.KidDetailResponse getKidDetail(Long id, Long requesterId) {
+    public KidDetailResponse getKidDetail(Long id, Long requesterId) {
         Kid kid = getKid(id);
         Member requester = accessPolicyService.getRequester(requesterId);
         accessPolicyService.validateKidReadAccess(requester, kid);
         List<ParentKid> parentKids = kidRepository.findParentsByKidId(id);
-        return com.kinderp.domain.kid.dto.response.KidDetailResponse.from(kid, parentKids);
+        return KidDetailResponse.from(kid, parentKids);
     }
 
     private java.util.Map<Long, Long> loadClassroomCounts(Long kindergartenId) {

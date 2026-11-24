@@ -6,12 +6,14 @@ import com.kinderp.global.security.ManagementSurfaceProperties;
 import com.kinderp.global.security.jwt.JwtProperties;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Set;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class StartupSafetyValidator {
@@ -61,6 +63,11 @@ public class StartupSafetyValidator {
         boolean publicDemoEnabled = environment.getProperty("APP_PUBLIC_DEMO_ENABLED", Boolean.class, false);
         if (seedProperties.isEnabled() && !publicDemoEnabled) {
             throw new IllegalStateException("Production profile must keep app.seed.enabled=false.");
+        }
+        if (seedProperties.isEnabled()) {
+            // 공개 데모 배포만 허용되는 예외다. 숨은 예외가 아니라 기동 로그에서 항상 보이게 한다.
+            log.warn("PUBLIC DEMO MODE: seeded demo accounts with public credentials are active. "
+                    + "Never enable APP_PUBLIC_DEMO_ENABLED on a deployment that holds real data.");
         }
 
         if (managementSurfaceProperties.isPublicApiDocs()) {

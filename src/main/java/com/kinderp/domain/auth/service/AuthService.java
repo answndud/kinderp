@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import com.kinderp.domain.member.entity.MemberRole;
 
 /**
  * 인증 서비스
@@ -51,14 +52,14 @@ public class AuthService {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "역할은 필수입니다");
         }
 
-        com.kinderp.domain.member.entity.MemberRole memberRole;
+        MemberRole memberRole;
         try {
-            memberRole = com.kinderp.domain.member.entity.MemberRole.valueOf(role.trim().toUpperCase());
+            memberRole = MemberRole.valueOf(role.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "역할 값이 올바르지 않습니다");
         }
 
-        if (memberRole == com.kinderp.domain.member.entity.MemberRole.PRINCIPAL) {
+        if (memberRole == MemberRole.PRINCIPAL) {
             throw new BusinessException(ErrorCode.INVALID_MEMBER_ROLE, "원장 계정은 공개 회원가입으로 만들 수 없습니다");
         }
 

@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import com.kinderp.domain.member.entity.MemberRole;
 
 /**
  * 반 서비스
@@ -156,8 +157,8 @@ public class ClassroomService {
         Member teacher = memberService.getMemberById(teacherId);
 
         // 교사 역할 확인
-        if (teacher.getRole() != com.kinderp.domain.member.entity.MemberRole.TEACHER &&
-            teacher.getRole() != com.kinderp.domain.member.entity.MemberRole.PRINCIPAL) {
+        if (teacher.getRole() != MemberRole.TEACHER &&
+            teacher.getRole() != MemberRole.PRINCIPAL) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 
@@ -176,8 +177,8 @@ public class ClassroomService {
         accessPolicyService.validateClassroomManageAccess(requester, classroom);
 
         Member teacher = memberService.getMemberById(teacherId);
-        if (teacher.getRole() != com.kinderp.domain.member.entity.MemberRole.TEACHER &&
-                teacher.getRole() != com.kinderp.domain.member.entity.MemberRole.PRINCIPAL) {
+        if (teacher.getRole() != MemberRole.TEACHER &&
+                teacher.getRole() != MemberRole.PRINCIPAL) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 

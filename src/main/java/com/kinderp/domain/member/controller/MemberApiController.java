@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import com.kinderp.domain.member.entity.MemberRole;
 
 /**
  * 회원 API 컨트롤러
@@ -65,7 +66,7 @@ public class MemberApiController {
 
         java.util.List<Member> parents = memberService.getMembersByKindergartenAndRoles(
                 member.getKindergarten().getId(),
-                java.util.List.of(com.kinderp.domain.member.entity.MemberRole.PARENT)
+                java.util.List.of(MemberRole.PARENT)
         );
 
         java.util.List<MemberResponse> responses = new java.util.ArrayList<>();

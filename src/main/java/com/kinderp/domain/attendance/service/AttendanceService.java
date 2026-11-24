@@ -278,7 +278,7 @@ public class AttendanceService {
         List<Kid> kids = kidService.getKidsByClassroom(classroomId, requesterId);
         List<Attendance> attendances = getAttendancesByClassroomAndDate(classroomId, date, requesterId);
         java.util.Map<Long, Attendance> attendanceMap = attendances.stream()
-                .collect(java.util.stream.Collectors.toMap(a -> a.getKid().getId(), a -> a));
+                .collect(Collectors.toMap(a -> a.getKid().getId(), a -> a));
 
         return kids.stream()
                 .map(kid -> DailyAttendanceResponse.from(kid, attendanceMap.get(kid.getId())))
@@ -329,7 +329,7 @@ public class AttendanceService {
         List<Attendance> attendances = attendanceRepository.findByClassroomIdAndDateBetween(
                 classroomId, range.startDate(), range.endDate());
         java.util.Map<Long, List<Attendance>> grouped = attendances.stream()
-                .collect(java.util.stream.Collectors.groupingBy(a -> a.getKid().getId()));
+                .collect(Collectors.groupingBy(a -> a.getKid().getId()));
 
         List<MonthlyAttendanceKidReportResponse> kidReports = kids.stream()
                 .map(kid -> buildKidReport(kid, grouped.getOrDefault(kid.getId(), List.of())))
@@ -378,7 +378,7 @@ public class AttendanceService {
         }
     }
 
-    private MonthlyAttendanceKidReportResponse buildKidReport(com.kinderp.domain.kid.entity.Kid kid,
+    private MonthlyAttendanceKidReportResponse buildKidReport(Kid kid,
                                                               List<Attendance> attendances) {
         int presentDays = 0;
         int absentDays = 0;

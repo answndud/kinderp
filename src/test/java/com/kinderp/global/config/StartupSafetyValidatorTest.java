@@ -5,6 +5,7 @@ import com.kinderp.global.security.CorsProperties;
 import com.kinderp.global.security.ManagementSurfaceProperties;
 import com.kinderp.global.security.jwt.JwtProperties;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -163,6 +164,42 @@ class StartupSafetyValidatorTest {
     }
 
     @Test
+    @DisplayName("prod에서 seed를 켜더라도 APP_PUBLIC_DEMO_ENABLED=false이면 기동에 실패한다")
+    void validate_Fails_WhenProdSeedWithoutPublicDemoFlag() {
+        StartupSafetyValidator validator = newValidator(
+                new String[]{"prod"}, "prod-secret-key-at-least-32-bytes-long",
+                true, false, false, false, true,
+                List.of("https://erp.example.com"), new NotificationDeliveryProperties(),
+                Map.of("APP_PUBLIC_DEMO_ENABLED", "false"));
+
+        assertThrows(IllegalStateException.class, validator::validate);
+    }
+
+    @Test
+    @DisplayName("공개 데모 모드(APP_PUBLIC_DEMO_ENABLED=true)에서만 prod seed를 허용한다")
+    void validate_Passes_WhenProdSeedWithPublicDemoFlag() {
+        StartupSafetyValidator validator = newValidator(
+                new String[]{"prod"}, "prod-secret-key-at-least-32-bytes-long",
+                true, false, false, false, true,
+                List.of("https://erp.example.com"), new NotificationDeliveryProperties(),
+                Map.of("APP_PUBLIC_DEMO_ENABLED", "true"));
+
+        assertDoesNotThrow(validator::validate);
+    }
+
+    @Test
+    @DisplayName("공개 데모 플래그만 켜고 seed가 꺼져 있으면 일반 prod와 같이 통과한다")
+    void validate_Passes_WhenProdPublicDemoFlagWithoutSeed() {
+        StartupSafetyValidator validator = newValidator(
+                new String[]{"prod"}, "prod-secret-key-at-least-32-bytes-long",
+                true, false, false, false, false,
+                List.of("https://erp.example.com"), new NotificationDeliveryProperties(),
+                Map.of("APP_PUBLIC_DEMO_ENABLED", "true"));
+
+        assertDoesNotThrow(validator::validate);
+    }
+
+    @Test
     @DisplayName("prod에서는 안전 설정 조합을 허용한다")
     void validate_Passes_ForSafeProdProfile() {
         StartupSafetyValidator validator = newValidator(
@@ -249,7 +286,22 @@ class StartupSafetyValidatorTest {
                                                 boolean seedEnabled,
                                                 List<String> allowedOrigins,
                                                 NotificationDeliveryProperties notificationDeliveryProperties) {
+        return newValidator(activeProfiles, jwtSecret, cookieSecure, publicApiDocs, exposePrometheusOnAppPort,
+                apiDocsEnabled, seedEnabled, allowedOrigins, notificationDeliveryProperties, Map.of());
+    }
+
+    private StartupSafetyValidator newValidator(String[] activeProfiles,
+                                                String jwtSecret,
+                                                boolean cookieSecure,
+                                                boolean publicApiDocs,
+                                                boolean exposePrometheusOnAppPort,
+                                                boolean apiDocsEnabled,
+                                                boolean seedEnabled,
+                                                List<String> allowedOrigins,
+                                                NotificationDeliveryProperties notificationDeliveryProperties,
+                                                Map<String, String> extraProperties) {
         MockEnvironment environment = new MockEnvironment();
+        extraProperties.forEach(environment::setProperty);
         environment.setActiveProfiles(activeProfiles);
         environment.setProperty("springdoc.api-docs.enabled", Boolean.toString(apiDocsEnabled));
         environment.setProperty("springdoc.swagger-ui.enabled", Boolean.toString(apiDocsEnabled));

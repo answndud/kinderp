@@ -125,27 +125,22 @@ public class KidApplicationService {
         return saved.getId();
     }
 
-    @Transactional
     public void approve(Long applicationId, ApproveKidApplicationRequest request, Long processorId) {
         reviewService.approve(applicationId, request, processorId);
     }
 
-    @Transactional
     public void placeOnWaitlist(Long applicationId, WaitlistKidApplicationRequest request, Long processorId) {
         reviewService.placeOnWaitlist(applicationId, request, processorId);
     }
 
-    @Transactional
     public void offer(Long applicationId, OfferKidApplicationRequest request, Long processorId) {
         reviewService.offer(applicationId, request, processorId);
     }
 
-    @Transactional
     public void acceptOffer(Long applicationId, AcceptKidApplicationOfferRequest request, Long parentId) {
         reviewService.acceptOffer(applicationId, request, parentId);
     }
 
-    @Transactional
     public void reject(Long applicationId, RejectRequest request, Long processorId) {
         reviewService.reject(applicationId, request, processorId);
     }

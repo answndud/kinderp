@@ -45,26 +45,6 @@
 
 ---
 
-## Slice 10 — 코드 위생 정리
-
-동작 변경 없는 정리만 한다. 항목마다 컴파일하고 fastTest를 실행한다.
-
-1. 빈 패키지 `src/main/java/com/kinderp/domain/dto/`를 삭제한다. 파일이 0개임을 먼저 확인한다.
-2. `AttendanceChangeRequestService`, `AttendanceService`, `KidService` 등에 인라인으로 반복된 FQCN(`com.kinderp...`, `java.util.stream.Collectors`, `org.springframework.data.domain.Page`)을 import로 정리한다. 대상은 `grep -rn "com\.kinderp\.\|java\.util\.\|org\.springframework\." src/main/java --include=*.java | grep -v "^.*:import \|^.*:package "`로 찾는다. 변경 파일은 최대 10개로 하고, 나머지는 보고한다.
-3. `KidApplicationService`의 approve/offer/reject는 `KidApplicationReviewService`로 위임만 한다. 이 위임 메서드들의 중복 `@Transactional`을 제거한다. 위임받는 쪽에 `@Transactional`이 있는지 먼저 확인한다.
-4. `global/config/DataLoader.java`의 `@Profile("local | prod")`. 이 부분은 결정이 끝났다: **prod 공개 데모 시드는 유지하되, 예외를 명시적이고 좁게 만든다.**
-   - 근거: `scripts/validate-netcup-env.sh` 34줄이 netcup 배포에 `APP_PUBLIC_DEMO_ENABLED=true`를 **필수**로 요구한다. 즉 실제 공개 데모(kinderp.cloud)는 이 시드로 돌아간다. 제거하면 데모가 빈 화면이 된다. 일반 운영 예시 `deploy/.env.prod.example`은 `false`다.
-   - 변경 A: `StartupSafetyValidator` 61~64줄에 조건을 추가한다. prod에서 `app.seed.enabled=true`이고 `APP_PUBLIC_DEMO_ENABLED=true`이면 통과시키되, **`log.warn`으로 "PUBLIC DEMO MODE: seeded demo accounts are active"를 기동 로그에 1회** 남긴다. 숨은 예외가 아니라 눈에 보이는 모드로 만드는 것이다.
-   - 변경 B: `StartupSafetyValidatorTest`에 세 케이스가 있는지 확인하고 없으면 추가한다: prod+seed+demo=false → 기동 실패, prod+seed+demo=true → 통과, prod+seed=false → 통과.
-   - 변경 C: `DataLoader`가 재기동 때 데이터를 중복 생성하지 않는지 확인한다 (멱등). 이미 존재 여부를 검사하는 코드가 있으면 그대로 두고, 없으면 "principal 계정 존재 시 skip" 가드를 맨 앞에 추가한다.
-   - 변경 D: `docs/guides/env-contract.md`의 prod 절에 "공개 데모 모드" 하위 항목을 3~4줄로 추가한다. 내용: 어떤 변수 조합에서 켜지는지, 일반 운영 배포에서는 반드시 `false`라는 것, 시드 계정 비밀번호가 공개돼 있다는 것.
-   - `@Profile` 값은 바꾸지 않는다.
-5. 다음은 **하지 않는다:**
-   - 두 `ApplicationStatus` enum의 이름 변경 (영향이 크고 이득이 작음)
-   - `global/debug/DebugDbController` 삭제 (local 전용으로 가드돼 있음)
-
----
-
 ## Slice 11 — README 정직성·첫인상
 
 **결정된 사항:**

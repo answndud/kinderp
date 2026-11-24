@@ -118,7 +118,7 @@ public class NotepadService {
         } else {
             // 전체 알림장
             log.debug("전체 알림장 생성");
-            if (writer.getRole() != com.kinderp.domain.member.entity.MemberRole.PRINCIPAL) {
+            if (writer.getRole() != MemberRole.PRINCIPAL) {
                 throw new BusinessException(ErrorCode.ACCESS_DENIED);
             }
             notepad = Notepad.createGlobalNotepad(writer, request.getTitle(), request.getContent());
@@ -321,7 +321,7 @@ public class NotepadService {
         Member reader = accessPolicyService.getRequester(readerId);
 
         // 학부모 역할 확인
-        if (reader.getRole() != com.kinderp.domain.member.entity.MemberRole.PARENT) {
+        if (reader.getRole() != MemberRole.PARENT) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 
@@ -341,8 +341,8 @@ public class NotepadService {
      * 작성자 역할 확인 (교사 또는 원장)
      */
     private void validateWriterRole(Member writer) {
-        if (writer.getRole() != com.kinderp.domain.member.entity.MemberRole.TEACHER &&
-            writer.getRole() != com.kinderp.domain.member.entity.MemberRole.PRINCIPAL) {
+        if (writer.getRole() != MemberRole.TEACHER &&
+            writer.getRole() != MemberRole.PRINCIPAL) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
     }
