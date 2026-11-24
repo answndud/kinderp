@@ -1,5 +1,6 @@
 package com.kinderp.domain.member.service;
 
+import com.kinderp.domain.dashboard.service.DashboardService;
 import com.kinderp.domain.member.entity.Member;
 import com.kinderp.domain.member.entity.MemberRole;
 import com.kinderp.domain.member.repository.MemberRepository;
@@ -20,6 +21,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final DashboardService dashboardService;
 
     /**
      * 이메일 중복 확인
@@ -135,6 +137,9 @@ public class MemberService {
     public void withdraw(Long memberId) {
         Member member = getMemberById(memberId);
         member.withdraw();
+        if (member.getKindergarten() != null) {
+            dashboardService.evictDashboardStatisticsCache(member.getKindergarten().getId());
+        }
     }
 
     /**

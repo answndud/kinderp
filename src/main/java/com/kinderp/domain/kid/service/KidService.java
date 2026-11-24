@@ -15,6 +15,7 @@ import com.kinderp.domain.member.entity.Member;
 import com.kinderp.domain.member.service.MemberService;
 import com.kinderp.global.exception.BusinessException;
 import com.kinderp.global.exception.ErrorCode;
+import com.kinderp.domain.dashboard.service.DashboardService;
 import com.kinderp.global.security.access.AccessPolicyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ public class KidService {
     private final ClassroomCapacityService classroomCapacityService;
     private final MemberService memberService;
     private final AccessPolicyService accessPolicyService;
+    private final DashboardService dashboardService;
 
     @Transactional
     public Long createKid(KidRequest request, Long requesterId) {
@@ -52,6 +54,7 @@ public class KidService {
         );
 
         Kid saved = kidRepository.save(kid);
+        dashboardService.evictDashboardStatisticsCache(classroom.getKindergarten().getId());
         return saved.getId();
     }
 
@@ -220,6 +223,7 @@ public class KidService {
         Member requester = accessPolicyService.getRequester(requesterId);
         accessPolicyService.validateKidManageAccess(requester, kid);
         kid.softDelete();
+        dashboardService.evictDashboardStatisticsCache(kid.getClassroom().getKindergarten().getId());
     }
 
     @Transactional(readOnly = true)

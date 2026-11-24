@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -179,6 +180,23 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error(ErrorCode.ENTITY_NOT_FOUND));
+    }
+
+    /**
+     * 동시 요청이 같은 행을 먼저 만들어 유니크 제약에 걸린 경우는 충돌(409)로 응답한다.
+     * 그 밖의 무결성 위반(FK, NOT NULL 등)은 서버 결함이므로 500으로 남긴다.
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<?>> handleDataIntegrityViolation(DataIntegrityViolationException e,
+                                                                       HttpServletRequest request) {
+        if (e.getCause() instanceof org.hibernate.exception.ConstraintViolationException cve
+                && cve.getKind() == org.hibernate.exception.ConstraintViolationException.ConstraintKind.UNIQUE) {
+            log.warn("Unique constraint conflict: {}", request.getRequestURI());
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(ApiResponse.error(ErrorCode.DUPLICATE_RESOURCE));
+        }
+        return handleException(e, request);
     }
 
     /**

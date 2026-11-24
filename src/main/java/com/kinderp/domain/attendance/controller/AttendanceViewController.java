@@ -1,7 +1,7 @@
 package com.kinderp.domain.attendance.controller;
 
 import com.kinderp.domain.attendance.dto.request.AttendanceRequest;
-import com.kinderp.domain.attendance.entity.Attendance;
+import com.kinderp.domain.attendance.dto.response.AttendanceResponse;
 import com.kinderp.domain.attendance.service.AttendanceService;
 import com.kinderp.global.security.user.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -55,8 +55,8 @@ public class AttendanceViewController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             Model model) {
 
-        Attendance attendance = attendanceService.getAttendance(id, userDetails.getMemberId());
-        model.addAttribute("attendance", attendanceService.toResponse(attendance));
+        AttendanceResponse attendance = attendanceService.getAttendance(id, userDetails.getMemberId());
+        model.addAttribute("attendance", attendance);
         return "attendance/detail";
     }
 
@@ -70,8 +70,8 @@ public class AttendanceViewController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             Model model) {
 
-        Attendance attendance = attendanceService.getAttendance(id, userDetails.getMemberId());
-        model.addAttribute("attendance", attendanceService.toResponse(attendance));
+        AttendanceResponse attendance = attendanceService.getAttendance(id, userDetails.getMemberId());
+        model.addAttribute("attendance", attendance);
         return "attendance/edit";
     }
 

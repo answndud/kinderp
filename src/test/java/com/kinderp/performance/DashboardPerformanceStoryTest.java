@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.test.context.transaction.TestTransaction;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -96,6 +97,7 @@ class DashboardPerformanceStoryTest extends BaseIntegrationTest {
 
         var before = dashboardService.getDashboardStatistics(kindergarten);
         attendanceService.markAbsent(kid.getId(), LocalDate.now(), "캐시 무효화 테스트", teacherMember.getId());
+        commitTestTransaction();
         var after = dashboardService.getDashboardStatistics(kindergarten);
 
         assertTrue(after.todayAttendanceCount() > before.todayAttendanceCount(),
@@ -116,6 +118,7 @@ class DashboardPerformanceStoryTest extends BaseIntegrationTest {
         request.setIsImportant(false);
 
         announcementService.createAnnouncement(request, principalMember.getId());
+        commitTestTransaction();
 
         var after = dashboardService.getDashboardStatistics(kindergarten);
 
@@ -232,5 +235,12 @@ class DashboardPerformanceStoryTest extends BaseIntegrationTest {
         if (cache != null) {
             cache.clear();
         }
+    }
+
+    /** 캐시 무효화는 커밋 뒤에 일어나므로, 쓰기 동작 뒤 테스트 트랜잭션을 커밋하고 새로 시작한다. */
+    private void commitTestTransaction() {
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+        TestTransaction.start();
     }
 }

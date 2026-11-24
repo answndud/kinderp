@@ -33,6 +33,8 @@ import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.DayOfWeek;
 import java.time.temporal.ChronoUnit;
+import com.kinderp.domain.kid.repository.KidRepository;
+
 import java.util.Map;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,6 +49,7 @@ public class AttendanceService {
 
     private final AttendanceRepository attendanceRepository;
     private final KidService kidService;
+    private final KidRepository kidRepository;
     private final ClassroomService classroomService;
     private final DashboardService dashboardService;
     private final AccessPolicyService accessPolicyService;
@@ -67,16 +70,19 @@ public class AttendanceService {
         return saved.getId();
     }
 
-    public Attendance getAttendance(Long id, Long requesterId) {
-        return getAttendanceForRead(requesterId, id);
+    /**
+     * 트랜잭션 안에서 DTO까지 만들어 반환한다. OSIV가 꺼져 있으므로 엔티티를 컨트롤러로 내보내 lazy 연관을 읽게 하지 않는다.
+     */
+    public AttendanceResponse getAttendance(Long id, Long requesterId) {
+        return AttendanceResponse.from(getAttendanceForRead(requesterId, id));
     }
 
-    public Attendance getAttendanceByKidAndDate(Long kidId, LocalDate date, Long requesterId) {
+    public AttendanceResponse getAttendanceByKidAndDate(Long kidId, LocalDate date, Long requesterId) {
         getKidForRead(requesterId, kidId);
         Attendance attendance = attendanceRepository.findByKidIdAndDate(kidId, date)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ATTENDANCE_NOT_FOUND));
         accessPolicyService.validateAttendanceReadAccess(requester(requesterId), attendance);
-        return attendance;
+        return AttendanceResponse.from(attendance);
     }
 
     public List<Attendance> getAttendancesByClassroomAndDate(Long classroomId, LocalDate date, Long requesterId) {
@@ -84,10 +90,12 @@ public class AttendanceService {
         return attendanceRepository.findByClassroomIdAndDate(classroomId, date);
     }
 
-    public List<Attendance> getAttendancesByKidAndMonth(Long kidId, int year, int month, Long requesterId) {
+    public List<AttendanceResponse> getAttendancesByKidAndMonth(Long kidId, int year, int month, Long requesterId) {
         getKidForRead(requesterId, kidId);
         YearMonthRange range = resolveYearMonthRange(year, month);
-        return attendanceRepository.findByKidIdAndDateBetween(kidId, range.startDate(), range.endDate());
+        return attendanceRepository.findByKidIdAndDateBetween(kidId, range.startDate(), range.endDate()).stream()
+                .map(AttendanceResponse::from)
+                .toList();
     }
 
     @Transactional
@@ -119,22 +127,24 @@ public class AttendanceService {
 
     @Transactional
     public int bulkUpdateAttendance(BulkAttendanceRequest request, Long requesterId) {
+        // 반에 대한 관리 권한(같은 유치원 교직원)을 한 번 검증하면, 이 반에 속한 원생은 별도 권한 검증이 필요 없다.
         Classroom classroom = getClassroomForManage(requesterId, request.getClassroomId());
-        List<Long> kidIds;
-        if (request.getKidIds() == null || request.getKidIds().isEmpty()) {
-            kidIds = kidService.getKidsByClassroom(request.getClassroomId(), requesterId).stream()
-                    .map(Kid::getId)
-                    .toList();
-        } else {
-            kidIds = request.getKidIds();
+        List<Kid> kids = resolveBulkKids(request, classroom);
+        if (kids.isEmpty()) {
+            return 0;
         }
 
-        int updated = 0;
-        for (Long kidId : kidIds) {
-            Kid kid = getKidForManage(requesterId, kidId);
-            validateKidBelongsToClassroom(kid, classroom);
+        // 원생별 조회를 반복하지 않도록 기존 출결을 한 번에 가져와 원생 ID로 매칭한다.
+        Map<Long, Attendance> existingByKidId = attendanceRepository
+                .findByKidIdInAndDate(kids.stream().map(Kid::getId).toList(), request.getDate())
+                .stream()
+                .collect(Collectors.toMap(attendance -> attendance.getKid().getId(), attendance -> attendance));
 
-            Attendance attendance = findOrCreateAttendance(kid, request.getDate(), request.getStatus());
+        for (Kid kid : kids) {
+            Attendance attendance = existingByKidId.get(kid.getId());
+            if (attendance == null) {
+                attendance = Attendance.create(kid, request.getDate(), request.getStatus());
+            }
 
             applyStatus(attendance,
                     request.getStatus(),
@@ -143,14 +153,26 @@ public class AttendanceService {
                     request.getPickUpTime());
 
             attendanceRepository.save(attendance);
-            updated++;
         }
 
-        if (updated > 0) {
-            dashboardService.evictDashboardStatisticsCache(classroom.getKindergarten().getId());
+        dashboardService.evictDashboardStatisticsCache(classroom.getKindergarten().getId());
+        return kids.size();
+    }
+
+    private List<Kid> resolveBulkKids(BulkAttendanceRequest request, Classroom classroom) {
+        if (request.getKidIds() == null || request.getKidIds().isEmpty()) {
+            return kidRepository.findByClassroomIdAndDeletedAtIsNull(classroom.getId());
         }
 
-        return updated;
+        List<Long> kidIds = request.getKidIds().stream().distinct().toList();
+        List<Kid> kids = kidRepository.findAllById(kidIds).stream()
+                .filter(kid -> kid.getDeletedAt() == null)
+                .toList();
+        if (kids.size() != kidIds.size()) {
+            throw new BusinessException(ErrorCode.KID_NOT_FOUND);
+        }
+        kids.forEach(kid -> validateKidBelongsToClassroom(kid, classroom));
+        return kids;
     }
 
     @Transactional
@@ -325,10 +347,6 @@ public class AttendanceService {
     /**
      * 출석 Response 변환
      */
-    public AttendanceResponse toResponse(Attendance attendance) {
-        return AttendanceResponse.from(attendance);
-    }
-
     private void applyStatus(Attendance attendance,
                              AttendanceStatus status,
                              String note,

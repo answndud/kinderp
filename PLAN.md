@@ -45,45 +45,6 @@
 
 ---
 
-## Slice 8 — 작은 정합성 결함 묶음
-
-각 항목은 서로 독립적이다. 항목마다 테스트를 추가하고 통과시킨 뒤 다음 항목으로 넘어간다.
-
-**8-1. 동시 출결 upsert 충돌이 500으로 나감**
-- `AttendanceService` 406~409줄 부근은 check-then-insert다. `uk_kid_date` 위반 시 `DataIntegrityViolationException`이 그대로 올라간다.
-- `GlobalExceptionHandler`에 `DataIntegrityViolationException` 핸들러를 추가하고 409를 반환한다. 이를 위해 ErrorCode `DUPLICATE_RESOURCE`(CONFLICT)를 추가하거나, 같은 의미의 기존 코드를 재사용한다. 응답 메시지에 예외 원문을 넣지 않는다.
-- 테스트: 같은 kid·date로 출결 생성 2건을 동시에 보내면 결과가 200·409(또는 200·200 upsert)이고 500은 없다.
-
-**8-2. 대시보드 캐시 무효화 시점·누락**
-- `DashboardService.evictDashboardStatisticsCache`가 쓰기 트랜잭션 **안에서** 즉시 실행된다. 커밋 전에 다른 요청이 오래된 값으로 캐시를 다시 채울 수 있다.
-- 변경:
-  - 캐시를 무효화하는 쪽은 `DashboardCacheEvictRequested(Long kindergartenId)` record 이벤트를 `ApplicationEventPublisher`로 발행한다.
-  - `@TransactionalEventListener(phase = AFTER_COMMIT)` 리스너가 `CacheManager`로 evict한다.
-  - 기존 `evictDashboardStatisticsCache` 호출부는 `grep -rn "evictDashboardStatisticsCache" src/main`으로 모두 찾아 이벤트 발행으로 바꾼다.
-- 누락된 무효화도 추가한다: `KidService`의 원생 생성·삭제·반 변경, 회원 승인·탈퇴(`totalKids`·교사 수 통계에 영향을 주는 곳). `DashboardStatisticsResponse` 필드를 보고 어떤 변경이 통계에 영향을 주는지 판단한다.
-- 테스트: 원생 추가 후 대시보드 통계 API의 `totalKids`가 즉시 증가하는지 확인한다 (`DashboardApiIntegrationTest`).
-- Caffeine 대신 Redis 캐시로 바꾸는 작업은 **하지 않는다.** 단일 인스턴스라는 전제를 `docs/architecture/performance-methodology.md` 한계 절에 한 줄로 적는다.
-
-**8-3. bulk 출결 N+1**
-- `AttendanceService` 133~149줄은 원생마다 `kidService.getKid`, `getRequester`, `findByKidIdAndDate`를 호출한다.
-- 요청자는 루프 밖에서 1회 조회한다. 원생은 `kidRepository.findAllById(kidIds)`로 한 번에 가져와 권한을 검증한다. 기존 출결은 `attendanceRepository.findByKidIdInAndDate(kidIds, date)`(없으면 추가)로 한 번에 가져와 Map으로 매칭한다.
-- 테스트: `performance/NotepadPerformanceStoryTest`처럼 Hibernate `Statistics`로 원생 10명 bulk 요청의 쿼리 수를 측정한다. 원생 수와 무관하게 상수(예: ≤ 8)임을 assert한다. 변경 전 쿼리 수를 먼저 측정해서 PR 설명용으로 사용자에게 보고한다 (AGENTS.md 11절).
-
-**8-4. OSIV OFF 위반: 엔티티가 컨트롤러로 나감**
-- `AttendanceService.getAttendance()`가 엔티티를 반환하고, `AttendanceController` 120~123줄이 트랜잭션 밖에서 `toResponse(entity)`로 `getKid().getName()`을 읽는다.
-- 서비스가 응답 DTO를 반환하도록 바꾼다. 같은 패턴을 찾아 함께 고친다:
-  ```bash
-  grep -rn "toResponse(\|Response.from(" src/main/java/com/kinderp/domain/*/controller
-  ```
-  너무 많으면(10곳 초과) 출결 도메인만 고치고 나머지 목록을 사용자에게 보고한다.
-
-**검증:**
-```bash
-./gradlew --no-daemon test --tests "com.kinderp.api.AttendanceApiIntegrationTest" --tests "com.kinderp.api.DashboardApiIntegrationTest" --tests "com.kinderp.performance.*"
-```
-
----
-
 ## Slice 9 — QueryDSL 실제 사용 (기술 스택 주장과 일치시키기)
 
 **왜:** `JPAQueryFactory`는 `global/config/QuerydslConfig.java`에서 빈으로 등록만 돼 있고 domain 코드 사용처가 0건이다. README·AGENTS.md에는 QueryDSL을 기술 스택으로 적고 있다. 대신 `NotificationOutboxRepository` 92~121줄에 `(:status IS NULL OR ...)` 형태의 JPQL 동적 쿼리가 있다.
@@ -275,3 +236,4 @@ git check-ignore archive/HELP.md                              # 경로가 출력
 - `ProductTime` static을 `Clock` 주입으로 전환 (시간 의존 테스트 용이성).
 - 공개 데모 데이터 주기적 초기화(예: 매일 새벽 시드 재적재). 방문자가 데모 데이터를 훼손할 수 있음.
 - CD workflow(`cd.yml`, `cd-netcup.yml`, `container-publish.yml`)와 `deploy/` compose·Caddy 설정을 실제 사용하는 netcup 경로 하나로 통합하고, 남는 workflow의 action을 SHA로 고정.
+- 출결 외 도메인도 컨트롤러가 엔티티를 받아 트랜잭션 밖에서 DTO로 변환한다 (OSIV OFF 원칙 위반 소지). 서비스가 DTO를 반환하도록 바꿀 대상: `AnnouncementController`(4곳), `ClassroomController`(5곳), `KindergartenController`(3곳), `NotepadController`(2곳), `KidController`(3곳), `MemberApiController`·`AuthApiController`(`MemberResponse.from`).
