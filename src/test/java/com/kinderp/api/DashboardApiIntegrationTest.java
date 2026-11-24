@@ -1,5 +1,6 @@
 package com.kinderp.api;
 
+import com.kinderp.global.common.ProductTime;
 import com.kinderp.common.BaseIntegrationTest;
 import com.kinderp.domain.attendance.entity.Attendance;
 import com.kinderp.domain.attendance.entity.AttendanceStatus;
@@ -103,7 +104,7 @@ class DashboardApiIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("대시보드 출석률 - 주말과 입소 전 기간을 분모에서 제외한다")
     void getDashboardStatistics_AttendanceRate_ExcludesWeekendAndPreAdmissionDays() throws Exception {
-        LocalDate endDate = LocalDate.now().minusDays(1);
+        LocalDate endDate = ProductTime.today().minusDays(1);
         LocalDate startDate = endDate.minusDays(6);
         List<LocalDate> schoolDays = schoolDaysBetween(startDate, endDate);
 

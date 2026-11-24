@@ -1,5 +1,6 @@
 package com.kinderp.api;
 
+import com.kinderp.global.common.ProductTime;
 import com.kinderp.common.BaseIntegrationTest;
 import com.kinderp.domain.classroom.entity.Classroom;
 import com.kinderp.domain.kidapplication.entity.ApplicationStatus;
@@ -159,7 +160,7 @@ class KidApplicationApiIntegrationTest extends BaseIntegrationTest {
         long applicationId = applyKidApplication(applicant, classroom.getId(), "만료원아");
 
         var application = kidApplicationRepository.findById(applicationId).orElseThrow();
-        application.offerSeat(classroom, principalMember, LocalDateTime.now().minusMinutes(1), "만료 제안");
+        application.offerSeat(classroom, principalMember, ProductTime.nowDateTime().minusMinutes(1), "만료 제안");
         kidApplicationRepository.saveAndFlush(application);
 
         String acceptBody = """

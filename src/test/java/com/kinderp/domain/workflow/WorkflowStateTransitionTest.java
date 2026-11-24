@@ -1,5 +1,6 @@
 package com.kinderp.domain.workflow;
 
+import com.kinderp.global.common.ProductTime;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -59,7 +60,7 @@ class WorkflowStateTransitionTest {
         );
 
         application.placeOnWaitlist(classroom, processor, "정원 대기");
-        application.offerSeat(classroom, processor, java.time.LocalDateTime.now().plusMinutes(10), "자리 발생");
+        application.offerSeat(classroom, processor, ProductTime.nowDateTime().plusMinutes(10), "자리 발생");
         application.acceptOffer(99L);
 
         assertThat(application.getStatus()).isEqualTo(ApplicationStatus.APPROVED);
@@ -79,7 +80,7 @@ class WorkflowStateTransitionTest {
                 "아이",
                 LocalDate.of(2020, 1, 1),
                 Gender.MALE,
-                LocalDate.now()
+                ProductTime.today()
         );
         return AttendanceChangeRequest.create(
                 kid,

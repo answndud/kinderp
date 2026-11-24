@@ -1,5 +1,6 @@
 package com.kinderp.api;
 
+import com.kinderp.global.common.ProductTime;
 import com.kinderp.common.BaseIntegrationTest;
 import com.kinderp.domain.member.entity.Member;
 import com.kinderp.domain.notification.entity.Notification;
@@ -266,7 +267,7 @@ class NotificationOutboxOpsApiIntegrationTest extends BaseIntegrationTest {
                 "/notifications"
         ));
         NotificationOutbox outbox = NotificationOutbox.create(notification, channel, 1);
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = ProductTime.nowDateTime();
         outbox.markProcessing(now.minusMinutes(1));
         outbox.markDeadLetter(now, errorMessage);
         return notificationOutboxRepository.saveAndFlush(outbox).getId();
@@ -281,7 +282,7 @@ class NotificationOutboxOpsApiIntegrationTest extends BaseIntegrationTest {
                 "/notifications"
         ));
         NotificationOutbox outbox = NotificationOutbox.create(notification, NotificationChannel.APP, 1);
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = ProductTime.nowDateTime();
         outbox.markProcessing(now.minusMinutes(1));
         outbox.markDeadLetter(now, "other tenant timeout");
         return notificationOutboxRepository.saveAndFlush(outbox).getId();
@@ -297,7 +298,7 @@ class NotificationOutboxOpsApiIntegrationTest extends BaseIntegrationTest {
                 "/notifications"
         ));
         NotificationOutbox outbox = NotificationOutbox.create(notification, channel, 1);
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = ProductTime.nowDateTime();
         outbox.markProcessing(now.minusMinutes(1));
         outbox.markDelivered(now);
         return notificationOutboxRepository.saveAndFlush(outbox).getId();

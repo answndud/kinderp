@@ -1,5 +1,6 @@
 package com.kinderp.performance;
 
+import com.kinderp.global.common.ProductTime;
 import com.kinderp.common.BaseIntegrationTest;
 import com.kinderp.domain.member.entity.Member;
 import com.kinderp.domain.member.entity.MemberRole;
@@ -112,7 +113,7 @@ class NotificationOutboxPerformanceSmokeTest extends BaseIntegrationTest {
                     "test1234"
             );
             memberRepository.save(receiver);
-            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime now = ProductTime.nowDateTime();
             for (int i = 0; i < bulkCount; i++) {
                 Notification notification = notificationRepository.save(Notification.createWithLink(
                         receiver,

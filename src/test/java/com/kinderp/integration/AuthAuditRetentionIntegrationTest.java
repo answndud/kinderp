@@ -1,5 +1,6 @@
 package com.kinderp.integration;
 
+import com.kinderp.global.common.ProductTime;
 import com.kinderp.common.BaseIntegrationTest;
 import com.kinderp.domain.authaudit.entity.AuthAuditEventType;
 import com.kinderp.domain.authaudit.entity.AuthAuditLog;
@@ -38,7 +39,7 @@ class AuthAuditRetentionIntegrationTest extends BaseIntegrationTest {
                 null,
                 "198.51.100.40"
         ));
-        LocalDateTime fortyDaysAgo = LocalDateTime.now().minusDays(40);
+        LocalDateTime fortyDaysAgo = ProductTime.nowDateTime().minusDays(40);
         jdbcTemplate.update(
                 "UPDATE auth_audit_log SET created_at = ?, updated_at = ? WHERE id = ?",
                 Timestamp.valueOf(fortyDaysAgo),
@@ -74,9 +75,9 @@ class AuthAuditRetentionIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("retention 실행 시 오래된 archive 감사 로그는 purge된다")
     void executeRetention_Success_PurgesOldArchivedLogs() {
-        LocalDateTime createdAt = LocalDateTime.now().minusDays(420);
+        LocalDateTime createdAt = ProductTime.nowDateTime().minusDays(420);
         LocalDateTime updatedAt = createdAt.plusHours(1);
-        LocalDateTime archivedAt = LocalDateTime.now().minusDays(370);
+        LocalDateTime archivedAt = ProductTime.nowDateTime().minusDays(370);
 
         jdbcTemplate.update(
                 """

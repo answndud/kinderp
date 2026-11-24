@@ -1,5 +1,6 @@
 package com.kinderp.common;
 
+import com.kinderp.global.common.ProductTime;
 import com.kinderp.domain.member.entity.Member;
 import com.kinderp.domain.member.repository.MemberRepository;
 import com.kinderp.global.security.user.CustomUserDetails;
@@ -140,7 +141,7 @@ public abstract class BaseIntegrationTest extends TestcontainersSupport {
         classroomRepository.save(classroom);
 
         kid = Kid.create(classroom, "테스트 원생", java.time.LocalDate.of(2020, 1, 1),
-                Gender.MALE, java.time.LocalDate.now());
+                Gender.MALE, ProductTime.today());
         kidRepository.save(kid);
 
         kid.addParent(parentMember, Relationship.MOTHER);

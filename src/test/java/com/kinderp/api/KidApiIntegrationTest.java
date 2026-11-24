@@ -1,5 +1,6 @@
 package com.kinderp.api;
 
+import com.kinderp.global.common.ProductTime;
 import com.kinderp.common.BaseIntegrationTest;
 import com.kinderp.domain.classroom.entity.Classroom;
 import com.kinderp.domain.kindergarten.entity.Kindergarten;
@@ -60,7 +61,7 @@ class KidApiIntegrationTest extends BaseIntegrationTest {
                         "gender": "MALE",
                         "admissionDate": "%s"
                     }
-                    """, classroom.getId(), LocalDate.now());
+                    """, classroom.getId(), ProductTime.today());
 
             mockMvc.perform(post("/api/v1/kids")
                             .with(csrf())
@@ -84,7 +85,7 @@ class KidApiIntegrationTest extends BaseIntegrationTest {
                         "gender": "FEMALE",
                         "admissionDate": "%s"
                     }
-                    """, LocalDate.now());
+                    """, ProductTime.today());
 
             mockMvc.perform(post("/api/v1/kids")
                             .with(csrf())
@@ -107,7 +108,7 @@ class KidApiIntegrationTest extends BaseIntegrationTest {
                         "gender": "MALE",
                         "admissionDate": "%s"
                     }
-                    """, LocalDate.now());
+                    """, ProductTime.today());
 
             mockMvc.perform(post("/api/v1/kids")
                             .with(csrf())
@@ -131,7 +132,7 @@ class KidApiIntegrationTest extends BaseIntegrationTest {
                         "gender": "MALE",
                         "admissionDate": "%s"
                     }
-                    """, classroom.getId(), LocalDate.now());
+                    """, classroom.getId(), ProductTime.today());
 
             mockMvc.perform(post("/api/v1/kids")
                             .with(csrf())
@@ -241,7 +242,7 @@ class KidApiIntegrationTest extends BaseIntegrationTest {
                         "gender": "MALE",
                         "admissionDate": "%s"
                     }
-                    """, LocalDate.now());
+                    """, ProductTime.today());
 
             mockMvc.perform(put("/api/v1/kids/1")
                             .with(csrf())
@@ -265,7 +266,7 @@ class KidApiIntegrationTest extends BaseIntegrationTest {
                         "gender": "FEMALE",
                         "admissionDate": "%s"
                     }
-                    """, LocalDate.now());
+                    """, ProductTime.today());
 
             mockMvc.perform(put("/api/v1/kids/1")
                             .with(csrf())

@@ -1,5 +1,6 @@
 package com.kinderp.api;
 
+import com.kinderp.global.common.ProductTime;
 import com.kinderp.common.BaseIntegrationTest;
 import com.kinderp.domain.domainaudit.entity.DomainAuditAction;
 import com.kinderp.domain.domainaudit.entity.DomainAuditTargetType;
@@ -74,8 +75,8 @@ class DomainAuditApiIntegrationTest extends BaseIntegrationTest {
                         .with(authenticated(principalMember))
                         .param("action", "KID_APPLICATION_WAITLISTED")
                         .param("summary", "대기")
-                        .param("from", LocalDate.now().minusDays(1).toString())
-                        .param("to", LocalDate.now().plusDays(1).toString()))
+                        .param("from", ProductTime.today().minusDays(1).toString())
+                        .param("to", ProductTime.today().plusDays(1).toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.totalElements").value(1))
