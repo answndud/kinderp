@@ -30,8 +30,6 @@
   - AWS EC2+RDS 대안과 기존 운영 자산 설명(현재 실행 SSOT 아님)
 - `docs/guides/netcup-deployment.md`
   - TownPet과 공유하는 netcup VPS Lite 2 단일 VPS 배포 절차
-- `docs/guides/interview-guide.md`
-  - 면접관 관점의 핵심 개선 스토리와 검증 포인트
 - `docs/guides/evidence-map.md`
   - README/면접 답변의 주요 주장별 코드, 테스트, 문서 증거 지도
 - `docs/guides/risk-response.md`

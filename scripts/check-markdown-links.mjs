@@ -7,7 +7,6 @@ const markdownRoots = [
   'docs/README.md',
   'docs/guides',
   'docs/architecture',
-  'docs/resume',
 ];
 
 function markdownFiles(root) {
