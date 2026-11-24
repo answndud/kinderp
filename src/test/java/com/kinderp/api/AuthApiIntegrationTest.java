@@ -6,6 +6,7 @@ import com.kinderp.domain.authaudit.entity.AuthAuditEventType;
 import com.kinderp.domain.authaudit.entity.AuthAuditResult;
 import com.kinderp.domain.authaudit.repository.AuthAuditLogRepository;
 import com.kinderp.domain.member.entity.MemberAuthProvider;
+import com.kinderp.domain.member.entity.MemberRole;
 import com.kinderp.global.security.jwt.JwtTokenProvider;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.AfterEach;
@@ -637,9 +638,11 @@ class AuthApiIntegrationTest extends BaseIntegrationTest {
                             .with(csrf())
                             .cookie(loginCookies.refreshCookie()))
                     .andDo(print())
-                    .andExpect(status().isNotFound())
+                    .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.code").value("A005"));
+
+            assertThat(redisTemplate.hasKey(getRefreshSessionKey(loginCookies.refreshCookie()))).isFalse();
 
             var auditLogs = readCommitted(authAuditLogRepository::findAllByCreatedAtAsc);
             assertThat(auditLogs).isNotEmpty();
@@ -888,6 +891,107 @@ class AuthApiIntegrationTest extends BaseIntegrationTest {
                     (AuthSessionRegistryService.SessionMetadata) redisTemplate.opsForValue().get(metadataKey);
             assertThat(touched).isNotNull();
             assertThat(touched.getLastSeenAtEpochMs()).isGreaterThan(oldLastSeen);
+        }
+    }
+
+    @Nested
+    @DisplayName("refresh token 보안")
+    class RefreshTokenSecurityTest {
+
+        @Test
+        @DisplayName("refresh token을 access 쿠키로 보내면 인증되지 않는다")
+        void refreshTokenAsAccessCookie_Fail() throws Exception {
+            LoginCookies loginCookies = loginAsParent();
+            Cookie refreshAsAccess = new Cookie("access_token", loginCookies.refreshCookie().getValue());
+
+            mockMvc.perform(get("/api/v1/members/me").cookie(refreshAsAccess))
+                    .andExpect(status().isUnauthorized());
+
+            mockMvc.perform(get("/api/v1/members/me").cookie(loginCookies.accessCookie()))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("이미 교체된 refresh token을 재사용하면 세션 전체가 폐기된다")
+        void reusedRefreshToken_RevokesSession() throws Exception {
+            LoginCookies loginCookies = loginAsParent();
+            String sessionKey = getRefreshSessionKey(loginCookies.refreshCookie());
+
+            MvcResult rotated = mockMvc.perform(post("/api/v1/auth/refresh")
+                            .with(csrf())
+                            .cookie(loginCookies.refreshCookie()))
+                    .andExpect(status().isOk())
+                    .andReturn();
+            Cookie rotatedRefresh = rotated.getResponse().getCookie("refresh_token");
+            assertThat(redisTemplate.hasKey(sessionKey)).isTrue();
+
+            mockMvc.perform(post("/api/v1/auth/refresh")
+                            .with(csrf())
+                            .cookie(loginCookies.refreshCookie()))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.code").value("A005"));
+
+            assertThat(redisTemplate.hasKey(sessionKey)).isFalse();
+
+            mockMvc.perform(post("/api/v1/auth/refresh")
+                            .with(csrf())
+                            .cookie(rotatedRefresh))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @DisplayName("같은 refresh token으로 동시에 요청하면 정확히 한 요청만 성공한다")
+        void concurrentRefresh_OnlyOneSucceeds() throws Exception {
+            // 테스트 트랜잭션에 묶인 setUp 데이터는 다른 스레드에서 보이지 않으므로 커밋된 회원을 따로 만든다.
+            writeCommitted(() -> testData.createTestMember(
+                    "refresh-race@test.com", "동시성회원", MemberRole.PARENT, "test1234"));
+            MvcResult loginResult = mockMvc.perform(post("/api/v1/auth/login")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {
+                                        "email": "refresh-race@test.com",
+                                        "password": "test1234"
+                                    }
+                                    """))
+                    .andExpect(status().isOk())
+                    .andReturn();
+            LoginCookies loginCookies = new LoginCookies(
+                    loginResult.getResponse().getCookie("access_token"),
+                    loginResult.getResponse().getCookie("refresh_token")
+            );
+            int threads = 4;
+            java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newFixedThreadPool(threads);
+            java.util.concurrent.CountDownLatch ready = new java.util.concurrent.CountDownLatch(threads);
+            java.util.concurrent.CountDownLatch start = new java.util.concurrent.CountDownLatch(1);
+            java.util.List<java.util.concurrent.Future<Integer>> results = new java.util.ArrayList<>();
+
+            try {
+                for (int i = 0; i < threads; i++) {
+                    results.add(executor.submit(() -> {
+                        ready.countDown();
+                        start.await();
+                        return mockMvc.perform(post("/api/v1/auth/refresh")
+                                        .with(csrf())
+                                        .cookie(loginCookies.refreshCookie()))
+                                .andReturn()
+                                .getResponse()
+                                .getStatus();
+                    }));
+                }
+                assertThat(ready.await(10, TimeUnit.SECONDS)).isTrue();
+                start.countDown();
+
+                java.util.List<Integer> statuses = new java.util.ArrayList<>();
+                for (java.util.concurrent.Future<Integer> result : results) {
+                    statuses.add(result.get(30, TimeUnit.SECONDS));
+                }
+
+                assertThat(statuses).as("statuses=" + statuses).filteredOn(status -> status == 200).hasSize(1);
+                assertThat(statuses).filteredOn(status -> status == 401).hasSize(threads - 1);
+            } finally {
+                executor.shutdownNow();
+            }
         }
     }
 

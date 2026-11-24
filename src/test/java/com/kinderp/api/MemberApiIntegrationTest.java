@@ -20,6 +20,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -64,6 +66,58 @@ class MemberApiIntegrationTest extends BaseIntegrationTest {
         assertThat(withdrawResult.getResponse().getCookie("access_token").getMaxAge()).isZero();
         assertThat(withdrawResult.getResponse().getCookie("refresh_token")).isNotNull();
         assertThat(withdrawResult.getResponse().getCookie("refresh_token").getMaxAge()).isZero();
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 - 현재 세션은 유지하고 다른 기기 세션은 폐기한다")
+    void changePassword_Success_RevokesOtherSessions() throws Exception {
+        LoginCookies currentLogin = loginAsParent();
+        LoginCookies otherLogin = loginAsParent();
+        String currentSessionKey = getRefreshSessionKey(currentLogin.refreshCookie());
+        String otherSessionKey = getRefreshSessionKey(otherLogin.refreshCookie());
+
+        mockMvc.perform(patch("/api/v1/members/password")
+                        .with(csrf())
+                        .cookie(currentLogin.accessCookie(), currentLogin.refreshCookie())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "currentPassword": "test1234",
+                                    "newPassword": "Changed1234!"
+                                }
+                                """))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+
+        assertThat(redisTemplate.hasKey(currentSessionKey)).isTrue();
+        assertThat(redisTemplate.hasKey(otherSessionKey)).isFalse();
+
+        mockMvc.perform(get("/api/v1/members/me").cookie(currentLogin.accessCookie()))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/members/me").cookie(otherLogin.accessCookie()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 - 현재 비밀번호가 틀리면 다른 세션을 폐기하지 않는다")
+    void changePassword_Fail_KeepsOtherSessions() throws Exception {
+        LoginCookies currentLogin = loginAsParent();
+        LoginCookies otherLogin = loginAsParent();
+
+        mockMvc.perform(patch("/api/v1/members/password")
+                        .with(csrf())
+                        .cookie(currentLogin.accessCookie(), currentLogin.refreshCookie())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "currentPassword": "wrong-password",
+                                    "newPassword": "Changed1234!"
+                                }
+                                """))
+                .andExpect(status().is4xxClientError());
+
+        assertThat(redisTemplate.hasKey(getRefreshSessionKey(otherLogin.refreshCookie()))).isTrue();
     }
 
     @Test

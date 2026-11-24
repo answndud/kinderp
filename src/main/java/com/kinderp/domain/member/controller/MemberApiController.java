@@ -97,9 +97,13 @@ public class MemberApiController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<Void>> changePassword(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Valid @RequestBody ChangePasswordRequest request
+            @Valid @RequestBody ChangePasswordRequest request,
+            HttpServletRequest httpRequest
     ) {
+        String currentSessionId = authService.resolveCurrentSessionId(httpRequest, userDetails.getMemberId());
         memberService.changePassword(userDetails.getMemberId(), request.getCurrentPassword(), request.getNewPassword());
+        // 비밀번호가 바뀌면 탈취됐을 수 있는 다른 기기 세션은 더 이상 유효하지 않아야 한다.
+        authService.revokeOtherSessions(userDetails.getMemberId(), currentSessionId);
         return ResponseEntity.ok(ApiResponse.success());
     }
 

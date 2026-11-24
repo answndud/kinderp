@@ -54,6 +54,12 @@ public class JwtFilter extends GenericFilterBean {
 
         if (token != null && jwtTokenProvider.validateToken(token)) {
             try {
+                if (!jwtTokenProvider.isAccessToken(token)) {
+                    SecurityContextHolder.clearContext();
+                    log.debug("JWT 인증 실패 - access 토큰이 아닌 토큰이 access 쿠키로 전달됨");
+                    chain.doFilter(request, response);
+                    return;
+                }
                 Long memberId = jwtTokenProvider.getMemberId(token);
                 String sessionId = jwtTokenProvider.getSessionId(token);
                 if (memberId == null || sessionId == null || sessionId.isBlank()) {

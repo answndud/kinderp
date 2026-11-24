@@ -178,7 +178,7 @@ public class AuthApiController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             HttpServletRequest request
     ) {
-        String currentSessionId = resolveCurrentSessionId(request, userDetails.getMemberId());
+        String currentSessionId = authService.resolveCurrentSessionId(request, userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(
                 authService.getActiveSessions(userDetails.getMemberId(), currentSessionId)
         ));
@@ -194,7 +194,7 @@ public class AuthApiController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             HttpServletRequest request
     ) {
-        String currentSessionId = resolveCurrentSessionId(request, userDetails.getMemberId());
+        String currentSessionId = authService.resolveCurrentSessionId(request, userDetails.getMemberId());
         authService.revokeOtherSessions(userDetails.getMemberId(), currentSessionId);
         return ResponseEntity.ok(ApiResponse.success(null, "다른 기기 세션을 종료했습니다"));
     }
@@ -215,7 +215,7 @@ public class AuthApiController {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
-        String currentSessionId = resolveCurrentSessionId(request, userDetails.getMemberId());
+        String currentSessionId = authService.resolveCurrentSessionId(request, userDetails.getMemberId());
         authService.revokeSession(userDetails.getMemberId(), sessionId, currentSessionId, response);
         return ResponseEntity.ok(ApiResponse.success(null, "선택한 세션을 종료했습니다"));
     }
@@ -235,48 +235,6 @@ public class AuthApiController {
             }
         }
 
-        return null;
-    }
-
-    private String resolveCurrentSessionId(HttpServletRequest request, Long expectedMemberId) {
-        String accessToken = getCookieValue(request, jwtTokenProvider.getAccessTokenCookieName());
-        String sessionId = extractSessionId(accessToken, expectedMemberId);
-        if (sessionId != null) {
-            return sessionId;
-        }
-
-        String refreshToken = getCookieValue(request, jwtTokenProvider.getRefreshTokenCookieName());
-        sessionId = extractSessionId(refreshToken, expectedMemberId);
-        if (sessionId != null) {
-            return sessionId;
-        }
-
-        throw new BusinessException(ErrorCode.TOKEN_INVALID);
-    }
-
-    private String extractSessionId(String token, Long expectedMemberId) {
-        if (token == null || !jwtTokenProvider.validateToken(token)) {
-            return null;
-        }
-
-        Long memberId = jwtTokenProvider.getMemberId(token);
-        if (memberId == null || !memberId.equals(expectedMemberId)) {
-            return null;
-        }
-        return jwtTokenProvider.getSessionId(token);
-    }
-
-    private String getCookieValue(HttpServletRequest request, String cookieName) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            return null;
-        }
-
-        for (Cookie cookie : cookies) {
-            if (cookieName.equals(cookie.getName())) {
-                return cookie.getValue();
-            }
-        }
         return null;
     }
 }
