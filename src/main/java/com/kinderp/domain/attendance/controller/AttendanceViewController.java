@@ -79,7 +79,7 @@ public class AttendanceViewController {
      * 반별 일별 출석 페이지
      */
     @GetMapping("/attendance/daily")
-    @PreAuthorize("hasAnyRole('PRINCIPAL', 'TEACHER', 'PARENT')")
+    @PreAuthorize("hasAnyRole('PRINCIPAL', 'TEACHER')")
     public String dailyAttendance(
             @RequestParam(required = false) Long classroomId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,

@@ -96,6 +96,20 @@ public class AccessPolicyService {
         throw new BusinessException(ErrorCode.ACCESS_DENIED);
     }
 
+    /**
+     * 반 원생 명단·반 단위 출결처럼 다른 가정의 아이 정보가 함께 나가는 조회용 검증.
+     * 학부모는 자기 아이만 볼 수 있어야 하므로 교직원(같은 유치원)만 허용한다.
+     */
+    public void validateClassroomRosterAccess(Member requester, Classroom classroom) {
+        if (classroom == null) {
+            throw new BusinessException(ErrorCode.CLASSROOM_NOT_FOUND);
+        }
+        if (!isStaff(requester)) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+        validateSameKindergarten(requester, classroom.getKindergarten().getId());
+    }
+
     public void validateClassroomManageAccess(Member requester, Classroom classroom) {
         if (classroom == null) {
             throw new BusinessException(ErrorCode.CLASSROOM_NOT_FOUND);

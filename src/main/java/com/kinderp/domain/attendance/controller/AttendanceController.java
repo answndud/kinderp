@@ -198,7 +198,7 @@ public class AttendanceController {
      * 반별 일별 출석 현황
      */
     @GetMapping("/daily")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('PRINCIPAL', 'TEACHER')")
     @Operation(
             summary = "반별 일별 출석 현황",
             description = "반 ID와 날짜 기준으로 일별 출석 상태를 조회합니다.",

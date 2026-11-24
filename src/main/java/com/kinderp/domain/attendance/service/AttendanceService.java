@@ -80,7 +80,7 @@ public class AttendanceService {
     }
 
     public List<Attendance> getAttendancesByClassroomAndDate(Long classroomId, LocalDate date, Long requesterId) {
-        getClassroomForRead(requesterId, classroomId);
+        getClassroomForRoster(requesterId, classroomId);
         return attendanceRepository.findByClassroomIdAndDate(classroomId, date);
     }
 
@@ -300,7 +300,7 @@ public class AttendanceService {
     }
 
     public MonthlyAttendanceReportResponse getMonthlyReportByClassroom(Long classroomId, int year, int month, Long requesterId) {
-        Classroom classroom = getClassroomForRead(requesterId, classroomId);
+        Classroom classroom = getClassroomForRoster(requesterId, classroomId);
         YearMonthRange range = resolveYearMonthRange(year, month);
 
         List<Kid> kids = kidService.getKidsByClassroom(classroomId, requesterId);
@@ -482,9 +482,9 @@ public class AttendanceService {
         return kid;
     }
 
-    private Classroom getClassroomForRead(Long requesterId, Long classroomId) {
+    private Classroom getClassroomForRoster(Long requesterId, Long classroomId) {
         Classroom classroom = classroomService.getClassroom(classroomId);
-        accessPolicyService.validateClassroomReadAccess(requester(requesterId), classroom);
+        accessPolicyService.validateClassroomRosterAccess(requester(requesterId), classroom);
         return classroom;
     }
 

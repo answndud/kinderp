@@ -2,45 +2,513 @@
 
 ## Goal
 
-KinderP를 TownPet과 차별화되는 다중 테넌트 내부 운영 플랫폼 포트폴리오로 완성한다. 코드·화면·테스트·운영 문서가 대표 업무 흐름과 일치하고, 실제 배포 전 남은 외부 의존 항목이 명확히 검증 가능한 상태가 되는 것이 완료 조건이다.
+포트폴리오 전체 리뷰에서 나온 결함을 우선순위대로 고친다. 이 저장소는 README에서 "권한 경계·동시성 제어·실패 복구"를 내세우므로, 그 주장과 실제 코드·테스트·CI가 일치하게 만드는 것이 완료 조건이다.
 
-## Active
+---
 
-### P2 - netcup 단일 VPS 공동 배포 기반
+## 0. 작업 에이전트 필수 규칙 (모든 Slice 공통, 반드시 먼저 읽을 것)
 
-> 상태: `/opt/kinderp`에서 `kinderp-*` 컨테이너와 `https://kinderp.cloud` 공개 응답을 확인했다. MySQL 백업과 disposable restore는 완료했으며, SMTP 실제 수신·암호화 백업 외부 보관·이미지 롤백만 남아 있다.
+1. **한 번에 한 Slice만** 진행한다. 아래 순서를 지킨다. 다음 Slice로 넘어가기 전에 현재 Slice의 "검증"을 모두 통과시킨다.
+2. 각 Slice 시작 전 해당 Slice의 "대상 파일"을 **직접 읽고** 이 문서의 줄 번호·메서드명이 현재 코드와 맞는지 확인한다. 다르면 코드가 기준이며, 차이를 사용자에게 보고한다.
+3. 설계·범위 결정은 이 문서에 **이미 내려져 있다.** 사용자에게 다시 묻지 말고 그대로 실행한다. 멈추고 보고하는 경우는 두 가지뿐이다: 이 문서의 전제가 실제 코드와 다를 때, 그리고 각 Slice에 "멈춤 조건"으로 적힌 상황이 생겼을 때.
+4. 다음 사용자 소유 dirty 파일은 **내용을 수정하거나 변경분을 stage하지 않는다.** 예외는 Slice 12의 추적 해제(`git rm --cached`)다. 이 작업은 로컬 파일 내용을 보존하므로 허용한다.
+   - `docs/04-데모/로컬-개발-워크플로.md`
+   - `docs/cli환경에서 실행.md`
+   - `docs/guides/local-demo-accounts.md`
+4-1. **보관 폴더 규칙 (Slice 1·12 공통):** 공개 저장소에서 빼는 파일은 삭제하지 않고, 루트의 git 무시 폴더 `archive/`로 옮긴다. 원래 경로 구조는 그대로 유지한다. 절차:
+   ```bash
+   git rm -r --cached "<경로>"
+   mkdir -p "archive/$(dirname "<경로>")"
+   mv "<경로>" "archive/<경로>"
+   ```
+   `.gitignore`에는 `/archive/` 한 줄만 추가한다. 파일별로 ignore 항목을 늘리지 않는다.
+5. 커밋은 AGENTS.md 10절을 따른다: 변경 요약 → 커밋 메시지 후보 제시 → **사용자 승인 후** 해당 Slice 파일만 `git add <파일>`로 stage → commit. `git add -A`/`git add .` 금지. push·force push·rebase·`--no-verify` 금지.
+6. 파일 수정은 Edit/Write 도구로 한다 (CLAUDE.md의 `apply_patch`는 Codex 전용 표기다).
+7. 시간은 `ProductTime`을 사용한다. `LocalDateTime.now()`/`LocalDate.now()` 직접 호출 금지 (`npm run security:product-time`이 검사한다).
+8. 비즈니스 오류는 `BusinessException(ErrorCode)`로 던진다. 컨트롤러에서 `ResponseEntity.badRequest().body(...)`를 새로 만들지 않는다.
+9. 통합 테스트는 Docker가 필요하다. 테스트 전에 `docker info`로 Docker가 떠 있는지 확인하고, 안 떠 있으면 사용자에게 Docker Desktop 실행을 요청하고 멈춘다.
+10. 테스트가 실패하면 테스트를 지우거나 `@Disabled`로 막지 않는다. 원인을 고치거나, 고칠 수 없으면 실패 로그와 함께 사용자에게 보고한다.
+11. Slice를 끝내면 이 PLAN.md에서 해당 Slice를 **삭제**한다 (AGENTS.md 12절). 완료 기록은 남기지 않는다.
 
-> 검증 메모(2026-08-16): Docker Desktop을 실행한 뒤 전체 `./gradlew test`가 2분 56초 만에 통과했다. Testcontainers 기반 통합 테스트까지 포함한 결과이며, 실제 netcup 외부 의존 검증은 별도 항목으로 남아 있다.
+공통 검증 명령 (각 Slice 마지막에 항상 실행):
 
-1. netcup x86 VPS Lite 2용 Compose를 준비한다.
-   - 파일: `deploy/docker-compose.netcup.yml`, `deploy/Caddyfile.netcup`, `deploy/.env.netcup.example`, `scripts/validate-netcup-env.sh`
-   - 변경: MySQL을 VPS 내부 service로 추가하고, ERP Caddy의 80/443 공개를 제거해 공용 edge Caddy에 연결한다. app·MySQL·Redis·Caddy의 메모리/로그 제한을 유지하고 Resend SMTP를 production profile에 연결한다.
-   - 검증: `docker compose config`와 외부 포트 정적 검사를 완료했다. MySQL·Redis·app readiness는 실제 Docker/VPS에서 남아 있다.
-   - 완료: TownPet stack과 같은 `edge` network에서 ERP가 `erp.example.com` upstream으로 응답한다.
+```bash
+./gradlew --no-daemon compileJava compileTestJava
+./gradlew --no-daemon fastTest
+```
 
-2. ERP MySQL backup/restore를 TownPet 배포 계획과 연결한다.
-   - 파일: `deploy/backup-mysql.sh`, `deploy/restore-mysql.sh`, `docs/guides/deployment-guide.md`
-   - 변경: MySQL dump·checksum·destructive restore guard와 netcup 실행 명령을 추가한다.
-   - 검증: dump·checksum·destructive restore guard와 age 암호화 자산을 확인했다. disposable MySQL 복구와 핵심 table count는 Docker 실행 환경에서 남아 있다.
-   - 완료: ERP DB를 외부 암호화 backup 대상으로 포함하고 복구 명령을 재현할 수 있다.
+단일 통합 테스트 실행 예:
 
-### P3 - 외부 운영 증거 확보
+```bash
+./gradlew --no-daemon test --tests "com.kinderp.api.KidApiIntegrationTest"
+```
 
-1. 실제 HTTPS 환경에서 배포·롤백·복구 증거를 확보한다.
-   - 파일: `deploy/**`, `scripts/deploy-with-rollback.sh`, `scripts/backup-production.sh`, `scripts/verify-production-backup.sh`, `scripts/restore-production-backup.sh`, `.github/workflows/cd.yml`, `docs/guides/deployment-guide.md`, `docs/guides/production-like-checklist.md`
-   - 변경: 실제 도메인·TLS·운영 DB/Redis 자격증명을 연결하고, 이미지 SHA·readiness·smoke·rollback·backup/restore 결과를 기록한다. 운영 schema 변경은 rollback 대신 forward-fix 정책을 확인한다.
-   - 검증: 로컬 production-like stack의 readiness·SHA·rollback 자산과 disposable MySQL/Redis restore drill을 확인했고, 복구 스크립트에 데이터 assertion 옵션을 추가했다. 남은 검증은 `PREFLIGHT_ONLY=1 ... ./scripts/deploy-with-rollback.sh`의 실제 환경 실행, 실제 배포 URL smoke, `/actuator/info` SHA 대조, 운영 backup/restore 및 rollback 결과다.
-   - 완료: 외부 URL에서 새 이미지의 readiness와 SHA가 확인되고, 실패 주입 후 이전 이미지·이전 `APP_VERSION`으로 복구되며, 복구 데이터 assertion이 남는다.
-   - 주의: cloud 계정, DNS, TLS, RDS/Redis, OAuth redirect URI가 필요하다. 자격증명 없이 완료로 표시하지 않는다.
+---
 
-2. 외부 알림 provider sandbox와 incident 수신 채널을 연결한다.
-   - 파일: `src/main/java/com/kinderp/domain/notification/service/channel/**`, `src/main/resources/application-prod.yml`, `docs/guides/risk-response.md`, `docs/guides/deployment-guide.md`
-   - 변경: provider webhook signature, provider rate limit, delivery/retry/dead-letter, incident 알림 수신을 실제 sandbox에서 확인한다.
-   - 검증: 로컬 통합 테스트에서 실제 payload 기준 HMAC 서명 계약과 dead-letter 전이를 확인했다. 남은 검증은 provider sandbox smoke, provider 서명 검증 실패, dead-letter 재시도 후 외부 수신, Alertmanager test alert 수신이다.
-   - 완료: 외부 provider 성공·실패·재시도와 incident 채널 수신 결과가 correlation ID와 함께 기록된다.
-   - 주의: provider 계정·webhook secret·Alertmanager 수신 URL이 필요하다.
+## Slice 3 — CI가 실제로 테스트를 돌리게 만들기
 
-## Backlog
+**왜:**
+- `ci.yml`은 `fastTest`만 실행한다. `@Tag("fast")`가 붙은 클래스는 6개뿐이다.
+- 통합 테스트는 수동 실행 workflow인 `backend-quality.yml`(`workflow_dispatch`)에만 있다.
+- 태그가 없는 테스트는 어느 task에도 포함되지 않아 CI에서 한 번도 실행되지 않는다. 현재 확인된 6개:
+  - `architecture/LayerDependencyTest`
+  - `domain/workflow/WorkflowStateTransitionTest`
+  - `global/security/ContentSecurityPolicyFilterTest`
+  - `global/config/StartupSafetyValidatorTest`
+  - `domain/notification/service/channel/WebhookRequestSignerTest`
+  - `domain/auth/service/AuthRateLimitPropertiesTest`
 
-- 실제 운영 트래픽 규모에서 k6 시나리오와 MySQL 실행계획을 재측정한다.
-- CDN 또는 외부 자산을 추가할 경우 공식 digest/SRI 검토를 거친다.
+**대상 파일:** 위 6개 테스트, `src/test/java/com/kinderp/KinderpApplicationTests.java`, `.github/workflows/ci.yml`, `build.gradle`, `src/test/java/com/kinderp/api/KidApiSimpleTest.java`
+
+**작업 순서:**
+1. 태그 누락 테스트를 다시 찾는다:
+   ```bash
+   grep -rL '@Tag' src/test/java --include='*Test.java' --include='*Tests.java'
+   ```
+2. 각 파일을 읽고 분류한다. Spring 컨텍스트나 Testcontainers 없이 도는 순수 단위 테스트면 클래스에 `@Tag("fast")`를 붙인다. `BaseIntegrationTest`를 상속하거나 `@SpringBootTest`를 쓰면 `@Tag("integration")`을 붙인다. import는 `org.junit.jupiter.api.Tag`다.
+3. `KidApiSimpleTest`는 status 200만 확인하는 smoke 테스트다. `KidApiIntegrationTest`에 같은 검증이 있으면 파일을 삭제하고, 없으면 해당 케이스를 `KidApiIntegrationTest`로 옮긴 뒤 삭제한다.
+4. `build.gradle`에 태그 누락을 막는 장치를 추가한다. 가장 단순한 방법은 기본 `test` task는 그대로 두고, `check`가 `fastTest`와 `integrationTest`에 의존하게 하는 것이다. 태그 누락 감지 스크립트는 만들지 않는다 (과설계).
+5. `.github/workflows/ci.yml`에 job `integration`을 추가한다:
+   - 트리거는 기존 `ci.yml`과 같게 둔다 (push·pull_request).
+   - 기존 Quick Check job의 Java·Gradle cache 설정을 복사한다. action은 기존 파일처럼 **SHA 고정**을 유지하고, 새 action을 추가하지 않는다.
+   - 실행: `./gradlew --no-daemon integrationTest`. ubuntu-latest에는 Docker가 있으므로 Testcontainers가 동작한다.
+   - `needs: quick-check`(기존 job id 확인 후 사용)로 빠른 검사 실패 시 건너뛰게 한다.
+   - 실패 시 `build/reports/tests/integrationTest`를 `actions/upload-artifact`로 올린다. `backend-quality.yml`에 이미 같은 단계가 있다면 SHA를 그대로 복사하고, 없으면 이 단계는 생략한다.
+6. README의 "Backend CI: 5분 28초 → 1분대" 문구는 Slice 11에서 함께 고친다. 여기서는 건드리지 않는다.
+
+**검증:**
+```bash
+./gradlew --no-daemon fastTest
+./gradlew --no-daemon integrationTest
+```
+CI 실행 결과는 push 후에만 확인할 수 있다. push는 사용자가 결정하므로 로컬 결과만 보고한다.
+
+**완료 조건:** 태그 없는 테스트 클래스가 0개이고, `ci.yml`이 push·PR마다 integrationTest를 실행한다.
+
+---
+
+## Slice 4 — 인증 세션 보강 (refresh rotation, 토큰 타입, 비밀번호 변경)
+
+**왜:**
+- (a) `JwtFilter`가 `tokenType`을 검사하지 않는다. 7일짜리 refresh 토큰을 access 쿠키 자리에 넣어도 인증된다.
+- (b) 비밀번호를 바꿔도 다른 기기 세션이 유지된다.
+- (c) refresh rotation(`AuthService` 148~181줄)은 GET → equals → SET이라 원자적이지 않다. 같은 refresh 토큰으로 동시에 요청하면 둘 다 성공한다. 이전 토큰이 재사용돼도 세션을 폐기하지 않는다.
+- (d) `REFRESH_TOKEN_NOT_FOUND`가 404다. 인증 실패이므로 401이 맞다.
+
+**대상 파일:**
+- `src/main/java/com/kinderp/global/security/jwt/JwtFilter.java`
+- `src/main/java/com/kinderp/global/security/jwt/JwtTokenProvider.java`
+- `src/main/java/com/kinderp/domain/member/service/MemberService.java` (`changePassword` 103줄 부근)
+- `src/main/java/com/kinderp/domain/member/controller/MemberApiController.java` (96줄 `PATCH /password`)
+- `src/main/java/com/kinderp/domain/auth/controller/AuthApiController.java` (`resolveCurrentSessionId` 참고)
+- `src/main/java/com/kinderp/domain/auth/service/AuthService.java`
+- `src/main/java/com/kinderp/domain/auth/service/AuthSessionRegistryService.java`
+- `src/main/java/com/kinderp/global/exception/ErrorCode.java`
+- `src/test/java/com/kinderp/api/AuthApiIntegrationTest.java`, `src/test/java/com/kinderp/api/MemberApiIntegrationTest.java`
+
+**작업 순서:**
+1. **(a)** `JwtFilter.doFilter`에서 `validateToken` 통과 직후 `"access".equals(jwtTokenProvider.getTokenType(token))`가 아니면 인증하지 않고 `chain.doFilter`로 넘긴다. 기존의 "비활성 세션" 분기와 같은 형태로 쓴다. `JwtTokenProvider`에 `isAccessToken(String)`을 `isRefreshToken`과 같은 모양으로 추가해서 사용한다.
+2. **(b)** 비밀번호 변경 후 현재 세션을 뺀 나머지 세션을 폐기한다.
+   - `MemberApiController.changePassword`에 `HttpServletRequest request`를 추가한다.
+   - `AuthApiController.resolveCurrentSessionId`와 같은 방식으로 현재 sessionId를 구한다. 이 메서드가 private이면 로직을 `AuthService`의 public 메서드로 옮겨 두 컨트롤러가 공유하게 한다. 복사하지 않는다.
+   - `memberService.changePassword(...)` 성공 후 `authService.revokeOtherSessions(memberId, currentSessionId)`를 호출한다.
+   - MemberService가 AuthService에 의존하면 순환 의존이 생길 수 있다. 그래서 호출은 **컨트롤러에서** 한다.
+3. **(c)** `AuthSessionRegistryService`에 원자적 교체 메서드를 추가한다:
+   ```java
+   public boolean compareAndRotateRefreshToken(Long memberId, String sessionId,
+                                               String expectedToken, String newToken, long ttlMs)
+   ```
+   - Lua 스크립트(`DefaultRedisScript<Long>`)로 구현한다: `if redis.call('GET', KEYS[1]) == ARGV[1] then redis.call('SET', KEYS[1], ARGV[2], 'PX', ARGV[3]) return 1 else return 0 end`
+   - **주의:** `RedisConfig`의 value serializer가 JSON이다. `redisTemplate.execute(script, keys, args...)`는 args를 value serializer로 직렬화한다. 그래서 저장값과 ARGV가 같은 JSON 문자열 형태가 되어 비교가 맞다. TTL(ARGV[3])도 JSON 숫자로 직렬화되는데, Lua에서 `tonumber(ARGV[3])`로 감싸 처리한다. 이 직렬화 동작은 테스트로 반드시 확인한다.
+   - `AuthService` refresh 흐름에서 GET·equals·`rotateSession` 중 **refresh token 값 교체 부분**을 이 메서드로 바꾼다. `rotateSession`이 같이 갱신하는 세션 메타데이터·session set TTL은 CAS 성공 후 기존 코드로 갱신한다.
+   - CAS 실패(저장값 불일치)는 **재사용 탐지**로 본다: `authSessionRegistryService.revokeSession(memberId, sessionId)`를 호출하고, 인증 감사 로그에 실패를 남긴 뒤(기존 refresh 실패 감사 기록 방식을 따름) `REFRESH_TOKEN_NOT_FOUND`를 던진다.
+   - 저장값 자체가 없으면(`null`) 지금처럼 `REFRESH_TOKEN_NOT_FOUND`만 던진다 (만료·로그아웃 세션).
+4. **(d)** `ErrorCode.REFRESH_TOKEN_NOT_FOUND`의 HttpStatus를 `UNAUTHORIZED`로 바꾼다. 프론트에 refresh 실패를 404로 처리하는 코드가 있는지 확인한다: `grep -rn "404" src/main/resources/static/js | grep -i refresh`. 있으면 함께 고친다. 기존 테스트의 404 기대값도 401로 바꾼다.
+
+**추가할 테스트 (`AuthApiIntegrationTest`):**
+- refresh 토큰을 access 쿠키 이름으로 넣고 보호 API 호출 → 401(또는 이 프로젝트의 미인증 응답)
+- 정상 refresh 후, **이전** refresh 토큰으로 다시 refresh → 401. 그 뒤 **새** refresh 토큰으로도 refresh 실패 (세션 폐기 확인)
+- 동시성: 같은 refresh 토큰으로 `ExecutorService` 스레드 2개와 `CountDownLatch`로 동시에 refresh 호출 → 성공 정확히 1건. `NotificationOutboxClaimConcurrencyIntegrationTest`의 스레드·latch 패턴을 참고한다.
+
+`MemberApiIntegrationTest`에 추가할 테스트:
+- 세션 A와 B로 로그인한 뒤 A에서 비밀번호 변경 → B의 access로 보호 API 호출 시 401, A는 계속 200
+
+**검증:**
+```bash
+./gradlew --no-daemon test --tests "com.kinderp.api.AuthApiIntegrationTest" --tests "com.kinderp.api.MemberApiIntegrationTest" --tests "com.kinderp.global.security.oauth2.OAuth2AuthenticationSuccessHandlerTest"
+```
+
+**완료 조건:** 위 테스트가 모두 통과하고, 기존 Auth 통합 테스트가 깨지지 않는다.
+
+---
+
+## Slice 5 — 알림 Outbox 중복 발송 방지 (fencing)
+
+**왜:** `NotificationDispatchService` 흐름에 세 가지 문제가 있다.
+- claim 트랜잭션이 PROCESSING으로 바꾸고 커밋한 뒤, `processClaimedDelivery`는 상태나 소유를 재확인하지 않고 발송한다. 발송이 processing-timeout(기본 5분)을 넘기면 다른 워커가 stale로 다시 claim해서 **중복 발송**하고, 두 워커의 결과가 서로 덮어쓴다.
+- 외부 HTTP 발송(`sender.send`)이 DB 트랜잭션 안에서 실행돼 커넥션을 오래 잡는다.
+- stale 회수는 PENDING이 0건일 때만 돈다(88~90줄). 부하가 계속되면 stale 건이 영원히 처리되지 않는다.
+
+**설계 (그대로 따를 것):** claim할 때마다 새 `claim_token`(UUID 문자열)을 발급한다. 결과는 "내 토큰이 아직 유효할 때만" 조건부 UPDATE로 기록한다.
+
+**대상 파일:**
+- 새 마이그레이션 `src/main/resources/db/migration/V19__add_notification_outbox_claim_token.sql`. 먼저 `ls src/main/resources/db/migration | sort -V | tail -1`로 최신 버전이 V18인지 확인한다.
+- `src/main/java/com/kinderp/domain/notification/entity/NotificationOutbox.java`
+- `src/main/java/com/kinderp/domain/notification/repository/NotificationOutboxRepository.java`
+- `src/main/java/com/kinderp/domain/notification/service/NotificationDispatchService.java`
+- `src/test/java/com/kinderp/integration/NotificationOutbox*IntegrationTest.java`
+
+**작업 순서:**
+1. V19: `ALTER TABLE notification_outbox ADD COLUMN claim_token VARCHAR(36) NULL;`
+2. 엔티티:
+   - `claimToken` 필드(`@Column(name = "claim_token", length = 36)`)를 추가한다.
+   - `markProcessing(LocalDateTime now)`를 `markProcessing(LocalDateTime now, String claimToken)`로 바꾼다.
+   - `markDelivered`, `scheduleRetry`, `markDeadLetter`, 운영 재시도 메서드(191줄 부근)는 `claimToken = null`로 초기화한다.
+3. Repository에 조건부 완료 쿼리 3개를 추가한다:
+   - `@Modifying @Query`로 `UPDATE NotificationOutbox o SET ... WHERE o.id = :id AND o.status = PROCESSING AND o.claimToken = :token`
+   - 대상: delivered / retry / dead-letter 각각
+   - 반환형은 `int`. 엔티티의 상태 필드 값은 엔티티 메서드와 똑같이 맞춘다.
+   - 기존 엔티티 메서드는 운영 화면 재시도 등 다른 곳에서도 쓰이므로 삭제하지 않는다.
+4. `NotificationDispatchService`:
+   - `claimReadyDeliveries`: 먼저 PENDING을 batchSize만큼 claim한다. 결과가 batchSize보다 적으면 **남은 개수만큼** stale PROCESSING을 추가로 claim한다 (starvation 해소). 건마다 `UUID.randomUUID().toString()` 토큰으로 `markProcessing(now, token)`하고, 반환값을 `List<Long>` 대신 `List<ClaimedDelivery>`(private record: `id`, `claimToken`)로 바꾼다.
+   - `processClaimedDelivery(ClaimedDelivery claimed)`를 다음 3단계로 나눈다.
+     1) 짧은 읽기 트랜잭션: outbox를 읽어 `status == PROCESSING && claimToken.equals(claimed.claimToken())`인지 확인한다. 아니면 return. 맞으면 발송에 필요한 payload(`outbox.toPayload()`), channel, attemptCount를 꺼낸다. Lazy 연관(`getNotification()`)은 **이 트랜잭션 안에서만** 접근한다.
+     2) **트랜잭션 밖에서** `sender.send(payload)`를 호출한다.
+     3) 짧은 쓰기 트랜잭션: 성공이면 delivered 조건부 UPDATE, 실패면 retry 또는 dead-letter 조건부 UPDATE를 한다. 업데이트된 행이 0이면 "다른 워커가 이미 가져감"이므로 `log.info`만 남기고 metric `outcome=fenced`를 기록한다.
+   - 클래스 레벨 `@Transactional(readOnly = true)`가 `@Scheduled` 메서드에 바깥 트랜잭션을 열어, REQUIRES_NEW와 합쳐 커넥션 2개를 쓴다. `processReadyDeliveriesOnSchedule`·`processReadyDeliveriesBatch`에 `@Transactional(propagation = Propagation.NOT_SUPPORTED)`를 붙여 바깥 트랜잭션을 없앤다. `executeInNewTransaction`(TransactionTemplate) 방식은 유지한다.
+5. at-least-once 한계를 `docs/architecture/portfolio-story.md`의 Outbox 절에 3~5줄로 추가한다: 수신 측은 `notificationId`+`channel`로 멱등 처리해야 하고, 발송 성공 후 결과 기록 전에 프로세스가 죽으면 재발송될 수 있다는 내용.
+
+**추가할 테스트:**
+- 워커 A가 claim한 뒤, 시간을 timeout 이후로 조작하거나 `processingStartedAt`을 과거로 직접 UPDATE해서 워커 B가 stale로 재claim하게 만든다. 이어서 A의 완료 처리가 0건 반영(fenced)되고 최종 상태가 B의 결과인지 검증한다.
+- PENDING이 batchSize보다 적고 stale이 있을 때 한 배치에 둘 다 claim되는지 검증한다.
+- 기존 `NotificationOutboxClaimConcurrencyIntegrationTest`, `NotificationOutboxRetryIntegrationTest`, `NotificationOutboxIntegrationTest`, `NotificationOutboxOpsApiIntegrationTest`, `performance/NotificationOutboxPerformanceSmokeTest`가 통과해야 한다.
+
+**검증:**
+```bash
+./gradlew --no-daemon test --tests "com.kinderp.integration.NotificationOutbox*" --tests "com.kinderp.api.NotificationOutboxOpsApiIntegrationTest"
+./gradlew --no-daemon performanceSmokeTest
+```
+
+**완료 조건:** 발송이 트랜잭션 밖에서 이루어지고, 토큰이 다르면 결과가 반영되지 않는 것이 테스트로 증명된다.
+
+---
+
+## Slice 6 — 입학 Offer 만료 스케줄러 경합 + 정원 동시성 테스트
+
+**왜:**
+- `KidApplicationService.expireOffers()`(209~226줄)는 락 없이 읽고 전체를 트랜잭션 하나로 처리한다. 반면 `acceptOffer`는 `FOR UPDATE`를 쓴다.
+- 그래서 만료 직전에 수락된 건을 만료로 덮어쓸 수 있고, 여러 인스턴스가 동시에 돌면 알림·감사 로그가 중복된다.
+- README는 "동시성 제어"를 내세우지만 정원 승인 동시성 테스트가 없다.
+
+**대상 파일:**
+- `src/main/java/com/kinderp/domain/kidapplication/repository/KidApplicationRepository.java` (`findExpiredOffers` 128줄)
+- `src/main/java/com/kinderp/domain/kidapplication/service/KidApplicationService.java`
+- `src/test/java/com/kinderp/api/KidApplicationApiIntegrationTest.java` 또는 새 `src/test/java/com/kinderp/integration/KidApplicationConcurrencyIntegrationTest.java`
+
+**작업 순서:**
+1. `findExpiredOffers`를 native query로 바꾼다. `NotificationOutboxRepository`의 `claimPendingIds`(38~41줄) 패턴을 따라 `... WHERE status = 'OFFERED' AND offer_expires_at <= :now AND deleted_at IS NULL ORDER BY id LIMIT :limit FOR UPDATE SKIP LOCKED`로 **id 목록**을 반환한다. 실제 컬럼명은 엔티티와 마이그레이션에서 확인한다.
+2. `expireOffers`는 id를 잠근 트랜잭션 안에서 엔티티를 로드하고, `isOffered()`를 다시 확인한 뒤 만료 처리한다. batch 크기는 100으로 둔다. 상수로 두며 설정값은 만들지 않는다.
+3. `acceptOffer`가 같은 행을 `FOR UPDATE`로 잡기 때문에, 이제 둘 중 하나만 이긴다. 진 쪽은 재확인한 상태에 따라 아무것도 하지 않거나(만료 쪽), 기존 상태 오류를 던진다(수락 쪽).
+
+**추가할 테스트 (통합, `@Tag("integration")`):**
+- **정원 동시 승인:** 정원 N, 현재 N-1명인 반에 신청 2건을 만든다. `ExecutorService` 스레드 2개와 `CountDownLatch`로 동시에 승인(또는 offer 수락) API를 호출해 정원 확정은 정확히 1건, 나머지는 waitlist나 409 등 **현재 도메인 규칙의 실패 결과**인지 확인한다. 반의 원생 수가 N을 넘지 않는지도 검증한다. 승인 흐름은 `KidApplicationReviewService`와 `ClassroomRepository:40`의 비관적 락을 읽고 파악한다.
+- **만료 vs 수락:** OFFERED 신청의 만료 시각을 과거로 설정하고, `expireOffers()`와 학부모 `acceptOffer`를 동시에 실행한다. 최종 상태는 ACCEPTED/ENROLLED나 OFFER_EXPIRED 중 하나이고, 알림·감사 로그는 결과와 일치하는 1종류만 있어야 한다.
+
+**검증:**
+```bash
+./gradlew --no-daemon test --tests "com.kinderp.api.KidApplicationApiIntegrationTest" --tests "com.kinderp.integration.KidApplicationConcurrencyIntegrationTest" --tests "com.kinderp.domain.workflow.WorkflowStateTransitionTest"
+```
+
+**완료 조건:** 동시성 테스트 2종이 10회 반복 실행(`--rerun`을 10번)해도 모두 통과한다.
+
+---
+
+## Slice 7 — 입학 신청 식별 단위를 "학부모"에서 "원생"으로 바꾸기
+
+**왜:** 지금 입학 신청은 원생이 아니라 **학부모 단위**로 묶여 있어서 문제가 셋 있다.
+1. V3의 `UNIQUE (parent_id, kindergarten_id)` 때문에 형제 둘을 같은 유치원에 신청할 수 없다.
+2. `KidApplicationService` 83줄 `existsByParentIdAndStatusInAndDeletedAtIsNull(parentId, ACTIVE)` 때문에 학부모 한 명이 진행 중 신청을 **전체 유치원 통틀어 1건만** 가질 수 있다. 형제를 동시에 신청할 수 없다.
+3. `reapply()`가 기존 행을 재사용하면서 **다른 아이** 이름·생년월일로도 덮어쓸 수 있다. 또 soft delete된 행이 유니크 키를 계속 차지하는데, 조회(`findByParentAndKindergarten`)는 `deletedAt IS NULL`로 그 행을 걸러낸다. 그래서 삭제 후 재신청하면 INSERT가 영구히 `APPLICATION_ALREADY_EXISTS`로 실패한다.
+
+**결정된 도메인 규칙 (그대로 구현):**
+- 신청 대상 원생은 `(parent_id, kid_name, birth_date)`로 식별한다. 이름과 생년월일이 모두 같은 형제는 현실적으로 없다고 본다. 이 가정은 `KidApplication` 클래스 주석 한 줄로 남긴다.
+- 규칙 A: 같은 원생은 **같은 유치원에 미삭제 신청을 1건만** 가질 수 있다. 이것은 DB 유니크 키가 보장한다.
+- 규칙 B: 같은 원생은 **진행 중(ACTIVE_APPLICATION_STATUSES) 신청을 전체 유치원 통틀어 1건만** 가질 수 있다. 서비스 검증으로 지킨다. 기존 "학부모당 1건" 규칙을 "원생당 1건"으로 좁히는 것이다.
+- 재신청(`reapply`)은 **같은 원생의 같은 유치원 신청**이 CANCELLED·REJECTED·OFFER_EXPIRED 상태일 때만 그 행을 재사용한다. 이름·생년월일은 키의 일부라 바뀌지 않으므로, `reapply`에서 `kidName`·`birthDate` 인자를 없애고 gender·preferredClassroom·notes만 갱신한다. 상태 변경 이력은 기존 domain audit 기록으로 남는다.
+
+**대상 파일:**
+- 새 마이그레이션 `src/main/resources/db/migration/V20__kid_application_unique_per_kid.sql`. Slice 5의 V19 다음 번호로 하고, 실제 최신 번호를 확인한다.
+- `src/main/java/com/kinderp/domain/kidapplication/entity/KidApplication.java` (`reapply` 184줄)
+- `src/main/java/com/kinderp/domain/kidapplication/repository/KidApplicationRepository.java` (34~55줄의 `findActiveApplicationByParentAndKindergarten`, `findByParentAndKindergarten`, `existsByParentIdAndStatusInAndDeletedAtIsNull`)
+- `src/main/java/com/kinderp/domain/kidapplication/service/KidApplicationService.java` (78~113줄)
+- `src/test/java/com/kinderp/api/KidApplicationApiIntegrationTest.java`, `src/test/java/com/kinderp/domain/workflow/WorkflowStateTransitionTest.java`
+
+**작업 순서:**
+1. V20 마이그레이션. 같은 원생의 미삭제 중복 행이 있을 수 없으므로 정리용 UPDATE는 필요 없다. 그래도 V3처럼 방어적으로 "중복이면 최신 1건만 남기고 soft delete"하는 UPDATE를 먼저 넣는다.
+   ```sql
+   ALTER TABLE kid_application
+     ADD COLUMN active_marker TINYINT
+       GENERATED ALWAYS AS (IF(deleted_at IS NULL, 1, NULL)) STORED;
+
+   ALTER TABLE kid_application
+     DROP INDEX uk_parent_kindergarten,
+     ADD UNIQUE KEY uk_kid_application_active_kid
+       (parent_id, kindergarten_id, kid_name, birth_date, active_marker);
+   ```
+   MySQL UNIQUE에서는 NULL끼리 충돌하지 않으므로 삭제된 행(`active_marker = NULL`)은 키에서 빠진다. V14의 `pending_request_date` 생성 컬럼과 같은 기법이다.
+   - `uk_parent_kindergarten`이 FK의 유일한 인덱스로 쓰이고 있으면 DROP이 실패한다. 그럴 때는 같은 ALTER 안에서 `ADD INDEX idx_kid_application_parent (parent_id)`를 먼저 추가한다.
+2. 엔티티에는 `active_marker`를 매핑하지 않는다. `KidApplication`의 `@Table(uniqueConstraints = ...)`에 `uk_parent_kindergarten`이 선언돼 있으면 제거한다. prod는 `ddl-auto: none`, local은 `validate`라서 인덱스 선언은 검증 대상이 아니다.
+3. Repository:
+   - `findByParentAndKindergarten`을 `findByParentAndKindergartenAndKid(parentId, kindergartenId, kidName, birthDate)`로 바꾼다 (deletedAt IS NULL 유지).
+   - `findActiveApplicationByParentAndKindergarten`에 `kidName`·`birthDate` 조건을 추가하고 이름을 `findActiveApplicationForKidInKindergarten`으로 바꾼다.
+   - `existsByParentIdAndStatusInAndDeletedAtIsNull` 대신 `existsByParentIdAndKidNameAndBirthDateAndStatusInAndDeletedAtIsNull`을 쓴다. 기존 메서드가 다른 곳에서 쓰이는지 `grep -rn "existsByParentIdAndStatusInAndDeletedAtIsNull" src/main`으로 확인한다. 안 쓰이면 삭제한다.
+4. Service 78~113줄의 세 검증을 위 메서드로 바꾼다. INSERT 시 `DataIntegrityViolationException` → `APPLICATION_ALREADY_EXISTS` 변환은 유지한다 (동시 요청 방어).
+5. `reapply` 시그니처에서 `kidName`·`birthDate`를 제거하고 호출부를 고친다.
+6. 학부모 화면이 "진행 중 신청 1건"을 전제로 만들어져 있는지 확인한다: `grep -rn "PENDING_APPLICATION_EXISTS\|my-application\|myApplication" src/main/resources`. 단건 객체를 기대하는 JS·템플릿이 있으면 목록을 받도록 고친다. API가 이미 목록(`getMyRequests` 등)을 반환하면 화면만 확인한다.
+
+**추가할 테스트 (`KidApplicationApiIntegrationTest`):**
+- 같은 학부모가 형제 2명(이름·생년월일 다름)을 같은 유치원에 신청 → 둘 다 성공
+- 같은 원생을 같은 유치원에 다시 신청(진행 중) → `APPLICATION_ALREADY_EXISTS`
+- 같은 원생을 다른 유치원에 신청(첫 신청이 진행 중) → `PENDING_APPLICATION_EXISTS`
+- 신청 취소 후 같은 원생을 같은 유치원에 재신청 → 성공, **같은 행 id가 재사용**되고 상태가 PENDING
+- 신청이 soft delete된 뒤 같은 원생 재신청 → 성공 (새 행)
+
+**검증:**
+```bash
+./gradlew --no-daemon test --tests "com.kinderp.api.KidApplicationApiIntegrationTest" --tests "com.kinderp.domain.workflow.WorkflowStateTransitionTest" --tests "com.kinderp.integration.KidApplicationConcurrencyIntegrationTest"
+```
+
+**완료 조건:** 위 테스트 5개가 통과하고, `docs/architecture/workflow-state-machine.md`에 규칙 A·B가 2줄로 반영된다.
+
+---
+
+## Slice 8 — 작은 정합성 결함 묶음
+
+각 항목은 서로 독립적이다. 항목마다 테스트를 추가하고 통과시킨 뒤 다음 항목으로 넘어간다.
+
+**8-1. 동시 출결 upsert 충돌이 500으로 나감**
+- `AttendanceService` 406~409줄 부근은 check-then-insert다. `uk_kid_date` 위반 시 `DataIntegrityViolationException`이 그대로 올라간다.
+- `GlobalExceptionHandler`에 `DataIntegrityViolationException` 핸들러를 추가하고 409를 반환한다. 이를 위해 ErrorCode `DUPLICATE_RESOURCE`(CONFLICT)를 추가하거나, 같은 의미의 기존 코드를 재사용한다. 응답 메시지에 예외 원문을 넣지 않는다.
+- 테스트: 같은 kid·date로 출결 생성 2건을 동시에 보내면 결과가 200·409(또는 200·200 upsert)이고 500은 없다.
+
+**8-2. 대시보드 캐시 무효화 시점·누락**
+- `DashboardService.evictDashboardStatisticsCache`가 쓰기 트랜잭션 **안에서** 즉시 실행된다. 커밋 전에 다른 요청이 오래된 값으로 캐시를 다시 채울 수 있다.
+- 변경:
+  - 캐시를 무효화하는 쪽은 `DashboardCacheEvictRequested(Long kindergartenId)` record 이벤트를 `ApplicationEventPublisher`로 발행한다.
+  - `@TransactionalEventListener(phase = AFTER_COMMIT)` 리스너가 `CacheManager`로 evict한다.
+  - 기존 `evictDashboardStatisticsCache` 호출부는 `grep -rn "evictDashboardStatisticsCache" src/main`으로 모두 찾아 이벤트 발행으로 바꾼다.
+- 누락된 무효화도 추가한다: `KidService`의 원생 생성·삭제·반 변경, 회원 승인·탈퇴(`totalKids`·교사 수 통계에 영향을 주는 곳). `DashboardStatisticsResponse` 필드를 보고 어떤 변경이 통계에 영향을 주는지 판단한다.
+- 테스트: 원생 추가 후 대시보드 통계 API의 `totalKids`가 즉시 증가하는지 확인한다 (`DashboardApiIntegrationTest`).
+- Caffeine 대신 Redis 캐시로 바꾸는 작업은 **하지 않는다.** 단일 인스턴스라는 전제를 `docs/architecture/performance-methodology.md` 한계 절에 한 줄로 적는다.
+
+**8-3. bulk 출결 N+1**
+- `AttendanceService` 133~149줄은 원생마다 `kidService.getKid`, `getRequester`, `findByKidIdAndDate`를 호출한다.
+- 요청자는 루프 밖에서 1회 조회한다. 원생은 `kidRepository.findAllById(kidIds)`로 한 번에 가져와 권한을 검증한다. 기존 출결은 `attendanceRepository.findByKidIdInAndDate(kidIds, date)`(없으면 추가)로 한 번에 가져와 Map으로 매칭한다.
+- 테스트: `performance/NotepadPerformanceStoryTest`처럼 Hibernate `Statistics`로 원생 10명 bulk 요청의 쿼리 수를 측정한다. 원생 수와 무관하게 상수(예: ≤ 8)임을 assert한다. 변경 전 쿼리 수를 먼저 측정해서 PR 설명용으로 사용자에게 보고한다 (AGENTS.md 11절).
+
+**8-4. OSIV OFF 위반: 엔티티가 컨트롤러로 나감**
+- `AttendanceService.getAttendance()`가 엔티티를 반환하고, `AttendanceController` 120~123줄이 트랜잭션 밖에서 `toResponse(entity)`로 `getKid().getName()`을 읽는다.
+- 서비스가 응답 DTO를 반환하도록 바꾼다. 같은 패턴을 찾아 함께 고친다:
+  ```bash
+  grep -rn "toResponse(\|Response.from(" src/main/java/com/kinderp/domain/*/controller
+  ```
+  너무 많으면(10곳 초과) 출결 도메인만 고치고 나머지 목록을 사용자에게 보고한다.
+
+**검증:**
+```bash
+./gradlew --no-daemon test --tests "com.kinderp.api.AttendanceApiIntegrationTest" --tests "com.kinderp.api.DashboardApiIntegrationTest" --tests "com.kinderp.performance.*"
+```
+
+---
+
+## Slice 9 — QueryDSL 실제 사용 (기술 스택 주장과 일치시키기)
+
+**왜:** `JPAQueryFactory`는 `global/config/QuerydslConfig.java`에서 빈으로 등록만 돼 있고 domain 코드 사용처가 0건이다. README·AGENTS.md에는 QueryDSL을 기술 스택으로 적고 있다. 대신 `NotificationOutboxRepository` 92~121줄에 `(:status IS NULL OR ...)` 형태의 JPQL 동적 쿼리가 있다.
+
+**작업 순서:**
+1. `NotificationOutboxRepository`의 동적 검색 쿼리(운영 화면 검색)를 custom repository로 옮긴다: `NotificationOutboxQueryRepository` 인터페이스 + `NotificationOutboxQueryRepositoryImpl`(JPAQueryFactory 사용). 파라미터별 `BooleanExpression` 메서드가 null이면 조건을 생략하게 한다.
+2. 기존 시그니처를 쓰는 서비스 호출부를 새 메서드로 바꾸고, 예전 JPQL 메서드는 삭제한다.
+3. count 쿼리를 분리한다 (`PageableExecutionUtils.getPage`).
+4. `LIKE '%kw%'` 조건은 기능상 유지한다. 인덱스를 못 탄다는 한계를 메서드 주석 한 줄로 남긴다.
+5. `NotificationOutboxOpsApiIntegrationTest`의 검색 테스트가 그대로 통과해야 한다. 필터 조합 테스트(조건 없음 / status만 / keyword만 / 전부)가 없으면 추가한다.
+6. `ArchUnit LayerDependencyTest`가 새 Impl 클래스 위치를 허용하는지 확인한다.
+
+**검증:**
+```bash
+./gradlew --no-daemon test --tests "com.kinderp.api.NotificationOutboxOpsApiIntegrationTest" --tests "com.kinderp.architecture.LayerDependencyTest" --tests "com.kinderp.performance.NotificationOutboxPerformanceSmokeTest"
+```
+
+---
+
+## Slice 10 — 코드 위생 정리
+
+동작 변경 없는 정리만 한다. 항목마다 컴파일하고 fastTest를 실행한다.
+
+1. 빈 패키지 `src/main/java/com/kinderp/domain/dto/`를 삭제한다. 파일이 0개임을 먼저 확인한다.
+2. `AttendanceChangeRequestService`, `AttendanceService`, `KidService` 등에 인라인으로 반복된 FQCN(`com.kinderp...`, `java.util.stream.Collectors`, `org.springframework.data.domain.Page`)을 import로 정리한다. 대상은 `grep -rn "com\.kinderp\.\|java\.util\.\|org\.springframework\." src/main/java --include=*.java | grep -v "^.*:import \|^.*:package "`로 찾는다. 변경 파일은 최대 10개로 하고, 나머지는 보고한다.
+3. `KidApplicationService`의 approve/offer/reject는 `KidApplicationReviewService`로 위임만 한다. 이 위임 메서드들의 중복 `@Transactional`을 제거한다. 위임받는 쪽에 `@Transactional`이 있는지 먼저 확인한다.
+4. `global/config/DataLoader.java`의 `@Profile("local | prod")`. 이 부분은 결정이 끝났다: **prod 공개 데모 시드는 유지하되, 예외를 명시적이고 좁게 만든다.**
+   - 근거: `scripts/validate-netcup-env.sh` 34줄이 netcup 배포에 `APP_PUBLIC_DEMO_ENABLED=true`를 **필수**로 요구한다. 즉 실제 공개 데모(kinderp.cloud)는 이 시드로 돌아간다. 제거하면 데모가 빈 화면이 된다. 일반 운영 예시 `deploy/.env.prod.example`은 `false`다.
+   - 변경 A: `StartupSafetyValidator` 61~64줄에 조건을 추가한다. prod에서 `app.seed.enabled=true`이고 `APP_PUBLIC_DEMO_ENABLED=true`이면 통과시키되, **`log.warn`으로 "PUBLIC DEMO MODE: seeded demo accounts are active"를 기동 로그에 1회** 남긴다. 숨은 예외가 아니라 눈에 보이는 모드로 만드는 것이다.
+   - 변경 B: `StartupSafetyValidatorTest`에 세 케이스가 있는지 확인하고 없으면 추가한다: prod+seed+demo=false → 기동 실패, prod+seed+demo=true → 통과, prod+seed=false → 통과.
+   - 변경 C: `DataLoader`가 재기동 때 데이터를 중복 생성하지 않는지 확인한다 (멱등). 이미 존재 여부를 검사하는 코드가 있으면 그대로 두고, 없으면 "principal 계정 존재 시 skip" 가드를 맨 앞에 추가한다.
+   - 변경 D: `docs/guides/env-contract.md`의 prod 절에 "공개 데모 모드" 하위 항목을 3~4줄로 추가한다. 내용: 어떤 변수 조합에서 켜지는지, 일반 운영 배포에서는 반드시 `false`라는 것, 시드 계정 비밀번호가 공개돼 있다는 것.
+   - `@Profile` 값은 바꾸지 않는다.
+5. 다음은 **하지 않는다:**
+   - 두 `ApplicationStatus` enum의 이름 변경 (영향이 크고 이득이 작음)
+   - `global/debug/DebugDbController` 삭제 (local 전용으로 가드돼 있음)
+
+---
+
+## Slice 11 — README 정직성·첫인상
+
+**결정된 사항:**
+- **원본 출처:** 저장소 어디에도 원본 팀 저장소 링크가 없으므로 **링크 없이** 사실만 쓴다. 사용자가 확인해 준 사실은 "백엔드 부트캠프 4인 팀 프로젝트를 혼자 AI 코딩 에이전트로 재작성"까지다. 부트캠프 이름, 기간, 원본에서 맡은 파트는 **지어내지 않는다.**
+- **AI 활용:** 숨기지 않고 명시한다. 면접에서 "AI로 짰나요?"라는 질문을 받았을 때 이미 README에 적혀 있으면 방어가 아니라 설명이 된다. 핵심 메시지는 "에이전트에게 구현을 맡기고, 설계 결정·리뷰·검증 기준은 직접 정했다"이다.
+- **데모 URL:** 공개 데모를 README 최상단에 넣는다. 데모 계정은 README에 이미 공개돼 있으므로 그대로 쓴다. 단, 넣기 전에 실제로 응답하는지 확인한다(아래 1번).
+
+**작업 순서:**
+1. 데모 응답을 확인한다:
+   ```bash
+   curl -s -o /dev/null -w '%{http_code}\n' https://kinderp.cloud/
+   ```
+   - 200 또는 302면 2번으로 간다.
+   - 응답이 없거나 5xx면 데모 링크는 넣지 않고 이 결과를 보고한 뒤 3번부터 진행한다.
+2. README 제목과 한 줄 소개 바로 아래, 배지보다 위에 다음 블록을 넣는다:
+   ```markdown
+   > **Live demo:** https://kinderp.cloud — 아래 [로컬 실행](#로컬-실행)의 데모 계정으로 로그인할 수 있습니다. 공개 데모이므로 데이터는 다른 방문자와 공유됩니다.
+   ```
+3. "한눈에 보기" 절 바로 앞에 `## 프로젝트 배경` 절을 추가한다. 아래 문안을 기준으로 쓰되, 괄호 안 항목은 실제로 완료된 Slice만 남긴다:
+   ```markdown
+   ## 프로젝트 배경
+
+   백엔드 부트캠프에서 4인 팀으로 만든 유치원 관리 프로젝트를 출발점으로, 혼자 처음부터 다시 설계하고 재작성했습니다.
+   재작성에는 AI 코딩 에이전트(Codex, Claude Code)를 적극 활용했습니다. 구현의 상당 부분은 에이전트가 작성했고, 저는 다음을 직접 결정하고 검증했습니다.
+
+   - **도메인 규칙과 상태 전이:** 입학 신청 대기열·정원·만료, 출결 변경 요청 승인 흐름을 엔티티 메서드와 DB 제약으로 강제
+   - **권한 모델:** 유치원(tenant)·역할·소유권 검증을 `AccessPolicyService`로 모으고, 같은 유치원 안 학부모 간 정보 노출(IDOR)을 자체 리뷰로 찾아 수정
+   - **동시성·신뢰성:** 비관적 락·멱등 키·Outbox claim token fencing, 동시 요청 통합 테스트로 검증
+   - **검증 기준:** Testcontainers(MySQL·Redis) 통합 테스트와 쿼리 수 회귀 테스트를 CI에서 실행
+   ```
+4. "한눈에 보기" 표의 `역할` 행을 `1인 재작성 — 설계·구현·테스트·배포 (원본: 부트캠프 4인 팀 프로젝트)`로 바꾼다.
+5. "핵심 결과"의 `Backend CI: 5분 28초 → 1분대` 줄을 `Backend CI: 빠른 검사(fast)와 Testcontainers 통합 테스트 job을 분리해 push·PR마다 실행`으로 바꾼다. 측정하지 않은 숫자는 쓰지 않는다.
+6. "핵심 결과" 끝에 한 줄을 추가한다: `- 동시성 통합 테스트: 반 정원 동시 승인, Offer 만료 vs 수락, refresh token 동시 재사용, Outbox 중복 claim`. 실제로 추가된 테스트만 적는다.
+7. 기술 스택의 QueryDSL 표기는 Slice 9가 끝났을 때만 유지한다. 끝나지 않았으면 제거한다.
+8. "검증" 절의 명령 순서를 백엔드 우선으로 바꾼다: `fastTest` → `integrationTest` → 프론트 검사.
+9. "더 보기" 표는 Slice 12에서 남기는 문서만 가리키게 한다. Slice 12 이후 한 번 더 확인한다.
+
+**검증:**
+```bash
+npm run docs:links
+```
+
+**완료 조건:** README 첫 화면에서 데모 링크, 프로젝트 출처(팀 → 1인 재작성, AI 활용), 본인 결정 사항이 보이고, 사실과 다른 수치가 없다.
+
+---
+
+## Slice 12 — 문서·에이전트 파일 축소 (맨 마지막)
+
+**결정된 원칙:**
+- 공개 저장소에 남기는 문서는 "면접관이 10분 안에 읽을 가치가 있는 것"과 "저장소를 실행·운영하는 데 필요한 것"만이다.
+- 빼는 문서는 0절 4-1 규칙대로 `archive/`로 옮긴다. 삭제하지 않는다.
+- **AGENTS.md·CLAUDE.md는 남긴다.** README에 AI 활용을 밝혔으므로, 에이전트에게 준 작업 규칙은 숨길 대상이 아니라 "AI를 어떻게 통제했는지" 보여주는 증거다. PLAN.md는 마지막에 `No active work`로 비운다(AGENTS.md 12절).
+- `.agents/skills/**`는 외부 디자인 스킬을 복사해 둔 것이라 이 프로젝트 고유 산출물이 아니다. 보관 처리한다.
+- `blog/`는 01~25편을 남긴다. 도메인·인증·Outbox·성능을 다룬 기술 글은 학습 깊이를 보여준다. 계획 메모(00_*)와 취업 패키지·점수 매기기 글(26, 27)은 보관 처리한다.
+- CD workflow·`deploy/` 중복 정리는 실제 배포 경로를 건드리므로 **이번 계획에서 하지 않는다** (Backlog).
+
+**1) `archive/`로 옮길 파일 (0절 4-1 절차):**
+- 루트:
+  - `.agents/`
+  - `.impeccable.md`
+  - `BLOG_PLAN.md`
+  - `BLOG_PROGRESS.md`
+  - `CURRENT_FEATURES.md`
+  - `HELP.md`
+- `docs/` 한글 번호 폴더 전체:
+  - `docs/01-프로젝트-기획/`
+  - `docs/02-설계/`: 단, `설계-의사결정-기록.md`는 2)에서 먼저 옮기고 나머지만 보관한다.
+  - `docs/03-성능-보안-운영/`
+  - `docs/04-데모/`: dirty 파일 `로컬-개발-워크플로.md` 포함. `git rm --cached`는 로컬 내용을 보존한다.
+  - `docs/05-차별화/`
+  - `docs/06-문서-감사/`
+  - `docs/07-보안/`
+- docs 기타:
+  - `docs/문서-안내.md`
+  - `docs/cli환경에서 실행.md` (dirty, 로컬 절대경로 노출)
+  - `docs/COMPLETED.md`
+  - `docs/architecture/rework-history-2026-08-14.md`
+- `docs/guides/`:
+  - `evidence-map.md`
+  - `risk-response.md`
+  - `production-like-checklist.md`
+  - `user-guide.md`
+- `blog/`:
+  - `00_quality_checklist.md`
+  - `00_rebuild_guide.md`
+  - `00_series_plan.md`
+  - `26-demo-architecture-and-interview-pack.md`
+  - `27-spring-boot-refactoring-doctor-100.md`
+
+**2) 옮겨서 살릴 파일:**
+- `git mv "docs/02-설계/설계-의사결정-기록.md" docs/architecture/decision-log.md`
+- 제목은 `# Architecture Decision Log`로 바꾼다. 본문에 TownPet, 면접, 이력서를 언급하는 문장이 있으면 그 문장만 삭제한다.
+
+**3) 남는 문서 (최종 목록, 이 외에 docs에 남는 `.md`가 있으면 보고):**
+- `docs/README.md`: 유일한 문서 인덱스. 아래 4)에서 다시 쓴다.
+- `docs/architecture/`:
+  - `portfolio-story.md`
+  - `performance-methodology.md`
+  - `api-access-matrix.md`
+  - `workflow-state-machine.md`
+  - `decision-log.md`
+- `docs/guides/`:
+  - `developer-guide.md`
+  - `env-contract.md`
+  - `netcup-deployment.md`
+  - `deployment-guide.md`
+  - `secret-incident-response.md`
+  - `demo-scenario.md`
+  - `local-demo-accounts.md` (dirty, 내용 수정 금지)
+- `deployment-guide.md`는 `.github/workflows/cd.yml`·`scripts/`에서 참조되면 남기고, 참조가 없으면 1)에 추가해 보관한다. 확인 명령:
+  ```bash
+  grep -rn "deployment-guide" .github scripts deploy
+  ```
+- 위 목록의 문서 본문에 "TownPet", "면접", "이력서", "interview"가 나오면 그 문장·절만 삭제한다. 확인 명령:
+  ```bash
+  grep -rln "TownPet\|타운펫\|면접\|이력서\|interview" docs README.md blog
+  ```
+
+**4) 인덱스와 규칙 파일 정리:**
+- `docs/README.md`를 다시 쓴다. 3)의 문서마다 한 줄 설명을 붙이고, `문서-안내.md`와 보관된 문서 링크를 모두 제거한다. 30줄 이내로 쓴다.
+- `blog/README.md`에서 00_*, 26, 27 항목을 제거한다.
+- `AGENTS.md`:
+  - 6절의 Impeccable 관련 줄(`.impeccable.md`, `.agents/skills/*`, `npm run impeccable:detect`, `$audit`/`$critique`/`$polish`)을 삭제한다. "운영형 ERP 화면은…" 문단은 유지한다.
+  - 1절과 5.7절의 QueryDSL 표현은 Slice 9의 결과와 맞춘다.
+- `CLAUDE.md`: "변경은 `apply_patch`로 수행하고" 문구를 "변경은 작은 단위로 수행하고"로 바꾼다.
+- `package.json`: `impeccable:detect`, `impeccable:detect:json` 스크립트를 제거하고, `scripts/impeccable-detect.mjs`도 `archive/scripts/`로 옮긴다. `.github/workflows`에서 이 스크립트를 호출하는지 먼저 grep으로 확인한다.
+- `PLAN.md`: 모든 Slice가 끝났으면 내용을 `# PLAN.md` + `No active work` + 아래 Backlog 절만 남긴다.
+
+**검증:**
+```bash
+npm run docs:links
+npm run frontend:build
+./gradlew --no-daemon fastTest
+git ls-files | grep -E '\.md$' | grep -v '^blog/' | sort    # 3)의 목록 + 루트 README/AGENTS/CLAUDE/PLAN만 나와야 한다
+git check-ignore archive/HELP.md                              # 경로가 출력되어야 한다
+```
+
+**완료 조건:** 추적되는 문서가 3)의 목록과 일치하고, 깨진 링크가 없으며, 보관한 파일이 모두 로컬 `archive/`에 남아 있다.
+
+---
+
+## Backlog (이번 계획 범위 밖)
+
+- 기존 netcup 배포 외부 증거 확보(SMTP 실수신, 암호화 백업 외부 보관, 이미지 롤백, provider sandbox). 상세 내용은 `git show HEAD:PLAN.md`의 P2/P3를 참고한다.
+- 로그인 rate limit을 이메일 단독 키에서 IP+이메일 조합 + 점진적 지연으로 바꿔 계정 잠금 DoS를 완화한다.
+- 소셜 로그인 성공 핸들러에서 INACTIVE/삭제 회원 명시 차단 (`OAuth2AuthenticationSuccessHandler` 78~85줄).
+- 감사 로그 CSV export에 수식 인젝션 방어(`= + - @`로 시작하는 셀에 `'` 접두) 추가 (`AuthAuditLogQueryService` 169~177줄).
+- 생성 POST 201 응답, 컨트롤러의 `badRequest().body(...)`를 예외로 통일, `/kids`와 `/kids/page` 이원화 정리.
+- `JwtFilter`의 요청당 JWT 중복 파싱 축소, 만료 토큰 로그 레벨 ERROR → DEBUG.
+- `ProductTime` static을 `Clock` 주입으로 전환 (시간 의존 테스트 용이성).
+- 공개 데모 데이터 주기적 초기화(예: 매일 새벽 시드 재적재). 방문자가 데모 데이터를 훼손할 수 있음.
+- CD workflow(`cd.yml`, `cd-netcup.yml`, `container-publish.yml`)와 `deploy/` compose·Caddy 설정을 실제 사용하는 netcup 경로 하나로 통합하고, 남는 workflow의 action을 SHA로 고정.

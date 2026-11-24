@@ -445,4 +445,89 @@ class KidApiIntegrationTest extends BaseIntegrationTest {
                     .andExpect(status().isForbidden());
         }
     }
+
+    @Nested
+    @DisplayName("학부모의 같은 유치원 원생 명단 접근 제한")
+    class ParentRosterAccessTest {
+
+        @Test
+        @DisplayName("반별 원생 목록 - 학부모는 자기 아이가 있는 반이라도 거부")
+        void getKidsByClassroom_Fail_Parent() throws Exception {
+            testData.createKid(classroom);
+
+            mockMvc.perform(get("/api/v1/kids")
+                            .param("classroomId", String.valueOf(classroom.getId()))
+                            .with(authenticated(parentMember)))
+                    .andDo(print())
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.success").value(false));
+        }
+
+        @Test
+        @DisplayName("유치원별 원생 목록 - 학부모는 거부")
+        void getKidsByKindergarten_Fail_Parent() throws Exception {
+            mockMvc.perform(get("/api/v1/kids")
+                            .param("kindergartenId", String.valueOf(kindergarten.getId()))
+                            .with(authenticated(parentMember)))
+                    .andDo(print())
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.success").value(false));
+        }
+
+        @Test
+        @DisplayName("원생 이름 검색 - 학부모는 거부")
+        void searchKids_Fail_Parent() throws Exception {
+            mockMvc.perform(get("/api/v1/kids")
+                            .param("kindergartenId", String.valueOf(kindergarten.getId()))
+                            .param("name", "테스트")
+                            .with(authenticated(parentMember)))
+                    .andDo(print())
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("페이지 목록 - 학부모는 거부")
+        void getKidsPage_Fail_Parent() throws Exception {
+            mockMvc.perform(get("/api/v1/kids/page")
+                            .param("kindergartenId", String.valueOf(kindergarten.getId()))
+                            .with(authenticated(parentMember)))
+                    .andDo(print())
+                    .andExpect(status().isForbidden());
+
+            mockMvc.perform(get("/api/v1/kids/page")
+                            .param("classroomId", String.valueOf(classroom.getId()))
+                            .with(authenticated(parentMember)))
+                    .andDo(print())
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("반별·유치원별 원생 목록 - 같은 유치원 교사는 성공")
+        void getKids_Success_Teacher() throws Exception {
+            mockMvc.perform(get("/api/v1/kids")
+                            .param("classroomId", String.valueOf(classroom.getId()))
+                            .with(authenticated(teacherMember)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+
+            mockMvc.perform(get("/api/v1/kids")
+                            .param("kindergartenId", String.valueOf(kindergarten.getId()))
+                            .with(authenticated(teacherMember)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+        }
+
+        @Test
+        @DisplayName("내 아이 목록 - 같은 반의 다른 집 아이는 포함되지 않음")
+        void getMyKids_OnlyOwnChildren() throws Exception {
+            testData.createKid(classroom);
+
+            mockMvc.perform(get("/api/v1/kids/my-kids")
+                            .with(authenticated(parentMember)))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(1))
+                    .andExpect(jsonPath("$.data[0].id").value(kid.getId()));
+        }
+    }
 }

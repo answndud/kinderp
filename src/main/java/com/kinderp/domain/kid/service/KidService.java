@@ -73,7 +73,7 @@ public class KidService {
     public List<Kid> getKidsByClassroom(Long classroomId, Long requesterId) {
         Classroom classroom = classroomService.getClassroom(classroomId);
         Member requester = accessPolicyService.getRequester(requesterId);
-        accessPolicyService.validateClassroomReadAccess(requester, classroom);
+        accessPolicyService.validateClassroomRosterAccess(requester, classroom);
         return kidRepository.findByClassroomIdAndDeletedAtIsNull(classroomId);
     }
 
@@ -83,13 +83,13 @@ public class KidService {
                                                                          Long requesterId) {
         Classroom classroom = classroomService.getClassroom(classroomId);
         Member requester = accessPolicyService.getRequester(requesterId);
-        accessPolicyService.validateClassroomReadAccess(requester, classroom);
+        accessPolicyService.validateClassroomRosterAccess(requester, classroom);
         return kidRepository.findByClassroomIdAndDeletedAtIsNull(classroomId, pageable);
     }
 
     public List<Kid> getKidsByKindergarten(Long kindergartenId, Long requesterId) {
         Member requester = accessPolicyService.getRequester(requesterId);
-        accessPolicyService.validateSameKindergarten(requester, kindergartenId);
+        accessPolicyService.validateStaffSameKindergarten(requester, kindergartenId);
         return kidRepository.findByKindergartenIdAndDeletedAtIsNull(kindergartenId);
     }
 
@@ -98,14 +98,14 @@ public class KidService {
                                                                             org.springframework.data.domain.Pageable pageable,
                                                                             Long requesterId) {
         Member requester = accessPolicyService.getRequester(requesterId);
-        accessPolicyService.validateSameKindergarten(requester, kindergartenId);
+        accessPolicyService.validateStaffSameKindergarten(requester, kindergartenId);
         return kidRepository.findByKindergartenIdAndDeletedAtIsNull(kindergartenId, pageable);
     }
 
     public List<Kid> searchKidsByName(Long classroomId, String name, Long requesterId) {
         Classroom classroom = classroomService.getClassroom(classroomId);
         Member requester = accessPolicyService.getRequester(requesterId);
-        accessPolicyService.validateClassroomReadAccess(requester, classroom);
+        accessPolicyService.validateClassroomRosterAccess(requester, classroom);
         return kidRepository.findByClassroomIdAndNameContaining(classroomId, name);
     }
 
@@ -116,13 +116,13 @@ public class KidService {
                                                                        Long requesterId) {
         Classroom classroom = classroomService.getClassroom(classroomId);
         Member requester = accessPolicyService.getRequester(requesterId);
-        accessPolicyService.validateClassroomReadAccess(requester, classroom);
+        accessPolicyService.validateClassroomRosterAccess(requester, classroom);
         return kidRepository.findByClassroomIdAndNameContaining(classroomId, name, pageable);
     }
 
     public List<Kid> searchKidsByKindergarten(Long kindergartenId, String name, Long requesterId) {
         Member requester = accessPolicyService.getRequester(requesterId);
-        accessPolicyService.validateSameKindergarten(requester, kindergartenId);
+        accessPolicyService.validateStaffSameKindergarten(requester, kindergartenId);
         return kidRepository.findByKindergartenIdAndNameContaining(kindergartenId, name);
     }
 
@@ -132,7 +132,7 @@ public class KidService {
                                                                               org.springframework.data.domain.Pageable pageable,
                                                                               Long requesterId) {
         Member requester = accessPolicyService.getRequester(requesterId);
-        accessPolicyService.validateSameKindergarten(requester, kindergartenId);
+        accessPolicyService.validateStaffSameKindergarten(requester, kindergartenId);
         return kidRepository.findByKindergartenIdAndNameContaining(kindergartenId, name, pageable);
     }
 

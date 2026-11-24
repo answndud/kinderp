@@ -435,4 +435,54 @@ class AttendanceApiIntegrationTest extends BaseIntegrationTest {
                     .andExpect(status().isForbidden());
         }
     }
+
+    @Nested
+    @DisplayName("학부모의 반 단위 출결 접근 제한")
+    class ParentClassroomAttendanceAccessTest {
+
+        @Test
+        @DisplayName("반별 일별 출석 현황 - 학부모는 자기 아이가 있는 반이라도 거부")
+        void getDailyAttendance_Fail_Parent() throws Exception {
+            mockMvc.perform(get("/api/v1/attendance/daily")
+                            .param("classroomId", String.valueOf(classroom.getId()))
+                            .param("date", "2025-01-13")
+                            .with(authenticated(parentMember)))
+                    .andDo(print())
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.success").value(false));
+        }
+
+        @Test
+        @DisplayName("반별 일별 출석 현황 - 같은 유치원 교사는 성공하고 원생 출결을 반환")
+        void getDailyAttendance_Success_Teacher() throws Exception {
+            mockMvc.perform(get("/api/v1/attendance/daily")
+                            .param("classroomId", String.valueOf(classroom.getId()))
+                            .param("date", "2025-01-13")
+                            .with(authenticated(teacherMember)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.length()").value(1));
+        }
+
+        @Test
+        @DisplayName("반별 일별 출석 화면 - 학부모는 거부")
+        void dailyAttendancePage_Fail_Parent() throws Exception {
+            mockMvc.perform(get("/attendance/daily")
+                            .param("classroomId", String.valueOf(classroom.getId()))
+                            .param("date", "2025-01-13")
+                            .with(authenticated(parentMember)))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("내 아이 월간 출석 - 학부모는 계속 조회 가능")
+        void getKidMonthly_Success_Parent() throws Exception {
+            mockMvc.perform(get("/api/v1/attendance/kid/{kidId}/monthly", kid.getId())
+                            .param("year", "2025")
+                            .param("month", "1")
+                            .with(authenticated(parentMember)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+        }
+    }
 }
