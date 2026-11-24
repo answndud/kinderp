@@ -9,6 +9,7 @@ import com.kinderp.domain.kid.dto.response.KidResponse;
 import com.kinderp.domain.kid.entity.Kid;
 import com.kinderp.domain.kid.service.KidService;
 import com.kinderp.global.common.ApiResponse;
+import com.kinderp.global.exception.BusinessException;
 import com.kinderp.global.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -77,9 +78,7 @@ public class KidController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         if (classroomId == null && kindergartenId == null) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ApiResponse.error(ErrorCode.INVALID_INPUT_VALUE, "classroomId 또는 kindergartenId 중 하나는 필수입니다"));
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "classroomId 또는 kindergartenId 중 하나는 필수입니다");
         }
 
         List<Kid> kids;

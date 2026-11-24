@@ -912,6 +912,15 @@ class AuthApiIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
+        @DisplayName("refresh 쿠키 없이 토큰 갱신을 요청하면 401(A003)이다")
+        void refreshWithoutCookie_IsUnauthorized() throws Exception {
+            mockMvc.perform(post("/api/v1/auth/refresh").with(csrf()))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.code").value("A003"));
+        }
+
+        @Test
         @DisplayName("서명이 변조된 access 쿠키는 500이 아니라 미인증(401)으로 처리된다")
         void tamperedAccessCookie_IsUnauthorized() throws Exception {
             LoginCookies loginCookies = loginAsParent();

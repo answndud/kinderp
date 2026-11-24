@@ -5,6 +5,7 @@ import com.kinderp.domain.classroom.dto.response.ClassroomResponse;
 import com.kinderp.domain.classroom.entity.Classroom;
 import com.kinderp.domain.classroom.service.ClassroomService;
 import com.kinderp.global.common.ApiResponse;
+import com.kinderp.global.exception.BusinessException;
 import com.kinderp.global.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -73,9 +74,7 @@ public class ClassroomController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         if (kindergartenId == null) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ApiResponse.error(ErrorCode.INVALID_INPUT_VALUE, "kindergartenId는 필수입니다"));
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "kindergartenId는 필수입니다");
         }
 
         List<Classroom> classrooms = classroomService.getClassroomsByKindergarten(kindergartenId, userDetails.getMemberId());

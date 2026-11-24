@@ -68,12 +68,7 @@ public class AuthApiController {
                                                                HttpServletRequest httpServletRequest) {
         // 비밀번호 확인
         if (!request.getPassword().equals(request.getPasswordConfirm())) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ApiResponse.error(
-                            ErrorCode.INVALID_INPUT_VALUE,
-                            "비밀번호가 일치하지 않습니다"
-                    ));
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "비밀번호가 일치하지 않습니다");
         }
 
         // 회원가입
@@ -137,9 +132,7 @@ public class AuthApiController {
 
         if (refreshToken == null) {
             authAuditLogService.recordRefreshFailure(null, null, clientIp, ErrorCode.TOKEN_INVALID.getCode());
-            return ResponseEntity
-                    .badRequest()
-                    .body(ApiResponse.error(ErrorCode.TOKEN_INVALID));
+            throw new BusinessException(ErrorCode.TOKEN_INVALID);
         }
 
         authService.refreshAccessToken(refreshToken, clientIp, request.getHeader("User-Agent"), response);

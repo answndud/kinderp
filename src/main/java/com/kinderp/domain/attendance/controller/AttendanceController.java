@@ -12,6 +12,7 @@ import com.kinderp.domain.attendance.dto.response.MonthlyAttendanceReportRespons
 import com.kinderp.domain.attendance.dto.response.MonthlyStatisticsResponse;
 import com.kinderp.domain.attendance.service.AttendanceService;
 import com.kinderp.global.common.ApiResponse;
+import com.kinderp.global.exception.BusinessException;
 import com.kinderp.global.exception.ErrorCode;
 import com.kinderp.global.security.user.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -216,9 +217,7 @@ public class AttendanceController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         if (classroomId == null) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ApiResponse.error(ErrorCode.INVALID_INPUT_VALUE, "반 ID는 필수입니다"));
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "반 ID는 필수입니다");
         }
 
         List<DailyAttendanceResponse> responses = attendanceService.getDailyAttendanceByClassroom(classroomId, date, userDetails.getMemberId());
