@@ -4,15 +4,6 @@
 
 KinderP는 원장·교사·학부모가 하나의 유치원 데이터를 서로 다른 권한으로 처리할 때 발생하는 데이터 누출, 중복 승인, 출결 정정 충돌, 알림 전달 실패를 정합성과 운영 가시성으로 통제하는 다중 테넌트 내부 운영 플랫폼이다.
 
-## TownPet과의 차이
-
-| 프로젝트 | 대표 문제 | 증명할 역량 |
-| --- | --- | --- |
-| TownPet | 레거시 데이터를 새 서비스 구조로 옮기면서 모듈 경계와 성능·복구를 확보 | 마이그레이션, 모듈러 모놀리스, PostgreSQL/Flyway, 재현 가능한 릴리스 |
-| KinderP | 여러 역할이 같은 tenant 데이터를 동시에 처리할 때 권한과 상태 정합성을 유지 | 접근 제어, workflow, 동시성·멱등성, 감사·Outbox, 운영자 경험 |
-
-두 프로젝트 모두 모놀리식 구조를 사용하지만 문제의 축이 다르다. TownPet은 시스템을 바꾸는 과정의 안전성을, KinderP는 운영 중 발생하는 업무 상태와 실패의 통제 가능성을 보여준다.
-
 핵심 상태 전이 표와 구현·테스트 위치는 [workflow 상태 전이 문서](./workflow-state-machine.md)에 따로 고정한다.
 
 ## 대표 시나리오
@@ -58,11 +49,13 @@ Controller의 `@PreAuthorize`, service의 요청자 검증, repository의 tenant
 
 업무 transaction과 외부 webhook·email·push 전달을 같은 transaction에 묶지 않는다. Outbox 상태를 `PENDING → PROCESSING → DELIVERED/DEAD_LETTER`로 관리하고, worker 경합은 DB row claim으로 제어한다. 운영자는 실패 원인과 재시도 이력을 확인할 수 있어야 한다.
 
+전달 보장은 **at-least-once**다. worker가 outbox를 claim할 때마다 `claim_token`을 새로 발급하고, 발송은 트랜잭션 밖에서 하며, 결과(성공·재시도·dead-letter)는 "내 token이 아직 유효한 PROCESSING 행"에만 조건부 UPDATE로 기록한다. 발송이 processing-timeout을 넘겨 다른 worker가 같은 건을 재claim하면 늦게 끝난 쪽의 결과는 버려지고(`outcome=fenced` 지표), 최종 상태는 재claim한 쪽이 정한다. 다만 발송 성공 후 결과를 기록하기 전에 프로세스가 죽거나 timeout을 넘기면 같은 알림이 두 번 나갈 수 있으므로, 수신 측은 `notificationId`와 channel로 멱등 처리해야 한다.
+
 ### 측정 없는 확장은 하지 않는다
 
 대시보드 집계와 출결/Outbox 처리를 대표 성능 시나리오로 삼고, 데이터 규모·동시 사용자·쿼리 수·p95·실행계획을 같은 조건에서 전후 비교한다. Kafka, Kubernetes, 별도 서비스 도입은 병목과 운영 비용이 측정된 뒤에만 검토한다.
 
-## 면접에서 보여줄 순서
+## 시연 순서
 
 1. 학부모의 요청이 tenant 내부에 저장된다.
 2. 교사 또는 원장의 승인 권한과 허용 상태 전이를 확인한다.

@@ -80,6 +80,17 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                     .orElse(null);
             if (member == null) {
                 member = registerSocialMember(userInfo);
+            } else if (isBlocked(member)) {
+                // 탈퇴·비활성 계정은 세션을 만들기 전에 막는다. (이후 JwtFilter 단계에서 우연히 막히는 것에 의존하지 않는다)
+                authAuditLogService.recordLoginFailure(
+                        member.getEmail(),
+                        userInfo.getProvider(),
+                        clientIp,
+                        "member_inactive"
+                );
+                clearTemporaryOAuthSession(request);
+                response.sendRedirect("/login?error=account_inactive");
+                return;
             }
 
             authService.loginBySocial(member, userInfo.getProvider(), clientIp, request.getHeader("User-Agent"), response);
@@ -112,6 +123,10 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
             log.warn("OAuth2 login failed unexpectedly", ex);
             response.sendRedirect("/login?error=social_login_failed");
         }
+    }
+
+    private boolean isBlocked(Member member) {
+        return member.getDeletedAt() != null || member.getStatus() == MemberStatus.INACTIVE;
     }
 
     private boolean handleSocialLink(HttpServletRequest request,

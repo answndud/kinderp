@@ -2,6 +2,8 @@ package com.kinderp.domain.notification.service;
 
 import com.kinderp.domain.notification.config.NotificationDeliveryProperties;
 import com.kinderp.domain.notification.entity.Notification;
+import com.kinderp.domain.notification.service.channel.NotificationDeliveryPayload;
+import com.kinderp.domain.notification.entity.NotificationDeliveryStatus;
 import com.kinderp.domain.notification.entity.NotificationOutbox;
 import com.kinderp.domain.notification.repository.NotificationOutboxRepository;
 import com.kinderp.domain.notification.entity.NotificationChannel;
@@ -10,9 +12,11 @@ import com.kinderp.domain.notification.service.channel.NotificationChannelSender
 import com.kinderp.global.common.ProductTime;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -22,6 +26,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -57,6 +62,7 @@ public class NotificationDispatchService {
     }
 
     @Scheduled(fixedDelayString = "${notification.delivery.worker-fixed-delay-ms:15000}")
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void processReadyDeliveriesOnSchedule() {
         if (!deliveryProperties.isWorkerEnabled()) {
             return;
@@ -64,86 +70,158 @@ public class NotificationDispatchService {
         processReadyDeliveriesBatch();
     }
 
+    /**
+     * 바깥 트랜잭션 없이 claim → 발송 → 결과 기록을 각각 짧은 트랜잭션으로 나눠 실행한다.
+     * 외부 HTTP 호출이 DB 커넥션을 붙잡지 않도록 발송은 트랜잭션 밖에서 한다.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public int processReadyDeliveriesBatch() {
         Timer.Sample timer = Timer.start(meterRegistry);
         LocalDateTime now = ProductTime.nowDateTime();
         try {
-            List<Long> claimedIds = executeInNewTransaction(() -> claimReadyDeliveries(now));
-            claimedIds.forEach(outboxId -> executeInNewTransaction(() -> {
-                processClaimedDelivery(outboxId);
-                return null;
-            }));
-            meterRegistry.summary("notification.delivery.batch.claimed").record(claimedIds.size());
-            return claimedIds.size();
+            List<ClaimedDelivery> claimed = executeInNewTransaction(() -> claimReadyDeliveries(now));
+            claimed.forEach(this::processClaimedDelivery);
+            meterRegistry.summary("notification.delivery.batch.claimed").record(claimed.size());
+            return claimed.size();
         } finally {
             timer.stop(meterRegistry.timer("notification.delivery.batch.duration"));
         }
     }
 
-    private List<Long> claimReadyDeliveries(LocalDateTime now) {
+    private List<ClaimedDelivery> claimReadyDeliveries(LocalDateTime now) {
         int batchSize = resolveWorkerBatchSize();
         LocalDateTime staleBefore = now.minus(resolveProcessingTimeout());
 
-        List<Long> claimedIds = notificationOutboxRepository.claimPendingIds(now, batchSize);
-        if (claimedIds.isEmpty()) {
-            claimedIds = notificationOutboxRepository.claimStaleProcessingIds(staleBefore, batchSize);
+        List<Long> claimedIds = new ArrayList<>(notificationOutboxRepository.claimPendingIds(now, batchSize));
+        // PENDING이 배치를 못 채우면 남은 자리만큼 timeout된 PROCESSING을 회수한다 (부하가 계속돼도 굶지 않는다).
+        int remaining = batchSize - claimedIds.size();
+        if (remaining > 0) {
+            claimedIds.addAll(notificationOutboxRepository.claimStaleProcessingIds(staleBefore, remaining));
         }
         if (claimedIds.isEmpty()) {
             return List.of();
         }
 
-        Map<Long, Integer> claimOrder = new HashMap<>();
-        for (int index = 0; index < claimedIds.size(); index++) {
-            claimOrder.put(claimedIds.get(index), index);
+        Map<Long, NotificationOutbox> outboxById = new HashMap<>();
+        notificationOutboxRepository.findByIdIn(claimedIds)
+                .forEach(outbox -> outboxById.put(outbox.getId(), outbox));
+
+        List<ClaimedDelivery> claimed = new ArrayList<>(claimedIds.size());
+        for (Long id : claimedIds) {
+            NotificationOutbox outbox = outboxById.get(id);
+            if (outbox == null) {
+                continue;
+            }
+            String claimToken = UUID.randomUUID().toString();
+            outbox.markProcessing(now, claimToken);
+            claimed.add(new ClaimedDelivery(id, claimToken));
         }
-
-        List<NotificationOutbox> readyBatch = notificationOutboxRepository.findByIdIn(claimedIds).stream()
-                .sorted(java.util.Comparator.comparingInt(outbox -> claimOrder.getOrDefault(outbox.getId(), Integer.MAX_VALUE)))
-                .toList();
-
-        readyBatch.forEach(outbox -> outbox.markProcessing(now));
         notificationOutboxRepository.flush();
-        return claimedIds;
+        return claimed;
     }
 
-    private void processClaimedDelivery(Long outboxId) {
-        NotificationOutbox outbox = notificationOutboxRepository.findById(outboxId)
-                .orElse(null);
-        if (outbox == null || outbox.getChannel() == null) {
+    private void processClaimedDelivery(ClaimedDelivery claimed) {
+        PreparedDelivery prepared = executeInNewTransaction(() -> prepareDelivery(claimed));
+        if (prepared == null) {
             return;
         }
 
-        NotificationChannelSender sender = resolveSender(outbox.getChannel());
-        LocalDateTime now = ProductTime.nowDateTime();
-
+        NotificationChannelSender sender = resolveSender(prepared.channel());
         try {
-            sender.send(outbox.toPayload());
-            outbox.markDelivered(now);
-            recordDelivery(outbox, "delivered");
-            log.debug("Notification outbox delivered. outboxId={}, channel={}, notificationId={}",
-                    outbox.getId(), outbox.getChannel(), outbox.getNotification().getId());
+            sender.send(prepared.payload());
         } catch (Exception ex) {
-            if (!outbox.canRetry()) {
-                outbox.markDeadLetter(now, ex.getMessage());
-                recordDelivery(outbox, "dead_letter");
-                log.warn("Notification outbox dead-lettered. outboxId={}, channel={}, attempts={}, error={}",
-                        outbox.getId(), outbox.getChannel(), outbox.getAttemptCount(), ex.getMessage());
-                return;
-            }
-
-            Duration retryDelay = resolveRetryDelay(outbox.getAttemptCount());
-            outbox.scheduleRetry(now.plus(retryDelay), ex.getMessage());
-            recordDelivery(outbox, "retry_scheduled");
-            log.warn("Notification outbox rescheduled. outboxId={}, channel={}, attempts={}, retryAfterMs={}, error={}",
-                    outbox.getId(), outbox.getChannel(), outbox.getAttemptCount(), retryDelay.toMillis(), ex.getMessage());
+            recordFailure(claimed, prepared, ex);
+            return;
         }
+
+        LocalDateTime now = ProductTime.nowDateTime();
+        int updated = executeInNewTransaction(
+                () -> notificationOutboxRepository.markDeliveredIfClaimed(claimed.id(), claimed.claimToken(), now));
+        if (updated == 0) {
+            recordFenced(claimed, prepared);
+            return;
+        }
+        recordDelivery(prepared.channel(), "delivered");
+        log.debug("Notification outbox delivered. outboxId={}, channel={}, notificationId={}",
+                claimed.id(), prepared.channel(), prepared.payload().notificationId());
     }
 
-    private void recordDelivery(NotificationOutbox outbox, String outcome) {
+    /**
+     * 내 claim이 아직 유효한지 확인하고 발송에 필요한 값만 꺼낸다. lazy 연관은 이 트랜잭션 안에서만 접근한다.
+     */
+    private PreparedDelivery prepareDelivery(ClaimedDelivery claimed) {
+        NotificationOutbox outbox = notificationOutboxRepository.findById(claimed.id()).orElse(null);
+        if (outbox == null || outbox.getChannel() == null) {
+            return null;
+        }
+        if (outbox.getStatus() != NotificationDeliveryStatus.PROCESSING
+                || !claimed.claimToken().equals(outbox.getClaimToken())) {
+            log.info("Notification outbox claim lost before send. outboxId={}", claimed.id());
+            return null;
+        }
+        return new PreparedDelivery(
+                outbox.getChannel(),
+                outbox.toPayload(),
+                outbox.getAttemptCount(),
+                outbox.canRetry()
+        );
+    }
+
+    private void recordFailure(ClaimedDelivery claimed, PreparedDelivery prepared, Exception ex) {
+        LocalDateTime now = ProductTime.nowDateTime();
+        String error = NotificationOutbox.truncateError(ex.getMessage());
+
+        if (!prepared.canRetry()) {
+            int updated = executeInNewTransaction(
+                    () -> notificationOutboxRepository.markDeadLetterIfClaimed(
+                            claimed.id(), claimed.claimToken(), now, error));
+            if (updated == 0) {
+                recordFenced(claimed, prepared);
+                return;
+            }
+            recordDelivery(prepared.channel(), "dead_letter");
+            log.warn("Notification outbox dead-lettered. outboxId={}, channel={}, attempts={}, error={}",
+                    claimed.id(), prepared.channel(), prepared.attemptCount(), ex.getMessage());
+            return;
+        }
+
+        Duration retryDelay = resolveRetryDelay(prepared.attemptCount());
+        int updated = executeInNewTransaction(
+                () -> notificationOutboxRepository.scheduleRetryIfClaimed(
+                        claimed.id(), claimed.claimToken(), now.plus(retryDelay), error));
+        if (updated == 0) {
+            recordFenced(claimed, prepared);
+            return;
+        }
+        recordDelivery(prepared.channel(), "retry_scheduled");
+        log.warn("Notification outbox rescheduled. outboxId={}, channel={}, attempts={}, retryAfterMs={}, error={}",
+                claimed.id(), prepared.channel(), prepared.attemptCount(), retryDelay.toMillis(), ex.getMessage());
+    }
+
+    /**
+     * 발송은 했지만 그 사이 다른 worker가 같은 건을 재claim했다. 결과는 버리고 재claim한 쪽이 최종 상태를 정한다.
+     * 이 경로에서는 같은 알림이 두 번 나갈 수 있으므로 수신 측은 notificationId로 멱등 처리해야 한다 (at-least-once).
+     */
+    private void recordFenced(ClaimedDelivery claimed, PreparedDelivery prepared) {
+        recordDelivery(prepared.channel(), "fenced");
+        log.info("Notification outbox result discarded because the claim was taken over. outboxId={}, channel={}",
+                claimed.id(), prepared.channel());
+    }
+
+    private void recordDelivery(NotificationChannel channel, String outcome) {
         meterRegistry.counter("notification.delivery.attempts",
-                        "channel", outbox.getChannel().name(),
+                        "channel", channel.name(),
                         "outcome", outcome)
                 .increment();
+    }
+
+    private record ClaimedDelivery(Long id, String claimToken) {
+    }
+
+    private record PreparedDelivery(NotificationChannel channel,
+                                    NotificationDeliveryPayload payload,
+                                    int attemptCount,
+                                    boolean canRetry) {
     }
 
     private void enqueueNotifications(List<Notification> notifications) {

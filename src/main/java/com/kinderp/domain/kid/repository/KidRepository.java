@@ -43,6 +43,14 @@ public interface KidRepository extends JpaRepository<Kid, Long> {
     long countByClassroomIdAndDeletedAtIsNull(@Param("classroomId") Long classroomId);
 
     /**
+     * 정원 검증용 잠금 읽기. 일반 SELECT는 REPEATABLE READ 스냅샷(반 잠금을 기다리기 전 시점)을 읽어
+     * 먼저 커밋된 입학을 놓칠 수 있으므로, 잠금 읽기로 항상 최신 커밋 상태를 센다.
+     */
+    @Query(value = "SELECT COUNT(*) FROM kid WHERE classroom_id = :classroomId AND deleted_at IS NULL FOR SHARE",
+            nativeQuery = true)
+    long countActiveByClassroomIdForShare(@Param("classroomId") Long classroomId);
+
+    /**
      * 유치원별 반별 원생 수 집계
      */
     @Query("SELECT k.classroom.id, COUNT(k) FROM Kid k WHERE k.classroom.kindergarten.id = :kindergartenId AND k.deletedAt IS NULL GROUP BY k.classroom.id")

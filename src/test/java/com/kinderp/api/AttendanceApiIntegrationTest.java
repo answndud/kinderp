@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.ResultActions;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -432,6 +433,146 @@ class AttendanceApiIntegrationTest extends BaseIntegrationTest {
             mockMvc.perform(delete("/api/v1/attendance/1")
                             .with(csrf()))
                     .andDo(print())
+                    .andExpect(status().isForbidden());
+        }
+    }
+
+    @Nested
+    @DisplayName("학부모의 반 단위 출결 접근 제한")
+    class ParentClassroomAttendanceAccessTest {
+
+        @Test
+        @DisplayName("반별 일별 출석 현황 - 학부모는 자기 아이가 있는 반이라도 거부")
+        void getDailyAttendance_Fail_Parent() throws Exception {
+            mockMvc.perform(get("/api/v1/attendance/daily")
+                            .param("classroomId", String.valueOf(classroom.getId()))
+                            .param("date", "2025-01-13")
+                            .with(authenticated(parentMember)))
+                    .andDo(print())
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.success").value(false));
+        }
+
+        @Test
+        @DisplayName("반별 일별 출석 현황 - 같은 유치원 교사는 성공하고 원생 출결을 반환")
+        void getDailyAttendance_Success_Teacher() throws Exception {
+            mockMvc.perform(get("/api/v1/attendance/daily")
+                            .param("classroomId", String.valueOf(classroom.getId()))
+                            .param("date", "2025-01-13")
+                            .with(authenticated(teacherMember)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.length()").value(1));
+        }
+
+        @Test
+        @DisplayName("반별 일별 출석 화면 - 학부모는 거부")
+        void dailyAttendancePage_Fail_Parent() throws Exception {
+            mockMvc.perform(get("/attendance/daily")
+                            .param("classroomId", String.valueOf(classroom.getId()))
+                            .param("date", "2025-01-13")
+                            .with(authenticated(parentMember)))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("내 아이 월간 출석 - 학부모는 계속 조회 가능")
+        void getKidMonthly_Success_Parent() throws Exception {
+            mockMvc.perform(get("/api/v1/attendance/kid/{kidId}/monthly", kid.getId())
+                            .param("year", "2025")
+                            .param("month", "1")
+                            .with(authenticated(parentMember)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+        }
+    }
+
+    @Nested
+    @DisplayName("반 일괄 출결 API")
+    class BulkAttendanceTest {
+
+        @Test
+        @DisplayName("kidIds를 생략하면 반 전체 원생의 출결을 일괄 처리하고, 기존 출결은 갱신한다")
+        void bulkUpdate_Success_WholeClassroom() throws Exception {
+            // setUp의 원생은 2025-01-13에 이미 PRESENT 출결이 있다.
+            var secondKid = kidRepository.save(com.kinderp.domain.kid.entity.Kid.create(
+                    classroom, "두번째 원생", java.time.LocalDate.of(2020, 2, 2),
+                    com.kinderp.domain.kid.entity.Gender.FEMALE, java.time.LocalDate.of(2024, 1, 1)));
+
+            mockMvc.perform(post("/api/v1/attendance/bulk")
+                            .with(authenticated(teacherMember))
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"classroomId": %d, "date": "2025-01-13", "status": "ABSENT", "note": "일괄 결석"}
+                                    """.formatted(classroom.getId())))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.updatedCount").value(2));
+
+            assertThat(attendanceRepository.findByKidIdAndDate(kid.getId(), java.time.LocalDate.of(2025, 1, 13)))
+                    .get().extracting(a -> a.getStatus()).isEqualTo(com.kinderp.domain.attendance.entity.AttendanceStatus.ABSENT);
+            assertThat(attendanceRepository.findByKidIdAndDate(secondKid.getId(), java.time.LocalDate.of(2025, 1, 13)))
+                    .isPresent();
+        }
+
+        @Test
+        @DisplayName("다른 반 원생이 섞여 있으면 거부하고 아무것도 저장하지 않는다")
+        void bulkUpdate_Fail_KidFromOtherClassroom() throws Exception {
+            var otherKindergarten = testData.createKindergarten();
+            var otherClassroom = testData.createClassroom(otherKindergarten);
+            var otherKid = testData.createKid(otherClassroom);
+
+            mockMvc.perform(post("/api/v1/attendance/bulk")
+                            .with(authenticated(teacherMember))
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"classroomId": %d, "date": "2025-02-03", "status": "PRESENT", "kidIds": [%d, %d]}
+                                    """.formatted(classroom.getId(), kid.getId(), otherKid.getId())))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("C001"));
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 원생이 포함되면 404를 반환한다")
+        void bulkUpdate_Fail_UnknownKid() throws Exception {
+            mockMvc.perform(post("/api/v1/attendance/bulk")
+                            .with(authenticated(teacherMember))
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"classroomId": %d, "date": "2025-02-03", "status": "PRESENT", "kidIds": [%d, 999999]}
+                                    """.formatted(classroom.getId(), kid.getId())))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("다른 유치원 교사는 일괄 출결을 처리할 수 없다")
+        void bulkUpdate_Fail_OtherKindergartenTeacher() throws Exception {
+            var otherKindergarten = testData.createKindergarten();
+            var otherTeacher = createMemberInKindergarten(
+                    "bulk-other-teacher@test.com", "다른 교사", MemberRole.TEACHER, otherKindergarten);
+
+            mockMvc.perform(post("/api/v1/attendance/bulk")
+                            .with(authenticated(otherTeacher))
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"classroomId": %d, "date": "2025-02-03", "status": "PRESENT"}
+                                    """.formatted(classroom.getId())))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("학부모는 일괄 출결을 처리할 수 없다")
+        void bulkUpdate_Fail_Parent() throws Exception {
+            mockMvc.perform(post("/api/v1/attendance/bulk")
+                            .with(authenticated(parentMember))
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"classroomId": %d, "date": "2025-02-03", "status": "PRESENT"}
+                                    """.formatted(classroom.getId())))
                     .andExpect(status().isForbidden());
         }
     }

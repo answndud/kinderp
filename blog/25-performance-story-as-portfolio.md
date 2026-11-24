@@ -128,7 +128,7 @@ flowchart TD
 
 ### 5-4. 지금은 `docs/COMPLETED.md` archive가 성능 서사의 진입점이다
 
-[docs/COMPLETED.md](../docs/COMPLETED.md)는
+docs/COMPLETED.md는
 성능/운영 개선 배치와 검증 이력을 시간순으로 정리한 현재 문서 진입점입니다.
 
 특히 아래 순서를 고정한 점이 중요합니다.
@@ -142,15 +142,15 @@ flowchart TD
 
 이 흐름 아래에서 성능 관련 근거는
 
-- [03-notepad-readcount-nplusone.md](../docs/COMPLETED.md)
-- [04-dashboard-stats.md](../docs/COMPLETED.md)
-- [05-index-tuning-dashboard-notepad.md](../docs/COMPLETED.md)
+- 03-notepad-readcount-nplusone.md
+- 04-dashboard-stats.md
+- 05-index-tuning-dashboard-notepad.md
 
 처럼 archive 기준으로 이어서 복기할 수 있습니다.
 
 ### 5-5. `20-performance-story-script.md`: 면접용 답변도 미리 설계한다
 
-[20-performance-story-script.md](../docs/COMPLETED.md)는
+20-performance-story-script.md는
 기술 설명이 아니라 실제 답변 스크립트입니다.
 
 예를 들어 아래 숫자를 한 흐름으로 정리합니다.

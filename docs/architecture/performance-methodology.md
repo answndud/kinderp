@@ -10,8 +10,13 @@
 | Notepad 대규모 fixture | 기본 fixture + 알림장 1,000건, page size 20 | optimized 1회 | 고정 query budget, elapsed ms | `NotepadPerformanceStoryTest` |
 | Dashboard 집계 | 기본 fixture의 유치원·원생·회원·출결·공지 | legacy/optimized 각 1회 | Hibernate query count, elapsed ms | `DashboardPerformanceStoryTest` |
 | Dashboard cache | 같은 유치원 statistics key | cache clear 후 miss/hit | Hibernate query count, elapsed ms | `DashboardPerformanceStoryTest` |
+| 반 일괄 출결 | 같은 반 원생 10명 vs 40명, 신규 출결 | 없음 | 읽기 query 수(prepared statement − insert − update) | `AttendanceBulkPerformanceStoryTest` |
 | Outbox timeline | Outbox 80건, status/channel filter, page size 20 | 없음 | page + count query budget, elapsed ms | `NotificationOutboxPerformanceSmokeTest` |
 | Outbox 대규모 fixture | Outbox 1,000건, status/channel filter, page size 20 | 없음 | 고정 page + count query budget, elapsed ms | `NotificationOutboxPerformanceSmokeTest` |
+
+일괄 출결의 "개선 전" 수치는 2026-11 로컬 JVM(Java 21, Testcontainers MySQL 8)에서 코드 변경 전에 같은 시나리오로 측정한 값이고(원생 10명 45 queries, 40명 165 queries, 이 중 INSERT 10·40건), "개선 후"는 같은 테스트의 읽기 쿼리 기준이다.
+
+대시보드 통계 캐시는 단일 인스턴스 Caffeine 캐시(TTL 60초)다. 무효화는 쓰기 트랜잭션이 커밋된 뒤(`@TransactionalEventListener(AFTER_COMMIT)`)에 실행되어, 커밋 전 낡은 값이 다시 캐시되는 문제를 막는다. 인스턴스가 여러 대로 늘면 인스턴스 간 캐시 불일치가 생기므로 Redis 같은 공유 캐시로 옮겨야 한다.
 
 이 테스트의 목적은 절대적인 처리량이 아니라 N+1 제거, 집계 쿼리 전환, cache hit, 운영 검색 쿼리 예산의 회귀를 빠르게 잡는 것이다. 따라서 이 숫자를 고트래픽 처리량으로 표현하지 않는다.
 
@@ -26,6 +31,7 @@
 | Dashboard 대규모 fixture | 원생 1,001건 | optimized 5 queries / 57ms | fixture 증가에도 query budget 고정 |
 | Notepad 목록 | legacy 22 queries / 17ms | optimized 5 queries / 6ms | 쿼리 77.3% 감소 |
 | Notepad 대규모 fixture | 알림장 1,001건 | optimized 5 queries / 18ms | fixture 증가에도 query budget 고정 |
+| 반 일괄 출결 (읽기 쿼리) | 원생 10명 35 queries, 40명 125 queries (원생당 3개씩 증가) | 원생 10명 4 queries, 40명 4 queries | 원생 수와 무관하게 고정. INSERT는 행마다 1개라 별도 |
 | Outbox timeline | status/channel·keyword filter | 각 1 query / 5ms, 1ms | page + count budget 유지 |
 | Outbox 대규모 fixture | Outbox 1,000건 | 1 query / 4ms | fixture 증가에도 query budget 고정 |
 | Audit console | list/export | filtered list/export | 2~3 queries / 4~26ms |

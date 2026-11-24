@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import com.kinderp.domain.member.entity.MemberRole;
 
 /**
  * 반 서비스
@@ -36,7 +37,7 @@ public class ClassroomService {
      * 반 생성
      */
     @Transactional
-    public Long createClassroom(Long kindergartenId, String name, String ageGroup, Integer capacity) {
+    private Long createClassroom(Long kindergartenId, String name, String ageGroup, Integer capacity) {
         // 유치원 조회
         Kindergarten kindergarten = kindergartenService.getKindergarten(kindergartenId);
 
@@ -85,7 +86,7 @@ public class ClassroomService {
     /**
      * 유치원별 반 목록 조회
      */
-    public List<Classroom> getClassroomsByKindergarten(Long kindergartenId) {
+    private List<Classroom> getClassroomsByKindergarten(Long kindergartenId) {
         // 유치원 존재 확인
         kindergartenService.getKindergarten(kindergartenId);
 
@@ -102,7 +103,7 @@ public class ClassroomService {
      * 반 수정
      */
     @Transactional
-    public void updateClassroom(Long id, String name, String ageGroup, Integer capacity) {
+    private void updateClassroom(Long id, String name, String ageGroup, Integer capacity) {
         Classroom classroom = getClassroom(id);
         classroomCapacityService.validateCapacityReduction(classroom, capacity == null ? classroom.getCapacity() : capacity);
         classroom.update(name, ageGroup, capacity);
@@ -121,7 +122,7 @@ public class ClassroomService {
      * 반 삭제 (Soft Delete)
      */
     @Transactional
-    public void deleteClassroom(Long id) {
+    private void deleteClassroom(Long id) {
         Classroom classroom = getClassroom(id);
 
         // 원생이 있는지 확인
@@ -151,13 +152,13 @@ public class ClassroomService {
      * 담임 교사 배정
      */
     @Transactional
-    public void assignTeacher(Long classroomId, Long teacherId) {
+    private void assignTeacher(Long classroomId, Long teacherId) {
         Classroom classroom = getClassroom(classroomId);
         Member teacher = memberService.getMemberById(teacherId);
 
         // 교사 역할 확인
-        if (teacher.getRole() != com.kinderp.domain.member.entity.MemberRole.TEACHER &&
-            teacher.getRole() != com.kinderp.domain.member.entity.MemberRole.PRINCIPAL) {
+        if (teacher.getRole() != MemberRole.TEACHER &&
+            teacher.getRole() != MemberRole.PRINCIPAL) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 
@@ -176,8 +177,8 @@ public class ClassroomService {
         accessPolicyService.validateClassroomManageAccess(requester, classroom);
 
         Member teacher = memberService.getMemberById(teacherId);
-        if (teacher.getRole() != com.kinderp.domain.member.entity.MemberRole.TEACHER &&
-                teacher.getRole() != com.kinderp.domain.member.entity.MemberRole.PRINCIPAL) {
+        if (teacher.getRole() != MemberRole.TEACHER &&
+                teacher.getRole() != MemberRole.PRINCIPAL) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 

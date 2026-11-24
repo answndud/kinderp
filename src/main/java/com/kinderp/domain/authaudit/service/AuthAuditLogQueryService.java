@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kinderp.global.util.CsvCell;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -145,34 +146,24 @@ public class AuthAuditLogQueryService {
         csv.append("createdAt,eventType,result,email,provider,reason,clientIp,memberId\n");
 
         for (AuthAuditLog log : logs) {
-            csv.append(csvEscape(log.getCreatedAt()))
+            csv.append(CsvCell.quote(log.getCreatedAt()))
                     .append(',')
-                    .append(csvEscape(log.getEventType()))
+                    .append(CsvCell.quote(log.getEventType()))
                     .append(',')
-                    .append(csvEscape(log.getResult()))
+                    .append(CsvCell.quote(log.getResult()))
                     .append(',')
-                    .append(csvEscape(log.getEmail()))
+                    .append(CsvCell.quote(log.getEmail()))
                     .append(',')
-                    .append(csvEscape(log.getProvider()))
+                    .append(CsvCell.quote(log.getProvider()))
                     .append(',')
-                    .append(csvEscape(log.getReason()))
+                    .append(CsvCell.quote(log.getReason()))
                     .append(',')
-                    .append(csvEscape(log.getClientIp()))
+                    .append(CsvCell.quote(log.getClientIp()))
                     .append(',')
-                    .append(csvEscape(log.getMemberId()))
+                    .append(CsvCell.quote(log.getMemberId()))
                     .append('\n');
         }
 
         return csv.toString();
-    }
-
-    private String csvEscape(Object value) {
-        if (value == null) {
-            return "";
-        }
-
-        String raw = String.valueOf(value);
-        String escaped = raw.replace("\"", "\"\"");
-        return "\"" + escaped + "\"";
     }
 }

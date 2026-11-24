@@ -38,6 +38,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class KidApplicationService {
 
+    private static final int EXPIRE_OFFERS_BATCH_SIZE = 100;
     private static final List<ApplicationStatus> ACTIVE_APPLICATION_STATUSES = List.of(
             ApplicationStatus.PENDING,
             ApplicationStatus.WAITLISTED,
@@ -76,21 +77,24 @@ public class KidApplicationService {
 
         Classroom preferredClassroom = resolvePreferredClassroom(request.preferredClassroomId(), kindergarten.getId());
 
-        applicationRepository.findActiveApplicationByParentAndKindergarten(parentId, request.kindergartenId(), ACTIVE_APPLICATION_STATUSES)
+        applicationRepository.findActiveApplicationForKidInKindergarten(
+                        parentId, request.kindergartenId(), request.kidName(), request.birthDate(), ACTIVE_APPLICATION_STATUSES)
                 .ifPresent(existing -> {
                     throw new BusinessException(ErrorCode.APPLICATION_ALREADY_EXISTS);
                 });
 
-        if (applicationRepository.existsByParentIdAndStatusInAndDeletedAtIsNull(parentId, ACTIVE_APPLICATION_STATUSES)) {
+        if (applicationRepository.existsByParentIdAndKidNameAndBirthDateAndStatusInAndDeletedAtIsNull(
+                parentId, request.kidName(), request.birthDate(), ACTIVE_APPLICATION_STATUSES)) {
             throw new BusinessException(ErrorCode.PENDING_APPLICATION_EXISTS);
         }
 
         KidApplication saved;
-        var existing = applicationRepository.findByParentAndKindergarten(parentId, request.kindergartenId());
+        var existing = applicationRepository.findByParentAndKindergartenAndKid(
+                parentId, request.kindergartenId(), request.kidName(), request.birthDate());
         if (existing.isPresent()) {
             KidApplication application = existing.get();
             if (application.getStatus().isCancelled() || application.getStatus().isRejected() || application.getStatus().isOfferExpired()) {
-                application.reapply(kindergarten, request.kidName(), request.birthDate(), request.gender(), preferredClassroom, request.notes());
+                application.reapply(kindergarten, request.gender(), preferredClassroom, request.notes());
                 saved = applicationRepository.save(application);
             } else {
                 throw new BusinessException(ErrorCode.APPLICATION_ALREADY_EXISTS);
@@ -121,27 +125,22 @@ public class KidApplicationService {
         return saved.getId();
     }
 
-    @Transactional
     public void approve(Long applicationId, ApproveKidApplicationRequest request, Long processorId) {
         reviewService.approve(applicationId, request, processorId);
     }
 
-    @Transactional
     public void placeOnWaitlist(Long applicationId, WaitlistKidApplicationRequest request, Long processorId) {
         reviewService.placeOnWaitlist(applicationId, request, processorId);
     }
 
-    @Transactional
     public void offer(Long applicationId, OfferKidApplicationRequest request, Long processorId) {
         reviewService.offer(applicationId, request, processorId);
     }
 
-    @Transactional
     public void acceptOffer(Long applicationId, AcceptKidApplicationOfferRequest request, Long parentId) {
         reviewService.acceptOffer(applicationId, request, parentId);
     }
 
-    @Transactional
     public void reject(Long applicationId, RejectRequest request, Long processorId) {
         reviewService.reject(applicationId, request, processorId);
     }
@@ -214,9 +213,11 @@ public class KidApplicationService {
         }
 
         LocalDateTime now = ProductTime.nowDateTime();
-        List<KidApplication> expiredOffers = applicationRepository.findExpiredOffers(ApplicationStatus.OFFERED, now);
-        for (KidApplication application : expiredOffers) {
-            if (!application.isOffered()) {
+        // 한 번에 처리하는 건수를 제한하고, 잠긴 행(진행 중인 수락·취소)은 건너뛴다. 남은 건은 다음 주기에 처리한다.
+        List<Long> expiredIds = applicationRepository.claimExpiredOfferIds(now, EXPIRE_OFFERS_BATCH_SIZE);
+        for (Long applicationId : expiredIds) {
+            KidApplication application = applicationRepository.findByIdAndDeletedAtIsNull(applicationId).orElse(null);
+            if (application == null || !application.isOffered()) {
                 continue;
             }
             application.markOfferExpired();

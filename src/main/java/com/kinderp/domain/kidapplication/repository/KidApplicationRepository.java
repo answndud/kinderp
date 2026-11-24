@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -26,33 +27,58 @@ public interface KidApplicationRepository extends JpaRepository<KidApplication, 
             @Param("kindergartenId") Long kindergartenId
     );
 
+    /**
+     * 같은 원생(학부모+이름+생년월일)이 같은 유치원에 낸, 진행 중인 신청
+     */
     @Query("""
             SELECT a
             FROM KidApplication a
             WHERE a.parent.id = :parentId
               AND a.kindergarten.id = :kindergartenId
+              AND a.kidName = :kidName
+              AND a.birthDate = :birthDate
               AND a.status IN :statuses
               AND a.deletedAt IS NULL
             """)
-    Optional<KidApplication> findActiveApplicationByParentAndKindergarten(@Param("parentId") Long parentId,
-                                                                          @Param("kindergartenId") Long kindergartenId,
-                                                                          @Param("statuses") Collection<ApplicationStatus> statuses);
+    Optional<KidApplication> findActiveApplicationForKidInKindergarten(@Param("parentId") Long parentId,
+                                                                      @Param("kindergartenId") Long kindergartenId,
+                                                                      @Param("kidName") String kidName,
+                                                                      @Param("birthDate") LocalDate birthDate,
+                                                                      @Param("statuses") Collection<ApplicationStatus> statuses);
 
     /**
-     * 학부모-유치원 신청 조회 (상태 무관, soft delete 제외)
+     * 같은 원생이 같은 유치원에 낸 신청 (상태 무관, soft delete 제외)
      */
-    @Query("SELECT a FROM KidApplication a WHERE a.parent.id = :parentId AND a.kindergarten.id = :kindergartenId AND a.deletedAt IS NULL")
-    Optional<KidApplication> findByParentAndKindergarten(
-            @Param("parentId") Long parentId,
-            @Param("kindergartenId") Long kindergartenId
-    );
+    @Query("""
+            SELECT a
+            FROM KidApplication a
+            WHERE a.parent.id = :parentId
+              AND a.kindergarten.id = :kindergartenId
+              AND a.kidName = :kidName
+              AND a.birthDate = :birthDate
+              AND a.deletedAt IS NULL
+            """)
+    Optional<KidApplication> findByParentAndKindergartenAndKid(@Param("parentId") Long parentId,
+                                                               @Param("kindergartenId") Long kindergartenId,
+                                                               @Param("kidName") String kidName,
+                                                               @Param("birthDate") LocalDate birthDate);
+
+    /** 시드 데이터 등에서 학부모·유치원 기준으로 가장 먼저 낸 신청 하나를 찾는다. */
+    Optional<KidApplication> findFirstByParentIdAndKindergartenIdAndDeletedAtIsNullOrderByIdAsc(Long parentId,
+                                                                                               Long kindergartenId);
+
+    /**
+     * 같은 원생이 어느 유치원에든 진행 중인 신청이 있는지
+     */
+    boolean existsByParentIdAndKidNameAndBirthDateAndStatusInAndDeletedAtIsNull(Long parentId,
+                                                                               String kidName,
+                                                                               LocalDate birthDate,
+                                                                               Collection<ApplicationStatus> statuses);
 
     /**
      * 학부모의 대기 중인 입학 신청 존재 여부
      */
     boolean existsByParentIdAndStatusAndDeletedAtIsNull(Long parentId, ApplicationStatus status);
-
-    boolean existsByParentIdAndStatusInAndDeletedAtIsNull(Long parentId, Collection<ApplicationStatus> statuses);
 
 
     /**
@@ -117,14 +143,32 @@ public interface KidApplicationRepository extends JpaRepository<KidApplication, 
                                                 @Param("status") ApplicationStatus status,
                                                 @Param("now") LocalDateTime now);
 
-    @Query("""
-            SELECT a
-            FROM KidApplication a
-            WHERE a.status = :status
-              AND a.offerExpiresAt <= :now
-              AND a.deletedAt IS NULL
-            ORDER BY a.offerExpiresAt ASC
-            """)
-    List<KidApplication> findExpiredOffers(@Param("status") ApplicationStatus status,
-                                           @Param("now") LocalDateTime now);
+    /** 정원 검증용 잠금 읽기 (KidRepository.countActiveByClassroomIdForShare 참고). */
+    @Query(value = """
+            SELECT COUNT(*)
+            FROM kid_application
+            WHERE assigned_classroom_id = :classroomId
+              AND status = 'OFFERED'
+              AND deleted_at IS NULL
+              AND (offer_expires_at IS NULL OR offer_expires_at > :now)
+            FOR SHARE
+            """, nativeQuery = true)
+    long countActiveOffersByAssignedClassroomIdForShare(@Param("classroomId") Long classroomId,
+                                                        @Param("now") LocalDateTime now);
+
+    /**
+     * 만료된 offer를 잠그며 가져온다. 다른 트랜잭션(수락·취소·다른 인스턴스의 스케줄러)이 이미 잠근 행은 건너뛰므로
+     * 만료 처리가 진행 중인 수락 결과를 덮어쓰거나 같은 건을 두 번 처리하지 않는다.
+     */
+    @Query(value = """
+            SELECT id
+            FROM kid_application
+            WHERE status = 'OFFERED'
+              AND offer_expires_at <= :now
+              AND deleted_at IS NULL
+            ORDER BY offer_expires_at ASC, id ASC
+            LIMIT :limit
+            FOR UPDATE SKIP LOCKED
+            """, nativeQuery = true)
+    List<Long> claimExpiredOfferIds(@Param("now") LocalDateTime now, @Param("limit") int limit);
 }

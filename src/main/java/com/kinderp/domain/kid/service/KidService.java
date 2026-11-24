@@ -15,12 +15,17 @@ import com.kinderp.domain.member.entity.Member;
 import com.kinderp.domain.member.service.MemberService;
 import com.kinderp.global.exception.BusinessException;
 import com.kinderp.global.exception.ErrorCode;
+import com.kinderp.domain.dashboard.service.DashboardService;
 import com.kinderp.global.security.access.AccessPolicyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import com.kinderp.domain.kid.dto.response.KidDetailResponse;
+import com.kinderp.domain.member.entity.MemberRole;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * 원생 서비스
@@ -35,6 +40,7 @@ public class KidService {
     private final ClassroomCapacityService classroomCapacityService;
     private final MemberService memberService;
     private final AccessPolicyService accessPolicyService;
+    private final DashboardService dashboardService;
 
     @Transactional
     public Long createKid(KidRequest request, Long requesterId) {
@@ -52,6 +58,7 @@ public class KidService {
         );
 
         Kid saved = kidRepository.save(kid);
+        dashboardService.evictDashboardStatisticsCache(classroom.getKindergarten().getId());
         return saved.getId();
     }
 
@@ -73,66 +80,66 @@ public class KidService {
     public List<Kid> getKidsByClassroom(Long classroomId, Long requesterId) {
         Classroom classroom = classroomService.getClassroom(classroomId);
         Member requester = accessPolicyService.getRequester(requesterId);
-        accessPolicyService.validateClassroomReadAccess(requester, classroom);
+        accessPolicyService.validateClassroomRosterAccess(requester, classroom);
         return kidRepository.findByClassroomIdAndDeletedAtIsNull(classroomId);
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Kid> getKidsByClassroom(Long classroomId,
-                                                                         org.springframework.data.domain.Pageable pageable,
+    public Page<Kid> getKidsByClassroom(Long classroomId,
+                                                                         Pageable pageable,
                                                                          Long requesterId) {
         Classroom classroom = classroomService.getClassroom(classroomId);
         Member requester = accessPolicyService.getRequester(requesterId);
-        accessPolicyService.validateClassroomReadAccess(requester, classroom);
+        accessPolicyService.validateClassroomRosterAccess(requester, classroom);
         return kidRepository.findByClassroomIdAndDeletedAtIsNull(classroomId, pageable);
     }
 
     public List<Kid> getKidsByKindergarten(Long kindergartenId, Long requesterId) {
         Member requester = accessPolicyService.getRequester(requesterId);
-        accessPolicyService.validateSameKindergarten(requester, kindergartenId);
+        accessPolicyService.validateStaffSameKindergarten(requester, kindergartenId);
         return kidRepository.findByKindergartenIdAndDeletedAtIsNull(kindergartenId);
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Kid> getKidsByKindergarten(Long kindergartenId,
-                                                                            org.springframework.data.domain.Pageable pageable,
+    public Page<Kid> getKidsByKindergarten(Long kindergartenId,
+                                                                            Pageable pageable,
                                                                             Long requesterId) {
         Member requester = accessPolicyService.getRequester(requesterId);
-        accessPolicyService.validateSameKindergarten(requester, kindergartenId);
+        accessPolicyService.validateStaffSameKindergarten(requester, kindergartenId);
         return kidRepository.findByKindergartenIdAndDeletedAtIsNull(kindergartenId, pageable);
     }
 
     public List<Kid> searchKidsByName(Long classroomId, String name, Long requesterId) {
         Classroom classroom = classroomService.getClassroom(classroomId);
         Member requester = accessPolicyService.getRequester(requesterId);
-        accessPolicyService.validateClassroomReadAccess(requester, classroom);
+        accessPolicyService.validateClassroomRosterAccess(requester, classroom);
         return kidRepository.findByClassroomIdAndNameContaining(classroomId, name);
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Kid> searchKidsByName(Long classroomId,
+    public Page<Kid> searchKidsByName(Long classroomId,
                                                                        String name,
-                                                                       org.springframework.data.domain.Pageable pageable,
+                                                                       Pageable pageable,
                                                                        Long requesterId) {
         Classroom classroom = classroomService.getClassroom(classroomId);
         Member requester = accessPolicyService.getRequester(requesterId);
-        accessPolicyService.validateClassroomReadAccess(requester, classroom);
+        accessPolicyService.validateClassroomRosterAccess(requester, classroom);
         return kidRepository.findByClassroomIdAndNameContaining(classroomId, name, pageable);
     }
 
     public List<Kid> searchKidsByKindergarten(Long kindergartenId, String name, Long requesterId) {
         Member requester = accessPolicyService.getRequester(requesterId);
-        accessPolicyService.validateSameKindergarten(requester, kindergartenId);
+        accessPolicyService.validateStaffSameKindergarten(requester, kindergartenId);
         return kidRepository.findByKindergartenIdAndNameContaining(kindergartenId, name);
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Kid> searchKidsByKindergarten(Long kindergartenId,
+    public Page<Kid> searchKidsByKindergarten(Long kindergartenId,
                                                                               String name,
-                                                                              org.springframework.data.domain.Pageable pageable,
+                                                                              Pageable pageable,
                                                                               Long requesterId) {
         Member requester = accessPolicyService.getRequester(requesterId);
-        accessPolicyService.validateSameKindergarten(requester, kindergartenId);
+        accessPolicyService.validateStaffSameKindergarten(requester, kindergartenId);
         return kidRepository.findByKindergartenIdAndNameContaining(kindergartenId, name, pageable);
     }
 
@@ -151,7 +158,7 @@ public class KidService {
         Member parent = memberService.getMemberById(parentId);
 
         // 학부모 역할 확인
-        if (parent.getRole() != com.kinderp.domain.member.entity.MemberRole.PARENT) {
+        if (parent.getRole() != MemberRole.PARENT) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 
@@ -187,7 +194,7 @@ public class KidService {
         accessPolicyService.validateKidManageAccess(requester, kid);
 
         Member parent = memberService.getMemberById(request.getParentId());
-        if (parent.getRole() != com.kinderp.domain.member.entity.MemberRole.PARENT) {
+        if (parent.getRole() != MemberRole.PARENT) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 
@@ -220,15 +227,16 @@ public class KidService {
         Member requester = accessPolicyService.getRequester(requesterId);
         accessPolicyService.validateKidManageAccess(requester, kid);
         kid.softDelete();
+        dashboardService.evictDashboardStatisticsCache(kid.getClassroom().getKindergarten().getId());
     }
 
     @Transactional(readOnly = true)
-    public com.kinderp.domain.kid.dto.response.KidDetailResponse getKidDetail(Long id, Long requesterId) {
+    public KidDetailResponse getKidDetail(Long id, Long requesterId) {
         Kid kid = getKid(id);
         Member requester = accessPolicyService.getRequester(requesterId);
         accessPolicyService.validateKidReadAccess(requester, kid);
         List<ParentKid> parentKids = kidRepository.findParentsByKidId(id);
-        return com.kinderp.domain.kid.dto.response.KidDetailResponse.from(kid, parentKids);
+        return KidDetailResponse.from(kid, parentKids);
     }
 
     private java.util.Map<Long, Long> loadClassroomCounts(Long kindergartenId) {

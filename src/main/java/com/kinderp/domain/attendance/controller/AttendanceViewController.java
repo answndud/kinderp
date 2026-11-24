@@ -1,7 +1,7 @@
 package com.kinderp.domain.attendance.controller;
 
 import com.kinderp.domain.attendance.dto.request.AttendanceRequest;
-import com.kinderp.domain.attendance.entity.Attendance;
+import com.kinderp.domain.attendance.dto.response.AttendanceResponse;
 import com.kinderp.domain.attendance.service.AttendanceService;
 import com.kinderp.global.security.user.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -55,8 +55,8 @@ public class AttendanceViewController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             Model model) {
 
-        Attendance attendance = attendanceService.getAttendance(id, userDetails.getMemberId());
-        model.addAttribute("attendance", attendanceService.toResponse(attendance));
+        AttendanceResponse attendance = attendanceService.getAttendance(id, userDetails.getMemberId());
+        model.addAttribute("attendance", attendance);
         return "attendance/detail";
     }
 
@@ -70,8 +70,8 @@ public class AttendanceViewController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             Model model) {
 
-        Attendance attendance = attendanceService.getAttendance(id, userDetails.getMemberId());
-        model.addAttribute("attendance", attendanceService.toResponse(attendance));
+        AttendanceResponse attendance = attendanceService.getAttendance(id, userDetails.getMemberId());
+        model.addAttribute("attendance", attendance);
         return "attendance/edit";
     }
 
@@ -79,7 +79,7 @@ public class AttendanceViewController {
      * 반별 일별 출석 페이지
      */
     @GetMapping("/attendance/daily")
-    @PreAuthorize("hasAnyRole('PRINCIPAL', 'TEACHER', 'PARENT')")
+    @PreAuthorize("hasAnyRole('PRINCIPAL', 'TEACHER')")
     public String dailyAttendance(
             @RequestParam(required = false) Long classroomId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,

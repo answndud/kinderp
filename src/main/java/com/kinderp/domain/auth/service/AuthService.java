@@ -12,6 +12,7 @@ import com.kinderp.global.exception.ErrorCode;
 import com.kinderp.global.security.jwt.JwtProperties;
 import com.kinderp.global.security.jwt.JwtTokenProvider;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import com.kinderp.domain.member.entity.MemberRole;
 
 /**
  * 인증 서비스
@@ -50,14 +52,14 @@ public class AuthService {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "역할은 필수입니다");
         }
 
-        com.kinderp.domain.member.entity.MemberRole memberRole;
+        MemberRole memberRole;
         try {
-            memberRole = com.kinderp.domain.member.entity.MemberRole.valueOf(role.trim().toUpperCase());
+            memberRole = MemberRole.valueOf(role.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "역할 값이 올바르지 않습니다");
         }
 
-        if (memberRole == com.kinderp.domain.member.entity.MemberRole.PRINCIPAL) {
+        if (memberRole == MemberRole.PRINCIPAL) {
             throw new BusinessException(ErrorCode.INVALID_MEMBER_ROLE, "원장 계정은 공개 회원가입으로 만들 수 없습니다");
         }
 
@@ -78,7 +80,7 @@ public class AuthService {
             );
 
             authLoginBootstrapService.afterAuthenticated(email);
-            authRateLimitService.clearLoginFailures(email);
+            authRateLimitService.clearLoginFailures(clientIp, email);
             authAnomalyAlertService.clearLoginFailureCounter(email);
 
             // 2. 회원 정보 조회
@@ -151,7 +153,7 @@ public class AuthService {
                 throw new BusinessException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
             }
             if (!storedToken.equals(refreshToken)) {
-                throw new BusinessException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
+                throw refreshTokenReused(claims);
             }
 
             Member member = memberService.getMemberById(claims.memberId());
@@ -170,11 +172,22 @@ public class AuthService {
                     claims.sessionId()
             );
 
+            long newRefreshTtlMs = Math.max(jwtTokenProvider.getRemainingValidity(newRefreshToken), 1L);
+            boolean rotated = authSessionRegistryService.compareAndRotateRefreshToken(
+                    member.getId(),
+                    claims.sessionId(),
+                    refreshToken,
+                    newRefreshToken,
+                    newRefreshTtlMs
+            );
+            if (!rotated) {
+                throw refreshTokenReused(claims);
+            }
             authSessionRegistryService.rotateSession(
                     member.getId(),
                     claims.sessionId(),
                     newRefreshToken,
-                    Math.max(jwtTokenProvider.getRemainingValidity(newRefreshToken), 1L),
+                    newRefreshTtlMs,
                     null,
                     clientIp,
                     userAgent
@@ -189,6 +202,58 @@ public class AuthService {
             authAuditLogService.recordRefreshFailure(memberId, email, clientIp, e.getErrorCode().getCode());
             throw e;
         }
+    }
+
+    /**
+     * 이미 교체된(또는 동시에 사용된) refresh token이 다시 제출되면 탈취 가능성이 있으므로 해당 세션을 폐기한다.
+     */
+    private BusinessException refreshTokenReused(TokenSessionClaims claims) {
+        authSessionRegistryService.revokeSession(claims.memberId(), claims.sessionId());
+        return new BusinessException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
+    }
+
+    /**
+     * 요청 쿠키의 access/refresh token에서 현재 세션 ID를 찾는다. 토큰의 회원이 expectedMemberId와 달라야 하면 거부한다.
+     */
+    public String resolveCurrentSessionId(HttpServletRequest request, Long expectedMemberId) {
+        String sessionId = extractSessionId(
+                findCookieValue(request, jwtTokenProvider.getAccessTokenCookieName()), expectedMemberId);
+        if (sessionId != null) {
+            return sessionId;
+        }
+
+        sessionId = extractSessionId(
+                findCookieValue(request, jwtTokenProvider.getRefreshTokenCookieName()), expectedMemberId);
+        if (sessionId != null) {
+            return sessionId;
+        }
+
+        throw new BusinessException(ErrorCode.TOKEN_INVALID);
+    }
+
+    private String extractSessionId(String token, Long expectedMemberId) {
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            return null;
+        }
+
+        Long memberId = jwtTokenProvider.getMemberId(token);
+        if (memberId == null || !memberId.equals(expectedMemberId)) {
+            return null;
+        }
+        return jwtTokenProvider.getSessionId(token);
+    }
+
+    private String findCookieValue(HttpServletRequest request, String cookieName) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+        for (Cookie cookie : cookies) {
+            if (cookieName.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
     }
 
     public void revokeAllSessions(Long memberId, HttpServletResponse response) {

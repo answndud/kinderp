@@ -82,6 +82,17 @@ document.addEventListener('alpine:init', () => {
                 const tbody = document.getElementById('attendanceBody');
                 const mobileTbody = document.getElementById('attendanceMobile');
 
+                // 반 단위 출결에는 다른 가정의 아이 정보가 포함되므로 학부모에게는 제공하지 않는다.
+                if (userRole === 'PARENT') {
+                    const parentNotice = '반 전체 출결은 교직원만 볼 수 있습니다. 자녀 출결은 출결 요청 화면에서 확인할 수 있습니다.';
+                    setAttendanceStatus(parentNotice);
+                    tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">${parentNotice}</td></tr>`;
+                    if (mobileTbody) {
+                        mobileTbody.innerHTML = `<div class="rounded-xl border border-gray-200 bg-white px-5 py-8 text-center text-sm text-gray-500">${parentNotice}</div>`;
+                    }
+                    return;
+                }
+
                 if (!classroomId) {
                     setAttendanceStatus('반을 선택하면 원생별 출결을 확인할 수 있습니다.');
                     tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">반을 선택하면 출결 목록이 표시됩니다.</td></tr>';

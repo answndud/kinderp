@@ -28,6 +28,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import com.kinderp.domain.member.entity.Member;
 
 /**
  * 인증 API 컨트롤러
@@ -67,12 +68,7 @@ public class AuthApiController {
                                                                HttpServletRequest httpServletRequest) {
         // 비밀번호 확인
         if (!request.getPassword().equals(request.getPasswordConfirm())) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ApiResponse.error(
-                            com.kinderp.global.exception.ErrorCode.INVALID_INPUT_VALUE,
-                            "비밀번호가 일치하지 않습니다"
-                    ));
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "비밀번호가 일치하지 않습니다");
         }
 
         // 회원가입
@@ -86,7 +82,7 @@ public class AuthApiController {
         );
 
         // 회원 정보 조회
-        com.kinderp.domain.member.entity.Member member = memberService.getMemberById(memberId);
+        Member member = memberService.getMemberById(memberId);
 
         return ResponseEntity
                 .ok(ApiResponse.success(MemberResponse.from(member), "회원가입이 완료되었습니다"));
@@ -136,9 +132,7 @@ public class AuthApiController {
 
         if (refreshToken == null) {
             authAuditLogService.recordRefreshFailure(null, null, clientIp, ErrorCode.TOKEN_INVALID.getCode());
-            return ResponseEntity
-                    .badRequest()
-                    .body(ApiResponse.error(ErrorCode.TOKEN_INVALID));
+            throw new BusinessException(ErrorCode.TOKEN_INVALID);
         }
 
         authService.refreshAccessToken(refreshToken, clientIp, request.getHeader("User-Agent"), response);
@@ -154,7 +148,7 @@ public class AuthApiController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<MemberResponse>> getCurrentMember(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        com.kinderp.domain.member.entity.Member member = memberService.getMemberByIdWithKindergarten(userDetails.getMemberId());
+        Member member = memberService.getMemberByIdWithKindergarten(userDetails.getMemberId());
 
         return ResponseEntity
                 .ok(ApiResponse.success(MemberResponse.from(member)));
@@ -178,7 +172,7 @@ public class AuthApiController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             HttpServletRequest request
     ) {
-        String currentSessionId = resolveCurrentSessionId(request, userDetails.getMemberId());
+        String currentSessionId = authService.resolveCurrentSessionId(request, userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(
                 authService.getActiveSessions(userDetails.getMemberId(), currentSessionId)
         ));
@@ -194,7 +188,7 @@ public class AuthApiController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             HttpServletRequest request
     ) {
-        String currentSessionId = resolveCurrentSessionId(request, userDetails.getMemberId());
+        String currentSessionId = authService.resolveCurrentSessionId(request, userDetails.getMemberId());
         authService.revokeOtherSessions(userDetails.getMemberId(), currentSessionId);
         return ResponseEntity.ok(ApiResponse.success(null, "다른 기기 세션을 종료했습니다"));
     }
@@ -215,7 +209,7 @@ public class AuthApiController {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
-        String currentSessionId = resolveCurrentSessionId(request, userDetails.getMemberId());
+        String currentSessionId = authService.resolveCurrentSessionId(request, userDetails.getMemberId());
         authService.revokeSession(userDetails.getMemberId(), sessionId, currentSessionId, response);
         return ResponseEntity.ok(ApiResponse.success(null, "선택한 세션을 종료했습니다"));
     }
@@ -235,48 +229,6 @@ public class AuthApiController {
             }
         }
 
-        return null;
-    }
-
-    private String resolveCurrentSessionId(HttpServletRequest request, Long expectedMemberId) {
-        String accessToken = getCookieValue(request, jwtTokenProvider.getAccessTokenCookieName());
-        String sessionId = extractSessionId(accessToken, expectedMemberId);
-        if (sessionId != null) {
-            return sessionId;
-        }
-
-        String refreshToken = getCookieValue(request, jwtTokenProvider.getRefreshTokenCookieName());
-        sessionId = extractSessionId(refreshToken, expectedMemberId);
-        if (sessionId != null) {
-            return sessionId;
-        }
-
-        throw new BusinessException(ErrorCode.TOKEN_INVALID);
-    }
-
-    private String extractSessionId(String token, Long expectedMemberId) {
-        if (token == null || !jwtTokenProvider.validateToken(token)) {
-            return null;
-        }
-
-        Long memberId = jwtTokenProvider.getMemberId(token);
-        if (memberId == null || !memberId.equals(expectedMemberId)) {
-            return null;
-        }
-        return jwtTokenProvider.getSessionId(token);
-    }
-
-    private String getCookieValue(HttpServletRequest request, String cookieName) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            return null;
-        }
-
-        for (Cookie cookie : cookies) {
-            if (cookieName.equals(cookie.getName())) {
-                return cookie.getValue();
-            }
-        }
         return null;
     }
 }

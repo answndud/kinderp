@@ -117,6 +117,39 @@ public class OAuth2AuthenticationSuccessHandlerTest {
     }
 
     @Test
+    @DisplayName("OAuth2 로그인: 탈퇴·비활성 계정은 세션을 만들지 않고 차단 페이지로 돌려보낸다")
+    void onAuthenticationSuccess_BlocksInactiveMember() throws Exception {
+        DefaultOAuth2User principal = new DefaultOAuth2User(
+                List.of(new SimpleGrantedAuthority("ROLE_PARENT")),
+                Map.of("sub", "google-sub-inactive", "email", "gone@test.com", "name", "탈퇴회원"),
+                "sub"
+        );
+        OAuth2AuthenticationToken authentication = new OAuth2AuthenticationToken(
+                principal, principal.getAuthorities(), "google");
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setSession(new MockHttpSession());
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        com.kinderp.domain.member.entity.Member withdrawn = com.kinderp.domain.member.entity.Member.createSocial(
+                "gone@test.com", "탈퇴회원", com.kinderp.domain.member.entity.MemberRole.PARENT,
+                MemberAuthProvider.GOOGLE, "google-sub-inactive");
+        withdrawn.withdraw();
+
+        when(clientIpResolver.resolve(request)).thenReturn("203.0.113.20");
+        when(memberRepository.findBySocialProviderAndProviderId(MemberAuthProvider.GOOGLE, "google-sub-inactive"))
+                .thenReturn(Optional.of(withdrawn));
+        when(oauth2LinkSessionService.load(request)).thenReturn(Optional.empty());
+
+        successHandler.onAuthenticationSuccess(request, response, authentication);
+
+        assertThat(response.getRedirectedUrl()).isEqualTo("/login?error=account_inactive");
+        verify(authAuditLogService).recordLoginFailure(
+                "gone@test.com", MemberAuthProvider.GOOGLE, "203.0.113.20", "member_inactive");
+        verify(authService, never()).loginBySocial(any(), any(MemberAuthProvider.class), any(), any(), any());
+    }
+
+    @Test
     @DisplayName("OAuth2 로그인: link intent가 있으면 신규 가입 대신 현재 계정에 provider를 연결한다")
     void onAuthenticationSuccess_LinksProviderToCurrentMember_WhenLinkIntentExists() throws Exception {
         DefaultOAuth2User principal = new DefaultOAuth2User(

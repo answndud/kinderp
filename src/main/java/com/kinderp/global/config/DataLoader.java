@@ -300,13 +300,13 @@ public class DataLoader implements CommandLineRunner {
         }
 
         DemoSupplementContext seed = context.get();
-        KidApplication pendingApplication = kidApplicationRepository.findByParentAndKindergarten(seed.parentA1().getId(), seed.kgA().getId())
+        KidApplication pendingApplication = kidApplicationRepository.findFirstByParentIdAndKindergartenIdAndDeletedAtIsNullOrderByIdAsc(seed.parentA1().getId(), seed.kgA().getId())
                 .orElseGet(() -> createPendingApplication(seed.parentA1(), seed.kgA(), seed.classA1(), "민준", "신규 입학 상담 후 서류 대기"));
-        KidApplication waitlistedApplication = kidApplicationRepository.findByParentAndKindergarten(seed.parentA2().getId(), seed.kgA().getId())
+        KidApplication waitlistedApplication = kidApplicationRepository.findFirstByParentIdAndKindergartenIdAndDeletedAtIsNullOrderByIdAsc(seed.parentA2().getId(), seed.kgA().getId())
                 .orElseGet(() -> createWaitlistedApplication(seed.parentA2(), seed.kgA(), seed.classA1(), seed.teacherA1(), "유나", "해바라기반 정원 대기로 waitlist 등록"));
-        KidApplication offeredApplication = kidApplicationRepository.findByParentAndKindergarten(seed.parentA3().getId(), seed.kgA().getId())
+        KidApplication offeredApplication = kidApplicationRepository.findFirstByParentIdAndKindergartenIdAndDeletedAtIsNullOrderByIdAsc(seed.parentA3().getId(), seed.kgA().getId())
                 .orElseGet(() -> createOfferedApplication(seed.parentA3(), seed.kgA(), seed.classA2(), seed.principalA(), "서아", "장미반 1석 확보 후 offer 발송"));
-        KidApplication approvedApplication = kidApplicationRepository.findByParentAndKindergarten(seed.parentB1().getId(), seed.kgB().getId())
+        KidApplication approvedApplication = kidApplicationRepository.findFirstByParentIdAndKindergartenIdAndDeletedAtIsNullOrderByIdAsc(seed.parentB1().getId(), seed.kgB().getId())
                 .orElseGet(() -> createApprovedApplication(seed.parentB1(), seed.kgB(), seed.classB1(), seed.principalB(), seed.approvedKid(), "주원", "기존 원생 승인 완료 이력"));
 
         supplementDomainAuditSamples(seed.kgA(), seed.kgB(), seed.parentA1(), seed.principalA(), seed.principalB(),

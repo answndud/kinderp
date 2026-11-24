@@ -1,5 +1,6 @@
 package com.kinderp.api;
 
+import com.kinderp.global.common.ProductTime;
 import com.kinderp.common.BaseIntegrationTest;
 import com.kinderp.domain.domainaudit.entity.DomainAuditAction;
 import com.kinderp.domain.domainaudit.entity.DomainAuditTargetType;
@@ -74,8 +75,8 @@ class DomainAuditApiIntegrationTest extends BaseIntegrationTest {
                         .with(authenticated(principalMember))
                         .param("action", "KID_APPLICATION_WAITLISTED")
                         .param("summary", "대기")
-                        .param("from", LocalDate.now().minusDays(1).toString())
-                        .param("to", LocalDate.now().plusDays(1).toString()))
+                        .param("from", ProductTime.today().minusDays(1).toString())
+                        .param("to", ProductTime.today().plusDays(1).toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.totalElements").value(1))
@@ -105,6 +106,26 @@ class DomainAuditApiIntegrationTest extends BaseIntegrationTest {
                 .andExpect(content().contentTypeCompatibleWith("text/csv"))
                 .andExpect(content().string(containsString("createdAt,action,targetType,targetId,actorName,actorRole,summary,metadataJson")))
                 .andExpect(content().string(containsString("\"ANNOUNCEMENT_UPDATED\"")));
+    }
+
+    @Test
+    @DisplayName("업무 감사 로그 CSV - 수식으로 시작하는 사용자 입력은 실행되지 않도록 작은따옴표가 붙는다")
+    void exportDomainAuditLogs_NeutralizesFormulaInjection() throws Exception {
+        domainAuditLogService.record(
+                principalMember,
+                kindergarten.getId(),
+                DomainAuditAction.ANNOUNCEMENT_UPDATED,
+                DomainAuditTargetType.ANNOUNCEMENT,
+                announcement.getId(),
+                "=HYPERLINK(\"http://evil.example\",\"click\")",
+                java.util.Map.of()
+        );
+
+        mockMvc.perform(get("/api/v1/domain-audit-logs/export")
+                        .with(authenticated(principalMember)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("\"'=HYPERLINK(")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString(",\"=HYPERLINK("))));
     }
 
     @Test

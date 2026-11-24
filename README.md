@@ -4,18 +4,30 @@
 
 단순 CRUD 구현을 넘어, 여러 사용자가 하나의 유치원 데이터를 함께 처리할 때 필요한 **권한 경계, 승인 상태 전이, 동시성 제어, 감사 로그, 실패 복구**를 Spring Boot 기반으로 설계했습니다.
 
+> **Live demo:** https://kinderp.cloud — 아래 [로컬 실행](#로컬-실행)의 데모 계정으로 로그인할 수 있습니다. 공개 데모이므로 데이터는 다른 방문자와 공유됩니다.
+
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.14-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue.svg)](https://www.mysql.com/)
 [![Redis](https://img.shields.io/badge/Redis-7.x-red.svg)](https://redis.io/)
 [![Backend CI](https://github.com/answndud/kinderp/actions/workflows/ci.yml/badge.svg)](https://github.com/answndud/kinderp/actions/workflows/ci.yml)
 
+## 프로젝트 배경
+
+백엔드 부트캠프에서 4인 팀으로 만든 유치원 관리 프로젝트를 출발점으로, 혼자 처음부터 다시 설계하고 재작성했습니다.
+재작성에는 AI 코딩 에이전트(Codex, Claude Code)를 적극 활용했습니다. 구현의 상당 부분은 에이전트가 작성했고, 저는 다음을 직접 결정하고 검증했습니다.
+
+- **도메인 규칙과 상태 전이:** 입학 신청 대기열·정원·만료, 출결 변경 요청 승인 흐름을 엔티티 메서드와 DB 제약으로 강제
+- **권한 모델:** 유치원(tenant)·역할·소유권 검증을 `AccessPolicyService`로 모으고, 같은 유치원 안 학부모 간 정보 노출(IDOR)을 자체 리뷰로 찾아 수정
+- **동시성·신뢰성:** 비관적 락·멱등 키·Outbox claim token fencing, 동시 요청 통합 테스트로 검증
+- **검증 기준:** Testcontainers(MySQL·Redis) 통합 테스트는 push·PR마다 CI에서 실행하고, 쿼리 수 회귀 테스트(`performanceSmokeTest`)는 수동 workflow로 실행
+
 ## 한눈에 보기
 
 | 항목 | 내용 |
 | --- | --- |
 | 프로젝트 | 유치원 운영 관리 ERP |
-| 역할 | 기획, 설계, 백엔드·프론트엔드 개발, 테스트, 성능 측정, 배포 준비 |
+| 역할 | 1인 재작성 — 설계·구현·테스트·배포 (원본: 부트캠프 4인 팀 프로젝트) |
 | 사용자 | 원장(`PRINCIPAL`), 교사(`TEACHER`), 학부모(`PARENT`) |
 | 핵심 기술 | Java 21, Spring Boot, Spring Security, JPA, QueryDSL, MySQL, Redis |
 | 화면 | Thymeleaf, HTMX, Alpine.js, Tailwind CSS |
@@ -28,8 +40,10 @@
 - 대시보드 통계: **13 queries → 5 queries**, 13ms → 5ms
 - 대시보드 반복 조회: **5 queries → 0 queries** (60초 TTL 캐시)
 - Outbox dead-letter 조회: `Using filesort` → `Backward index scan`
-- Backend CI: **5분 28초 → 1분대**로 빠른 검증 workflow 분리
+- 반 일괄 출결 읽기 쿼리: 원생 40명 기준 **125 queries → 4 queries** (원생 수와 무관하게 고정)
+- Backend CI: 빠른 검사(fast)와 Testcontainers 통합 테스트 job을 분리해 push·PR마다 실행
 - k6 부하 테스트: 주요 조회 API error rate **0%**
+- 동시성 통합 테스트: 반 정원 동시 승인, Offer 만료 vs 수락, refresh token 동시 재사용, 출결 동시 upsert, Outbox 중복 claim·fencing
 
 > 수치는 로컬 Docker 환경에서 동일 시나리오를 비교한 결과입니다. 측정 조건과 한계는 [성능 측정 방법론](./docs/architecture/performance-methodology.md)에 정리했습니다.
 
@@ -127,8 +141,11 @@ SPRING_PROFILES_ACTIVE=demo ./gradlew bootRun
 ### 3. 검증
 
 ```bash
-# 빠른 검증
+# 빠른 검증 (단위 테스트·아키텍처 규칙)
 ./gradlew fastTest bootJar
+
+# 통합 검증 (Testcontainers MySQL·Redis, Docker 필요)
+./gradlew integrationTest
 
 # 전체 검증
 ./gradlew test
@@ -148,7 +165,7 @@ npm run e2e:smoke
 | [설계 서사](./docs/architecture/portfolio-story.md) | 대표 업무 흐름, 권한·상태 전이, Outbox 설계 |
 | [성능 측정 방법론](./docs/architecture/performance-methodology.md) | 측정 조건, 전후 비교, 한계 |
 | [개발자 가이드](./docs/guides/developer-guide.md) | 구조, 실행, 코드 규칙 |
-| [배포 가이드](./docs/guides/deployment-guide.md) | Docker, 환경 변수, 백업·복구 |
+| [배포 가이드](./docs/guides/netcup-deployment.md) | 단일 VPS 배포, 백업·복구 |
 | [문서 인덱스](./docs/README.md) | 전체 문서 목록 |
 
 ## 라이선스

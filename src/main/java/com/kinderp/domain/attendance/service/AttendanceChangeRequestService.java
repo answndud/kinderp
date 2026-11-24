@@ -28,6 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import com.kinderp.domain.attendance.entity.Attendance;
+import com.kinderp.domain.attendance.entity.AttendanceChangeRequest;
+import com.kinderp.domain.attendance.entity.AttendanceChangeRequestStatus;
+import com.kinderp.domain.attendance.entity.AttendanceStatus;
 
 @Service
 @RequiredArgsConstructor
@@ -70,12 +74,12 @@ public class AttendanceChangeRequestService {
         if (attendanceChangeRequestRepository.existsByKidIdAndDateAndStatus(
                 request.kidId(),
                 request.date(),
-                com.kinderp.domain.attendance.entity.AttendanceChangeRequestStatus.PENDING
+                AttendanceChangeRequestStatus.PENDING
         )) {
             throw new BusinessException(ErrorCode.ATTENDANCE_CHANGE_REQUEST_ALREADY_PENDING);
         }
 
-        var changeRequest = com.kinderp.domain.attendance.entity.AttendanceChangeRequest.create(
+        var changeRequest = AttendanceChangeRequest.create(
                 kid,
                 requester,
                 request.date(),
@@ -117,7 +121,7 @@ public class AttendanceChangeRequestService {
     }
 
     private boolean matchesIdempotentPayload(
-            com.kinderp.domain.attendance.entity.AttendanceChangeRequest existing,
+            AttendanceChangeRequest existing,
             AttendanceChangeRequestCreateRequest request
     ) {
         return existing.getKid().getId().equals(request.kidId())
@@ -128,8 +132,8 @@ public class AttendanceChangeRequestService {
                 && java.util.Objects.equals(existing.getNote(), request.note());
     }
 
-    private com.kinderp.domain.attendance.entity.AttendanceChangeRequest savePendingRequest(
-            com.kinderp.domain.attendance.entity.AttendanceChangeRequest changeRequest
+    private AttendanceChangeRequest savePendingRequest(
+            AttendanceChangeRequest changeRequest
     ) {
         try {
             return attendanceChangeRequestRepository.saveAndFlush(changeRequest);
@@ -160,7 +164,7 @@ public class AttendanceChangeRequestService {
 
         return attendanceChangeRequestRepository.findPendingRequests(
                         reviewer.getKindergarten().getId(),
-                        com.kinderp.domain.attendance.entity.AttendanceChangeRequestStatus.PENDING,
+                        AttendanceChangeRequestStatus.PENDING,
                         classroomId,
                         date
                 ).stream()
@@ -193,7 +197,7 @@ public class AttendanceChangeRequestService {
 
         attendanceService.upsertAttendance(attendanceRequest, reviewerId);
         Long attendanceId = attendanceRepository.findByKidIdAndDate(changeRequest.getKid().getId(), changeRequest.getDate())
-                .map(com.kinderp.domain.attendance.entity.Attendance::getId)
+                .map(Attendance::getId)
                 .orElse(null);
 
         changeRequest.approve(reviewer, attendanceId);
@@ -259,7 +263,7 @@ public class AttendanceChangeRequestService {
         );
     }
 
-    private void notifyStaffAboutSubmission(Kid kid, Member requester, LocalDate date, com.kinderp.domain.attendance.entity.AttendanceStatus requestedStatus) {
+    private void notifyStaffAboutSubmission(Kid kid, Member requester, LocalDate date, AttendanceStatus requestedStatus) {
         String content = requester.getName() + " 학부모님이 " + kid.getName() + "의 " + date + " 출결을 "
                 + requestedStatus.getDescription() + " 상태로 변경 요청했습니다.";
 
@@ -281,7 +285,7 @@ public class AttendanceChangeRequestService {
         }
     }
 
-    private void notifyParentAboutApproval(com.kinderp.domain.attendance.entity.AttendanceChangeRequest request) {
+    private void notifyParentAboutApproval(AttendanceChangeRequest request) {
         notificationService.notifyWithLink(
                 request.getRequester().getId(),
                 NotificationType.ATTENDANCE_CHANGE_REQUEST_APPROVED,
@@ -291,7 +295,7 @@ public class AttendanceChangeRequestService {
         );
     }
 
-    private void notifyParentAboutRejection(com.kinderp.domain.attendance.entity.AttendanceChangeRequest request) {
+    private void notifyParentAboutRejection(AttendanceChangeRequest request) {
         notificationService.notifyWithLink(
                 request.getRequester().getId(),
                 NotificationType.ATTENDANCE_CHANGE_REQUEST_REJECTED,

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -106,6 +107,10 @@ public class JwtTokenProvider {
         return getClaims(token).get("tokenType", String.class);
     }
 
+    public boolean isAccessToken(String token) {
+        return "access".equals(getTokenType(token));
+    }
+
     public boolean isRefreshToken(String token) {
         return "refresh".equals(getTokenType(token));
     }
@@ -114,24 +119,42 @@ public class JwtTokenProvider {
      * 토큰 검증
      */
     public boolean validateToken(String token) {
+        return parseToken(token).isPresent();
+    }
+
+    /**
+     * 서명을 검증하고 필요한 claim을 한 번의 파싱으로 읽는다.
+     * 만료는 정상적인 일상 이벤트라 debug로, 서명 오류·형식 오류처럼 의심스러운 경우만 warn으로 남긴다.
+     */
+    public Optional<TokenClaims> parseToken(String token) {
         try {
-            Jwts.parser()
-                    .verifyWith(secretKey)
-                    .build()
-                    .parseSignedClaims(token);
-            return true;
-        } catch (SecurityException e) {
-            log.error("Invalid JWT signature: {}", e.getMessage());
-        } catch (MalformedJwtException e) {
-            log.error("Invalid JWT token: {}", e.getMessage());
+            Claims claims = getClaims(token);
+            Number memberId = claims.get("memberId", Number.class);
+            return Optional.of(new TokenClaims(
+                    memberId != null ? memberId.longValue() : null,
+                    claims.getSubject(),
+                    claims.get("sessionId", String.class),
+                    claims.get("tokenType", String.class)
+            ));
         } catch (ExpiredJwtException e) {
-            log.error("JWT token is expired: {}", e.getMessage());
+            log.debug("JWT token is expired: {}", e.getMessage());
+        } catch (MalformedJwtException e) {
+            log.warn("Invalid JWT token: {}", e.getMessage());
         } catch (UnsupportedJwtException e) {
-            log.error("JWT token is unsupported: {}", e.getMessage());
+            log.warn("JWT token is unsupported: {}", e.getMessage());
+        } catch (JwtException e) {
+            // 서명 불일치(SignatureException) 등 그 밖의 검증 실패. java.lang.SecurityException으로는 잡히지 않는다.
+            log.warn("Invalid JWT: {}", e.getMessage());
         } catch (IllegalArgumentException e) {
-            log.error("JWT claims string is empty: {}", e.getMessage());
+            log.debug("JWT claims string is empty: {}", e.getMessage());
         }
-        return false;
+        return Optional.empty();
+    }
+
+    public record TokenClaims(Long memberId, String email, String sessionId, String tokenType) {
+        public boolean isAccessToken() {
+            return "access".equals(tokenType);
+        }
     }
 
     /**

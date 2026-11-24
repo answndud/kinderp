@@ -227,8 +227,8 @@ sequenceDiagram
 
 또한 설계 의도는 아래 결정 로그와 연결됩니다.
 
-- [phase09_kid_management.md](../docs/COMPLETED.md#archive-001)
-- [phase04_attendance.md](../docs/COMPLETED.md#archive-001)
+- phase09_kid_management.md
+- phase04_attendance.md
 
 즉, 도메인 모델, API, 테스트, 결정 로그가 한 방향을 봅니다.
 

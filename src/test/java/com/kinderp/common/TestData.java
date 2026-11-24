@@ -1,5 +1,6 @@
 package com.kinderp.common;
 
+import com.kinderp.global.common.ProductTime;
 import com.kinderp.domain.classroom.entity.Classroom;
 import com.kinderp.domain.classroom.repository.ClassroomRepository;
 import com.kinderp.domain.kid.entity.Gender;
@@ -108,7 +109,7 @@ public class TestData {
      */
     public Kid createKid(Classroom classroom) {
         Kid kid = Kid.create(classroom, "테스트 원생", LocalDate.of(2020, 1, 1),
-                Gender.MALE, LocalDate.now());
+                Gender.MALE, ProductTime.today());
         return kidRepository.save(kid);
     }
 

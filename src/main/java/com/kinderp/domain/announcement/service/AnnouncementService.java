@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import com.kinderp.domain.announcement.entity.AnnouncementView;
 
 /**
  * 공지사항 서비스
@@ -223,8 +224,8 @@ public class AnnouncementService {
      * 작성자 역할 확인 (원장 또는 교사)
      */
     private void validateWriterRole(Member writer) {
-        if (writer.getRole() != com.kinderp.domain.member.entity.MemberRole.TEACHER &&
-            writer.getRole() != com.kinderp.domain.member.entity.MemberRole.PRINCIPAL) {
+        if (writer.getRole() != MemberRole.TEACHER &&
+            writer.getRole() != MemberRole.PRINCIPAL) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
     }
@@ -266,7 +267,7 @@ public class AnnouncementService {
         }
 
         try {
-            announcementViewRepository.save(com.kinderp.domain.announcement.entity.AnnouncementView.create(announcement, requester));
+            announcementViewRepository.save(AnnouncementView.create(announcement, requester));
         } catch (DataIntegrityViolationException ignored) {
             // 고유 열람은 1회만 집계한다.
         }

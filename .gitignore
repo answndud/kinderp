@@ -149,3 +149,6 @@ uploads/
 
 ### 캐시 ###
 .cache/
+
+# Local-only notes removed from the public portfolio
+/archive/

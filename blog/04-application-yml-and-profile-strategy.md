@@ -261,7 +261,7 @@ springdoc:
 
 보안 기본값을 안전하게 두고, local에서만 예외를 허용하는 방식이 더 낫기 때문입니다.
 
-이 설계는 [phase13_security_hardening.md](../docs/COMPLETED.md#archive-002)에 정리된 “보안 기본값은 안전하게, 개발 환경에서만 완화” 원칙과 맞닿아 있습니다.
+이 설계는 phase13_security_hardening.md에 정리된 “보안 기본값은 안전하게, 개발 환경에서만 완화” 원칙과 맞닿아 있습니다.
 
 ### 왜 management/readiness 설정을 공통으로 두는가
 
@@ -406,7 +406,7 @@ public class DataLoader implements CommandLineRunner
 
 demo는 `application-demo.yml`에서 `app.seed.enabled=true`를 명시하므로, 면접 시연에서만 이 더미 데이터가 자동으로 살아납니다.
 
-이 설계는 [phase36_api_contract_observability_demo.md](../docs/COMPLETED.md#archive-003)에서 “demo를 local 위의 시연 진입점으로 고정”한 이유와 연결됩니다.
+이 설계는 phase36_api_contract_observability_demo.md에서 “demo를 local 위의 시연 진입점으로 고정”한 이유와 연결됩니다.
 
 ### 5-4. `application-prod.yml`: 운영에서 위험한 것을 닫는 파일
 
@@ -527,7 +527,7 @@ YAML 문자열을 여기저기 직접 읽지 않고, 설정 객체로 모은 이
 
 가 되어 같은 코드라도 공개 경로 구성이 달라집니다.
 
-이 설계는 [phase39_management_plane_and_active_session_control.md](../docs/COMPLETED.md#archive-003)에서 정리한 “운영 plane은 profile로 분리” 원칙과 연결됩니다.
+이 설계는 phase39_management_plane_and_active_session_control.md에서 정리한 “운영 plane은 profile로 분리” 원칙과 연결됩니다.
 
 ### `logback-spring.xml`: 로그도 프로파일별로 다르게
 
@@ -593,7 +593,7 @@ sequenceDiagram
 - Swagger UI `Try it out` 활성화
 - `persist-authorization=true`
 
-그래서 [demo-preflight.md](../docs/COMPLETED.md)에 적힌 아래 명령이 시연 시작점이 됩니다.
+그래서 demo-preflight.md에 적힌 아래 명령이 시연 시작점이 됩니다.
 
 ```bash
 ./gradlew bootRun --args='--spring.profiles.active=demo'
@@ -647,7 +647,7 @@ sequenceDiagram
 
 ### 7-3. 데모 실행 문서로 검증
 
-[demo-preflight.md](../docs/COMPLETED.md)는 시연 직전 체크리스트입니다.
+demo-preflight.md는 시연 직전 체크리스트입니다.
 
 이 문서는 단순 운영 문서가 아니라,
 “demo 프로파일 전략이 실제로 재현 가능한가”를 검증하는 실행 근거이기도 합니다.

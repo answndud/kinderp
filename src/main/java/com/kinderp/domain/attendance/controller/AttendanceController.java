@@ -10,9 +10,9 @@ import com.kinderp.domain.attendance.dto.response.BulkAttendanceResponse;
 import com.kinderp.domain.attendance.dto.response.DailyAttendanceResponse;
 import com.kinderp.domain.attendance.dto.response.MonthlyAttendanceReportResponse;
 import com.kinderp.domain.attendance.dto.response.MonthlyStatisticsResponse;
-import com.kinderp.domain.attendance.entity.Attendance;
 import com.kinderp.domain.attendance.service.AttendanceService;
 import com.kinderp.global.common.ApiResponse;
+import com.kinderp.global.exception.BusinessException;
 import com.kinderp.global.exception.ErrorCode;
 import com.kinderp.global.security.user.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -117,10 +117,10 @@ public class AttendanceController {
 
         Long id = attendanceService.createAttendance(request, userDetails.getMemberId());
 
-        Attendance attendance = attendanceService.getAttendance(id, userDetails.getMemberId());
+        AttendanceResponse attendance = attendanceService.getAttendance(id, userDetails.getMemberId());
 
         return ResponseEntity
-                .ok(ApiResponse.success(attendanceService.toResponse(attendance), "출석이 등록되었습니다"));
+                .ok(ApiResponse.success(attendance, "출석이 등록되었습니다"));
     }
 
     /**
@@ -172,10 +172,10 @@ public class AttendanceController {
     public ResponseEntity<ApiResponse<AttendanceResponse>> getAttendance(
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Attendance attendance = attendanceService.getAttendance(id, userDetails.getMemberId());
+        AttendanceResponse attendance = attendanceService.getAttendance(id, userDetails.getMemberId());
 
         return ResponseEntity
-                .ok(ApiResponse.success(attendanceService.toResponse(attendance)));
+                .ok(ApiResponse.success(attendance));
     }
 
     /**
@@ -188,17 +188,17 @@ public class AttendanceController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        Attendance attendance = attendanceService.getAttendanceByKidAndDate(kidId, date, userDetails.getMemberId());
+        AttendanceResponse attendance = attendanceService.getAttendanceByKidAndDate(kidId, date, userDetails.getMemberId());
 
         return ResponseEntity
-                .ok(ApiResponse.success(attendanceService.toResponse(attendance)));
+                .ok(ApiResponse.success(attendance));
     }
 
     /**
      * 반별 일별 출석 현황
      */
     @GetMapping("/daily")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('PRINCIPAL', 'TEACHER')")
     @Operation(
             summary = "반별 일별 출석 현황",
             description = "반 ID와 날짜 기준으로 일별 출석 상태를 조회합니다.",
@@ -217,9 +217,7 @@ public class AttendanceController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         if (classroomId == null) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ApiResponse.error(ErrorCode.INVALID_INPUT_VALUE, "반 ID는 필수입니다"));
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "반 ID는 필수입니다");
         }
 
         List<DailyAttendanceResponse> responses = attendanceService.getDailyAttendanceByClassroom(classroomId, date, userDetails.getMemberId());
@@ -239,11 +237,8 @@ public class AttendanceController {
             @RequestParam int month,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        List<Attendance> attendances = attendanceService.getAttendancesByKidAndMonth(kidId, year, month, userDetails.getMemberId());
-
-        List<AttendanceResponse> responses = attendances.stream()
-                .map(attendanceService::toResponse)
-                .toList();
+        List<AttendanceResponse> responses =
+                attendanceService.getAttendancesByKidAndMonth(kidId, year, month, userDetails.getMemberId());
 
         return ResponseEntity
                 .ok(ApiResponse.success(responses));
@@ -304,10 +299,10 @@ public class AttendanceController {
 
         attendanceService.updateAttendance(id, request, userDetails.getMemberId());
 
-        Attendance attendance = attendanceService.getAttendance(id, userDetails.getMemberId());
+        AttendanceResponse attendance = attendanceService.getAttendance(id, userDetails.getMemberId());
 
         return ResponseEntity
-                .ok(ApiResponse.success(attendanceService.toResponse(attendance), "출석 정보가 수정되었습니다"));
+                .ok(ApiResponse.success(attendance, "출석 정보가 수정되었습니다"));
     }
 
     /**
@@ -323,10 +318,10 @@ public class AttendanceController {
 
         attendanceService.recordDropOff(kidId, date, request, userDetails.getMemberId());
 
-        Attendance attendance = attendanceService.getAttendanceByKidAndDate(kidId, date, userDetails.getMemberId());
+        AttendanceResponse attendance = attendanceService.getAttendanceByKidAndDate(kidId, date, userDetails.getMemberId());
 
         return ResponseEntity
-                .ok(ApiResponse.success(attendanceService.toResponse(attendance), "등원이 기록되었습니다"));
+                .ok(ApiResponse.success(attendance, "등원이 기록되었습니다"));
     }
 
     /**
@@ -342,10 +337,10 @@ public class AttendanceController {
 
         attendanceService.recordPickUp(kidId, date, request, userDetails.getMemberId());
 
-        Attendance attendance = attendanceService.getAttendanceByKidAndDate(kidId, date, userDetails.getMemberId());
+        AttendanceResponse attendance = attendanceService.getAttendanceByKidAndDate(kidId, date, userDetails.getMemberId());
 
         return ResponseEntity
-                .ok(ApiResponse.success(attendanceService.toResponse(attendance), "하원이 기록되었습니다"));
+                .ok(ApiResponse.success(attendance, "하원이 기록되었습니다"));
     }
 
     /**
@@ -361,10 +356,10 @@ public class AttendanceController {
 
         attendanceService.markAbsent(kidId, date, note, userDetails.getMemberId());
 
-        Attendance attendance = attendanceService.getAttendanceByKidAndDate(kidId, date, userDetails.getMemberId());
+        AttendanceResponse attendance = attendanceService.getAttendanceByKidAndDate(kidId, date, userDetails.getMemberId());
 
         return ResponseEntity
-                .ok(ApiResponse.success(attendanceService.toResponse(attendance), "결석 처리되었습니다"));
+                .ok(ApiResponse.success(attendance, "결석 처리되었습니다"));
     }
 
     /**
@@ -381,10 +376,10 @@ public class AttendanceController {
 
         attendanceService.markLate(kidId, date, dropOffTime, note, userDetails.getMemberId());
 
-        Attendance attendance = attendanceService.getAttendanceByKidAndDate(kidId, date, userDetails.getMemberId());
+        AttendanceResponse attendance = attendanceService.getAttendanceByKidAndDate(kidId, date, userDetails.getMemberId());
 
         return ResponseEntity
-                .ok(ApiResponse.success(attendanceService.toResponse(attendance), "지각 처리되었습니다"));
+                .ok(ApiResponse.success(attendance, "지각 처리되었습니다"));
     }
 
     /**
@@ -401,10 +396,10 @@ public class AttendanceController {
 
         attendanceService.markEarlyLeave(kidId, date, pickUpTime, note, userDetails.getMemberId());
 
-        Attendance attendance = attendanceService.getAttendanceByKidAndDate(kidId, date, userDetails.getMemberId());
+        AttendanceResponse attendance = attendanceService.getAttendanceByKidAndDate(kidId, date, userDetails.getMemberId());
 
         return ResponseEntity
-                .ok(ApiResponse.success(attendanceService.toResponse(attendance), "조퇴 처리되었습니다"));
+                .ok(ApiResponse.success(attendance, "조퇴 처리되었습니다"));
     }
 
     /**
@@ -420,10 +415,10 @@ public class AttendanceController {
 
         attendanceService.markSickLeave(kidId, date, note, userDetails.getMemberId());
 
-        Attendance attendance = attendanceService.getAttendanceByKidAndDate(kidId, date, userDetails.getMemberId());
+        AttendanceResponse attendance = attendanceService.getAttendanceByKidAndDate(kidId, date, userDetails.getMemberId());
 
         return ResponseEntity
-                .ok(ApiResponse.success(attendanceService.toResponse(attendance), "병결 처리되었습니다"));
+                .ok(ApiResponse.success(attendance, "병결 처리되었습니다"));
     }
 
     /**

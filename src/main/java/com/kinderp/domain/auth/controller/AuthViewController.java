@@ -110,6 +110,11 @@ public class AuthViewController {
                     "같은 이메일의 기존 계정이 있어 소셜 계정을 자동으로 연결하지 않았습니다.",
                     "기존 로그인 방식으로 로그인해 주세요. 자동 연결은 보안상 허용하지 않습니다."
             ));
+            case "account_inactive" -> Optional.of(new LoginErrorContent(
+                    "사용할 수 없는 계정입니다",
+                    "탈퇴했거나 비활성화된 계정이라 로그인할 수 없습니다.",
+                    "계정 복구가 필요하면 유치원 원장에게 문의해 주세요."
+            ));
             case "social_login_failed" -> Optional.of(new LoginErrorContent(
                     "소셜 로그인에 실패했습니다",
                     "소셜 로그인 처리 중 문제가 발생했습니다.",

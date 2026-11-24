@@ -1,5 +1,6 @@
 package com.kinderp.domain.domainaudit.service;
 
+import com.kinderp.global.util.CsvCell;
 import com.kinderp.domain.domainaudit.dto.response.DomainAuditLogResponse;
 import com.kinderp.domain.domainaudit.entity.DomainAuditAction;
 import com.kinderp.domain.domainaudit.entity.DomainAuditLog;
@@ -86,14 +87,14 @@ public class DomainAuditLogQueryService {
         csv.append('\uFEFF');
         csv.append("createdAt,action,targetType,targetId,actorName,actorRole,summary,metadataJson\n");
         for (DomainAuditLog log : logs) {
-            csv.append(toCsv(log.getCreatedAt()))
-                    .append(',').append(toCsv(log.getAction()))
-                    .append(',').append(toCsv(log.getTargetType()))
-                    .append(',').append(toCsv(log.getTargetId()))
-                    .append(',').append(toCsv(log.getActorName()))
-                    .append(',').append(toCsv(log.getActorRole()))
-                    .append(',').append(toCsv(log.getSummary()))
-                    .append(',').append(toCsv(log.getMetadataJson()))
+            csv.append(CsvCell.quote(log.getCreatedAt()))
+                    .append(',').append(CsvCell.quote(log.getAction()))
+                    .append(',').append(CsvCell.quote(log.getTargetType()))
+                    .append(',').append(CsvCell.quote(log.getTargetId()))
+                    .append(',').append(CsvCell.quote(log.getActorName()))
+                    .append(',').append(CsvCell.quote(log.getActorRole()))
+                    .append(',').append(CsvCell.quote(log.getSummary()))
+                    .append(',').append(CsvCell.quote(log.getMetadataJson()))
                     .append('\n');
         }
         return csv.toString().getBytes(StandardCharsets.UTF_8);
@@ -109,13 +110,5 @@ public class DomainAuditLogQueryService {
             return null;
         }
         return value.trim();
-    }
-
-    private String toCsv(Object value) {
-        if (value == null) {
-            return "";
-        }
-        String normalized = String.valueOf(value).replace("\"", "\"\"");
-        return "\"" + normalized + "\"";
     }
 }

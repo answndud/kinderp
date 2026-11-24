@@ -1,5 +1,6 @@
 package com.kinderp.api;
 
+import com.kinderp.global.common.ProductTime;
 import com.kinderp.common.BaseIntegrationTest;
 import com.kinderp.domain.attendance.entity.Attendance;
 import com.kinderp.domain.attendance.entity.AttendanceStatus;
@@ -19,6 +20,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.test.context.transaction.TestTransaction;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -39,6 +42,9 @@ class DashboardApiIntegrationTest extends BaseIntegrationTest {
     private DashboardService dashboardService;
 
     @Autowired
+    private CacheManager cacheManager;
+
+    @Autowired
     private KidApplicationService kidApplicationService;
 
     @Autowired
@@ -46,7 +52,7 @@ class DashboardApiIntegrationTest extends BaseIntegrationTest {
 
     @AfterEach
     void clearDashboardCache() {
-        dashboardService.evictDashboardStatisticsCache(kindergarten.getId());
+        clearDashboardCacheNow();
     }
 
     @Test
@@ -98,7 +104,7 @@ class DashboardApiIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("대시보드 출석률 - 주말과 입소 전 기간을 분모에서 제외한다")
     void getDashboardStatistics_AttendanceRate_ExcludesWeekendAndPreAdmissionDays() throws Exception {
-        LocalDate endDate = LocalDate.now().minusDays(1);
+        LocalDate endDate = ProductTime.today().minusDays(1);
         LocalDate startDate = endDate.minusDays(6);
         List<LocalDate> schoolDays = schoolDaysBetween(startDate, endDate);
 
@@ -125,7 +131,7 @@ class DashboardApiIntegrationTest extends BaseIntegrationTest {
             }
         }
 
-        dashboardService.evictDashboardStatisticsCache(kindergarten.getId());
+        clearDashboardCacheNow();
 
         mockMvc.perform(get("/api/v1/dashboard/statistics")
                         .with(authenticated(principalMember)))
@@ -157,6 +163,7 @@ class DashboardApiIntegrationTest extends BaseIntegrationTest {
                 new ApproveKidApplicationRequest(classroom.getId(), Relationship.MOTHER),
                 principalMember.getId()
         );
+        commitTestTransaction();
 
         var after = dashboardService.getDashboardStatistics(kindergarten);
 
@@ -194,6 +201,7 @@ class DashboardApiIntegrationTest extends BaseIntegrationTest {
                 new AcceptKidApplicationOfferRequest(Relationship.FATHER),
                 applicant.getId()
         );
+        commitTestTransaction();
 
         var after = dashboardService.getDashboardStatistics(kindergarten);
 
@@ -212,10 +220,23 @@ class DashboardApiIntegrationTest extends BaseIntegrationTest {
         );
 
         kindergartenApplicationService.approve(applicationId, principalMember.getId());
+        commitTestTransaction();
 
         var after = dashboardService.getDashboardStatistics(kindergarten);
 
         assertThat(after.totalTeachers()).isEqualTo(before.totalTeachers() + 1);
+    }
+
+    /** 캐시 무효화는 커밋 뒤에 일어나므로, 테스트 준비 단계에서는 캐시를 직접 비운다. */
+    private void clearDashboardCacheNow() {
+        cacheManager.getCache("dashboardStatistics").clear();
+    }
+
+    /** 무효화 이벤트는 AFTER_COMMIT에서 처리되므로 업무 동작 뒤 테스트 트랜잭션을 커밋하고 새로 시작한다. */
+    private void commitTestTransaction() {
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+        TestTransaction.start();
     }
 
     private List<LocalDate> schoolDaysBetween(LocalDate startDate, LocalDate endDate) {

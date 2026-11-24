@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import com.kinderp.domain.member.entity.MemberRole;
 
 /**
  * 회원 API 컨트롤러
@@ -65,7 +66,7 @@ public class MemberApiController {
 
         java.util.List<Member> parents = memberService.getMembersByKindergartenAndRoles(
                 member.getKindergarten().getId(),
-                java.util.List.of(com.kinderp.domain.member.entity.MemberRole.PARENT)
+                java.util.List.of(MemberRole.PARENT)
         );
 
         java.util.List<MemberResponse> responses = new java.util.ArrayList<>();
@@ -97,9 +98,13 @@ public class MemberApiController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<Void>> changePassword(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Valid @RequestBody ChangePasswordRequest request
+            @Valid @RequestBody ChangePasswordRequest request,
+            HttpServletRequest httpRequest
     ) {
+        String currentSessionId = authService.resolveCurrentSessionId(httpRequest, userDetails.getMemberId());
         memberService.changePassword(userDetails.getMemberId(), request.getCurrentPassword(), request.getNewPassword());
+        // 비밀번호가 바뀌면 탈취됐을 수 있는 다른 기기 세션은 더 이상 유효하지 않아야 한다.
+        authService.revokeOtherSessions(userDetails.getMemberId(), currentSessionId);
         return ResponseEntity.ok(ApiResponse.success());
     }
 

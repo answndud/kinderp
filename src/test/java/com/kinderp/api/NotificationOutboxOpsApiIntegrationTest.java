@@ -1,5 +1,6 @@
 package com.kinderp.api;
 
+import com.kinderp.global.common.ProductTime;
 import com.kinderp.common.BaseIntegrationTest;
 import com.kinderp.domain.member.entity.Member;
 import com.kinderp.domain.notification.entity.Notification;
@@ -129,6 +130,82 @@ class NotificationOutboxOpsApiIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("outbox timeline - 조건이 없으면 같은 유치원의 전체를 최신순으로 반환한다")
+    void timelineWithoutFilters_ReturnsAllOfKindergarten() throws Exception {
+        Long first = createDeliveredOutbox(NotificationChannel.APP, "첫번째 알림");
+        Long second = createDeadLetterOutbox(NotificationChannel.EMAIL, "SMTP connection refused");
+
+        mockMvc.perform(get("/api/v1/notification-outbox")
+                        .with(authenticated(principalMember)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements").value(2))
+                .andExpect(jsonPath("$.data.content[0].id").value(second))
+                .andExpect(jsonPath("$.data.content[1].id").value(first));
+    }
+
+    @Test
+    @DisplayName("outbox timeline - status만 지정하면 그 상태만 반환한다")
+    void timelineWithStatusOnly_FiltersByStatus() throws Exception {
+        createDeliveredOutbox(NotificationChannel.APP, "전달 성공 알림");
+        Long deadLetterId = createDeadLetterOutbox(NotificationChannel.APP, "webhook timeout");
+
+        mockMvc.perform(get("/api/v1/notification-outbox")
+                        .param("status", "DEAD_LETTER")
+                        .with(authenticated(principalMember)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements").value(1))
+                .andExpect(jsonPath("$.data.content[0].id").value(deadLetterId));
+    }
+
+    @Test
+    @DisplayName("outbox timeline - 검색어만 지정하면 제목·오류 메시지에서 대소문자 구분 없이 찾는다")
+    void timelineWithKeywordOnly_MatchesCaseInsensitively() throws Exception {
+        createDeliveredOutbox(NotificationChannel.APP, "운영 알림 전달 성공");
+        Long deadLetterId = createDeadLetterOutbox(NotificationChannel.EMAIL, "SMTP Connection Refused");
+
+        mockMvc.perform(get("/api/v1/notification-outbox")
+                        .param("q", "smtp connection")
+                        .with(authenticated(principalMember)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements").value(1))
+                .andExpect(jsonPath("$.data.content[0].id").value(deadLetterId));
+
+        mockMvc.perform(get("/api/v1/notification-outbox")
+                        .param("q", "전달 성공")
+                        .with(authenticated(principalMember)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements").value(1));
+    }
+
+    @Test
+    @DisplayName("outbox timeline - 검색어의 % 문자는 와일드카드가 아니라 문자 그대로 비교한다")
+    void timelineKeyword_TreatsPercentAsLiteral() throws Exception {
+        createDeliveredOutbox(NotificationChannel.APP, "일반 알림");
+
+        mockMvc.perform(get("/api/v1/notification-outbox")
+                        .param("q", "%")
+                        .with(authenticated(principalMember)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements").value(0));
+    }
+
+    @Test
+    @DisplayName("outbox timeline - 페이지 크기만큼만 반환하고 전체 건수는 유지한다")
+    void timelinePagination_ReturnsPageAndTotal() throws Exception {
+        createDeliveredOutbox(NotificationChannel.APP, "알림 1");
+        createDeliveredOutbox(NotificationChannel.APP, "알림 2");
+        createDeliveredOutbox(NotificationChannel.APP, "알림 3");
+
+        mockMvc.perform(get("/api/v1/notification-outbox")
+                        .param("page", "0")
+                        .param("size", "2")
+                        .with(authenticated(principalMember)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements").value(3))
+                .andExpect(jsonPath("$.data.content.length()").value(2));
+    }
+
+    @Test
     @DisplayName("교사는 outbox 운영 API에 접근할 수 없다")
     void teacherCannotAccessOutboxOps() throws Exception {
         mockMvc.perform(get("/api/v1/notification-outbox/summary")
@@ -190,7 +267,7 @@ class NotificationOutboxOpsApiIntegrationTest extends BaseIntegrationTest {
                 "/notifications"
         ));
         NotificationOutbox outbox = NotificationOutbox.create(notification, channel, 1);
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = ProductTime.nowDateTime();
         outbox.markProcessing(now.minusMinutes(1));
         outbox.markDeadLetter(now, errorMessage);
         return notificationOutboxRepository.saveAndFlush(outbox).getId();
@@ -205,7 +282,7 @@ class NotificationOutboxOpsApiIntegrationTest extends BaseIntegrationTest {
                 "/notifications"
         ));
         NotificationOutbox outbox = NotificationOutbox.create(notification, NotificationChannel.APP, 1);
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = ProductTime.nowDateTime();
         outbox.markProcessing(now.minusMinutes(1));
         outbox.markDeadLetter(now, "other tenant timeout");
         return notificationOutboxRepository.saveAndFlush(outbox).getId();
@@ -221,7 +298,7 @@ class NotificationOutboxOpsApiIntegrationTest extends BaseIntegrationTest {
                 "/notifications"
         ));
         NotificationOutbox outbox = NotificationOutbox.create(notification, channel, 1);
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = ProductTime.nowDateTime();
         outbox.markProcessing(now.minusMinutes(1));
         outbox.markDelivered(now);
         return notificationOutboxRepository.saveAndFlush(outbox).getId();

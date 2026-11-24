@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -32,6 +33,14 @@ public class AuthSessionRegistryService {
     private static final String SESSION_METADATA_KEY_PREFIX = "refresh:session:meta:";
     private static final long LAST_SEEN_TOUCH_INTERVAL_MS = 60_000L;
     private static final int MAX_USER_AGENT_LENGTH = 255;
+
+    private static final DefaultRedisScript<Long> COMPARE_AND_ROTATE_REFRESH_TOKEN = new DefaultRedisScript<>("""
+            if redis.call('GET', KEYS[1]) == ARGV[1] then
+                redis.call('SET', KEYS[1], ARGV[2], 'PX', tonumber(ARGV[3]))
+                return 1
+            end
+            return 0
+            """, Long.class);
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -95,6 +104,25 @@ public class AuthSessionRegistryService {
                 ),
                 refreshTtlMs
         );
+    }
+
+    /**
+     * 저장된 refresh token이 expectedToken과 같을 때만 newToken으로 교체한다 (Redis Lua, 원자적).
+     * 동시에 같은 refresh token으로 요청이 와도 한 요청만 true를 받는다.
+     */
+    public boolean compareAndRotateRefreshToken(Long memberId,
+                                                String sessionId,
+                                                String expectedToken,
+                                                String newToken,
+                                                long ttlMs) {
+        Long result = redisTemplate.execute(
+                COMPARE_AND_ROTATE_REFRESH_TOKEN,
+                List.of(getRefreshTokenKey(memberId, sessionId)),
+                expectedToken,
+                newToken,
+                ttlMs
+        );
+        return Long.valueOf(1L).equals(result);
     }
 
     public Optional<String> getStoredRefreshToken(Long memberId, String sessionId) {

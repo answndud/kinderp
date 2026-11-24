@@ -29,8 +29,12 @@ public class AuthRateLimitProperties {
 
     @Positive
     private long loginIpLimit = 15;
+    /** 같은 이메일을 같은 IP에서 연속 실패할 수 있는 횟수 (계정 단독 키로 잠그면 남이 계정을 잠글 수 있어 IP와 묶는다). */
     @Positive
     private long loginEmailLimit = 5;
+    /** IP와 무관하게 같은 이메일에 대한 전체 실패 횟수 상한. 분산 공격에 대한 backstop이라 pair 한도보다 훨씬 크다. */
+    @Positive
+    private long loginEmailGlobalLimit = 50;
     @Positive
     private long refreshIpLimit = 10;
     @Positive

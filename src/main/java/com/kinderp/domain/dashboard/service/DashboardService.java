@@ -3,13 +3,14 @@ package com.kinderp.domain.dashboard.service;
 import com.kinderp.domain.announcement.repository.AnnouncementRepository;
 import com.kinderp.domain.attendance.repository.AttendanceRepository;
 import com.kinderp.domain.dashboard.dto.response.DashboardStatisticsResponse;
+import com.kinderp.domain.dashboard.event.DashboardCacheEvictRequested;
 import com.kinderp.domain.kindergarten.entity.Kindergarten;
 import com.kinderp.domain.kid.repository.KidRepository;
 import com.kinderp.domain.member.repository.MemberRepository;
 import com.kinderp.global.common.ProductTime;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ public class DashboardService {
     private final KidRepository kidRepository;
     private final AttendanceRepository attendanceRepository;
     private final AnnouncementRepository announcementRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Cacheable(cacheNames = "dashboardStatistics", key = "#kindergarten.id")
     public DashboardStatisticsResponse getDashboardStatistics(Kindergarten kindergarten) {
@@ -87,9 +89,14 @@ public class DashboardService {
         );
     }
 
-    @Transactional
-    @CacheEvict(cacheNames = "dashboardStatistics", key = "#kindergartenId")
+    /**
+     * 통계에 영향을 주는 변경이 있을 때 호출한다. 실제 evict는 호출한 트랜잭션이 커밋된 뒤에 일어난다.
+     */
     public void evictDashboardStatisticsCache(Long kindergartenId) {
+        if (kindergartenId == null) {
+            return;
+        }
+        eventPublisher.publishEvent(new DashboardCacheEvictRequested(kindergartenId));
     }
 
     private double calculateAttendanceRate(

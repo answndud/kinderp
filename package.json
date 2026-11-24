@@ -14,8 +14,6 @@
     "security:inline-handlers": "node scripts/check-inline-event-handlers.mjs",
     "security:product-time": "node scripts/check-product-time-usage.mjs",
     "security:view-errors": "node scripts/check-view-error-messages.mjs",
-    "impeccable:detect": "node scripts/impeccable-detect.mjs",
-    "impeccable:detect:json": "node scripts/impeccable-detect.mjs --json",
     "e2e:smoke": "playwright test e2e/smoke.spec.js"
   },
   "devDependencies": {

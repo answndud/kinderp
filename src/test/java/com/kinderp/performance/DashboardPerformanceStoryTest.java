@@ -1,5 +1,6 @@
 package com.kinderp.performance;
 
+import com.kinderp.global.common.ProductTime;
 import com.kinderp.common.BaseIntegrationTest;
 import com.kinderp.domain.announcement.dto.request.AnnouncementRequest;
 import com.kinderp.domain.announcement.entity.Announcement;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.test.context.transaction.TestTransaction;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -95,7 +97,8 @@ class DashboardPerformanceStoryTest extends BaseIntegrationTest {
         clearDashboardCache();
 
         var before = dashboardService.getDashboardStatistics(kindergarten);
-        attendanceService.markAbsent(kid.getId(), LocalDate.now(), "캐시 무효화 테스트", teacherMember.getId());
+        attendanceService.markAbsent(kid.getId(), ProductTime.today(), "캐시 무효화 테스트", teacherMember.getId());
+        commitTestTransaction();
         var after = dashboardService.getDashboardStatistics(kindergarten);
 
         assertTrue(after.todayAttendanceCount() > before.todayAttendanceCount(),
@@ -116,6 +119,7 @@ class DashboardPerformanceStoryTest extends BaseIntegrationTest {
         request.setIsImportant(false);
 
         announcementService.createAnnouncement(request, principalMember.getId());
+        commitTestTransaction();
 
         var after = dashboardService.getDashboardStatistics(kindergarten);
 
@@ -133,7 +137,7 @@ class DashboardPerformanceStoryTest extends BaseIntegrationTest {
                     "대규모 성능 원생 " + i,
                     LocalDate.of(2020, 1, 1),
                     Gender.MALE,
-                    LocalDate.now()
+                    ProductTime.today()
             ));
         }
         kidRepository.saveAll(created);
@@ -164,11 +168,11 @@ class DashboardPerformanceStoryTest extends BaseIntegrationTest {
         legacyAnnouncementReadRate(kindergartenId);
 
         announcementRepository.countByKindergartenIdAndDeletedAtIsNull(kindergartenId);
-        attendanceRepository.countByKidClassroomKindergartenIdAndDate(kindergartenId, LocalDate.now());
+        attendanceRepository.countByKidClassroomKindergartenIdAndDate(kindergartenId, ProductTime.today());
     }
 
     private double legacyAttendanceRate(Long kindergartenId, int days) {
-        LocalDate endDate = LocalDate.now().minusDays(1);
+        LocalDate endDate = ProductTime.today().minusDays(1);
         LocalDate startDate = endDate.minusDays(days - 1);
 
         List<Kid> kids = kidRepository.findByClassroomKindergartenId(kindergartenId);
@@ -232,5 +236,12 @@ class DashboardPerformanceStoryTest extends BaseIntegrationTest {
         if (cache != null) {
             cache.clear();
         }
+    }
+
+    /** 캐시 무효화는 커밋 뒤에 일어나므로, 쓰기 동작 뒤 테스트 트랜잭션을 커밋하고 새로 시작한다. */
+    private void commitTestTransaction() {
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+        TestTransaction.start();
     }
 }

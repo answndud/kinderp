@@ -154,7 +154,7 @@ sequenceDiagram
 - `BaseIntegrationTest`
   - 모든 API 통합 테스트의 기반
 
-그리고 결정 로그인 [phase15_testcontainers_integration_test_stack.md](../docs/COMPLETED.md#archive-002)에
+그리고 결정 로그인 phase15_testcontainers_integration_test_stack.md에
 왜 H2를 버리고 이 구조로 갔는지 정리돼 있습니다.
 
 ## 8. 회고

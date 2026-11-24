@@ -6,6 +6,7 @@ import com.kinderp.domain.authaudit.entity.AuthAuditEventType;
 import com.kinderp.domain.authaudit.entity.AuthAuditResult;
 import com.kinderp.domain.authaudit.repository.AuthAuditLogRepository;
 import com.kinderp.domain.member.entity.MemberAuthProvider;
+import com.kinderp.domain.member.entity.MemberRole;
 import com.kinderp.global.security.jwt.JwtTokenProvider;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.AfterEach;
@@ -394,6 +395,69 @@ class AuthApiIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
+        @DisplayName("로그인 - 공격자 IP의 반복 실패가 다른 IP에서 접속하는 실제 사용자를 잠그지 않는다")
+        void login_AttackerFailuresDoNotLockOutOwnerFromAnotherIp() throws Exception {
+            String wrong = """
+                    {"email": "parent@test.com", "password": "wrongpassword"}
+                    """;
+            for (int attempt = 0; attempt < 5; attempt++) {
+                mockMvc.perform(post("/api/v1/auth/login")
+                                .with(csrf())
+                                .with(remoteAddr("203.0.113.50"))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(wrong))
+                        .andExpect(status().isUnauthorized());
+            }
+            // 공격자 IP는 이제 막힌다.
+            mockMvc.perform(post("/api/v1/auth/login")
+                            .with(csrf())
+                            .with(remoteAddr("203.0.113.50"))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(wrong))
+                    .andExpect(status().isTooManyRequests());
+
+            // 같은 계정의 실제 사용자는 다른 IP에서 올바른 비밀번호로 로그인할 수 있다.
+            mockMvc.perform(post("/api/v1/auth/login")
+                            .with(csrf())
+                            .with(remoteAddr("198.51.100.60"))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"email": "parent@test.com", "password": "test1234"}
+                                    """))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+        }
+
+        @Test
+        @DisplayName("로그인 - 여러 IP로 분산된 실패가 이메일 전체 한도를 넘으면 모든 IP에서 차단된다")
+        void login_DistributedFailuresHitGlobalEmailLimit() throws Exception {
+            String wrong = """
+                    {"email": "parent@test.com", "password": "wrongpassword"}
+                    """;
+            // IP마다 5회(쌍 한도)씩 10개 IP = 50회
+            for (int ip = 1; ip <= 10; ip++) {
+                for (int attempt = 0; attempt < 5; attempt++) {
+                    mockMvc.perform(post("/api/v1/auth/login")
+                                    .with(csrf())
+                                    .with(remoteAddr("192.0.2." + ip))
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(wrong))
+                            .andExpect(status().isUnauthorized());
+                }
+            }
+
+            mockMvc.perform(post("/api/v1/auth/login")
+                            .with(csrf())
+                            .with(remoteAddr("192.0.2.200"))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"email": "parent@test.com", "password": "test1234"}
+                                    """))
+                    .andExpect(status().isTooManyRequests())
+                    .andExpect(jsonPath("$.code").value("A006"));
+        }
+
+        @Test
         @DisplayName("로그인 - 기존 계정에서 반복 실패가 발생하면 원장에게 이상 징후 알림을 한 번만 보낸다")
         void login_Fail_RepeatedFailures_SendSinglePrincipalAlert() throws Exception {
             String requestBody = """
@@ -637,9 +701,11 @@ class AuthApiIntegrationTest extends BaseIntegrationTest {
                             .with(csrf())
                             .cookie(loginCookies.refreshCookie()))
                     .andDo(print())
-                    .andExpect(status().isNotFound())
+                    .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.code").value("A005"));
+
+            assertThat(redisTemplate.hasKey(getRefreshSessionKey(loginCookies.refreshCookie()))).isFalse();
 
             var auditLogs = readCommitted(authAuditLogRepository::findAllByCreatedAtAsc);
             assertThat(auditLogs).isNotEmpty();
@@ -888,6 +954,126 @@ class AuthApiIntegrationTest extends BaseIntegrationTest {
                     (AuthSessionRegistryService.SessionMetadata) redisTemplate.opsForValue().get(metadataKey);
             assertThat(touched).isNotNull();
             assertThat(touched.getLastSeenAtEpochMs()).isGreaterThan(oldLastSeen);
+        }
+    }
+
+    @Nested
+    @DisplayName("refresh token 보안")
+    class RefreshTokenSecurityTest {
+
+        @Test
+        @DisplayName("refresh token을 access 쿠키로 보내면 인증되지 않는다")
+        void refreshTokenAsAccessCookie_Fail() throws Exception {
+            LoginCookies loginCookies = loginAsParent();
+            Cookie refreshAsAccess = new Cookie("access_token", loginCookies.refreshCookie().getValue());
+
+            mockMvc.perform(get("/api/v1/members/me").cookie(refreshAsAccess))
+                    .andExpect(status().isUnauthorized());
+
+            mockMvc.perform(get("/api/v1/members/me").cookie(loginCookies.accessCookie()))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("refresh 쿠키 없이 토큰 갱신을 요청하면 401(A003)이다")
+        void refreshWithoutCookie_IsUnauthorized() throws Exception {
+            mockMvc.perform(post("/api/v1/auth/refresh").with(csrf()))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.code").value("A003"));
+        }
+
+        @Test
+        @DisplayName("서명이 변조된 access 쿠키는 500이 아니라 미인증(401)으로 처리된다")
+        void tamperedAccessCookie_IsUnauthorized() throws Exception {
+            LoginCookies loginCookies = loginAsParent();
+            Cookie tampered = new Cookie("access_token", loginCookies.accessCookie().getValue() + "tampered");
+
+            mockMvc.perform(get("/api/v1/members/me").cookie(tampered))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @DisplayName("이미 교체된 refresh token을 재사용하면 세션 전체가 폐기된다")
+        void reusedRefreshToken_RevokesSession() throws Exception {
+            LoginCookies loginCookies = loginAsParent();
+            String sessionKey = getRefreshSessionKey(loginCookies.refreshCookie());
+
+            MvcResult rotated = mockMvc.perform(post("/api/v1/auth/refresh")
+                            .with(csrf())
+                            .cookie(loginCookies.refreshCookie()))
+                    .andExpect(status().isOk())
+                    .andReturn();
+            Cookie rotatedRefresh = rotated.getResponse().getCookie("refresh_token");
+            assertThat(redisTemplate.hasKey(sessionKey)).isTrue();
+
+            mockMvc.perform(post("/api/v1/auth/refresh")
+                            .with(csrf())
+                            .cookie(loginCookies.refreshCookie()))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.code").value("A005"));
+
+            assertThat(redisTemplate.hasKey(sessionKey)).isFalse();
+
+            mockMvc.perform(post("/api/v1/auth/refresh")
+                            .with(csrf())
+                            .cookie(rotatedRefresh))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @DisplayName("같은 refresh token으로 동시에 요청하면 정확히 한 요청만 성공한다")
+        void concurrentRefresh_OnlyOneSucceeds() throws Exception {
+            // 테스트 트랜잭션에 묶인 setUp 데이터는 다른 스레드에서 보이지 않으므로 커밋된 회원을 따로 만든다.
+            writeCommitted(() -> testData.createTestMember(
+                    "refresh-race@test.com", "동시성회원", MemberRole.PARENT, "test1234"));
+            MvcResult loginResult = mockMvc.perform(post("/api/v1/auth/login")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {
+                                        "email": "refresh-race@test.com",
+                                        "password": "test1234"
+                                    }
+                                    """))
+                    .andExpect(status().isOk())
+                    .andReturn();
+            LoginCookies loginCookies = new LoginCookies(
+                    loginResult.getResponse().getCookie("access_token"),
+                    loginResult.getResponse().getCookie("refresh_token")
+            );
+            int threads = 4;
+            java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newFixedThreadPool(threads);
+            java.util.concurrent.CountDownLatch ready = new java.util.concurrent.CountDownLatch(threads);
+            java.util.concurrent.CountDownLatch start = new java.util.concurrent.CountDownLatch(1);
+            java.util.List<java.util.concurrent.Future<Integer>> results = new java.util.ArrayList<>();
+
+            try {
+                for (int i = 0; i < threads; i++) {
+                    results.add(executor.submit(() -> {
+                        ready.countDown();
+                        start.await();
+                        return mockMvc.perform(post("/api/v1/auth/refresh")
+                                        .with(csrf())
+                                        .cookie(loginCookies.refreshCookie()))
+                                .andReturn()
+                                .getResponse()
+                                .getStatus();
+                    }));
+                }
+                assertThat(ready.await(10, TimeUnit.SECONDS)).isTrue();
+                start.countDown();
+
+                java.util.List<Integer> statuses = new java.util.ArrayList<>();
+                for (java.util.concurrent.Future<Integer> result : results) {
+                    statuses.add(result.get(30, TimeUnit.SECONDS));
+                }
+
+                assertThat(statuses).as("statuses=" + statuses).filteredOn(status -> status == 200).hasSize(1);
+                assertThat(statuses).filteredOn(status -> status == 401).hasSize(threads - 1);
+            } finally {
+                executor.shutdownNow();
+            }
         }
     }
 

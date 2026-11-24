@@ -56,7 +56,7 @@
 
 ## 2. demo
 
-면접/시연용 실행입니다.
+시연용 실행입니다.
 
 - 필수
   - `SPRING_PROFILES_ACTIVE=demo`
@@ -119,7 +119,7 @@
 
 ### prod 안전 조건
 
-- `app.seed.enabled=false`
+- `app.seed.enabled=false` (공개 데모 모드 예외는 아래 참고)
 - `springdoc.api-docs.enabled=false`
 - `springdoc.swagger-ui.enabled=false`
 - `app.security.management-surface.public-api-docs=false`
@@ -127,11 +127,18 @@
 - `jwt.cookie-secure=true`
 - CSRF `XSRF-TOKEN` 쿠키도 JWT 쿠키와 동일한 `Secure`/`SameSite` 정책을 사용한다.
 - `CORS_ALLOWED_ORIGINS`에는 실제 HTTPS 서비스 origin만 둔다.
-- rate limit은 기본적으로 login IP 15회/10분, login email 5회/10분, refresh IP 10회/5분, signup IP 10회/1시간이다. 외부 알림 생성 API는 사용자 30회/1분, IP 100회/1분으로 별도 제한한다. 조정 시 window와 limit을 함께 검토한다.
+- rate limit은 기본적으로 login IP 15회/10분, login IP+email 쌍 5회/10분(남이 계정을 잠그지 못하도록 IP와 묶고, 분산 공격에 대한 이메일 전체 backstop은 `AUTH_RATE_LIMIT_LOGIN_EMAIL_GLOBAL` 기본 50회/10분), refresh IP 10회/5분, signup IP 10회/1시간이다. 외부 알림 생성 API는 사용자 30회/1분, IP 100회/1분으로 별도 제한한다. 조정 시 window와 limit을 함께 검토한다.
 - rate-limit limit은 양수여야 하며, 잘못된 값은 애플리케이션 설정 바인딩 단계에서 부팅 실패로 차단한다.
 - HTTP 요청은 header 16KB, body/form 1MB, header 100개, parameter 100개 상한을 적용한다. 목록 API는 page size를 최대 100개로 제한하고 감사 로그 CSV export는 최대 10,000행으로 제한한다.
 - 의존성 검사는 `./gradlew dependencyCheckAnalyze`에서 CVSS 7.0 이상이면 실패하고, `npm audit --omit=dev --audit-level=high`에서 high 이상이면 실패한다. Dependabot은 Gradle/npm/GitHub Actions 업데이트 PR을 매주 생성한다.
 - `NVD_API_KEY`는 OWASP Dependency-Check NVD 갱신 속도를 높이는 선택적 CI secret이다. 미설정 시에도 검사는 실행되지만 NVD API rate limit으로 오래 걸릴 수 있다.
+
+### 공개 데모 모드 (prod 예외)
+
+- `APP_PUBLIC_DEMO_ENABLED=true`이고 `app.seed.enabled=true`일 때만 prod에서 시드 데이터(`DataLoader`)를 적재한다. `scripts/validate-netcup-env.sh`는 공개 포트폴리오 데모(netcup 배포)에 이 값을 필수로 요구한다.
+- 이 모드에서는 README에 공개된 데모 계정(공개 비밀번호)이 활성화된다. 실제 데이터가 있는 배포에서는 반드시 `APP_PUBLIC_DEMO_ENABLED=false`로 두며, 일반 prod 예시(`deploy/.env.prod.example`)의 기본값도 `false`다.
+- 켜져 있으면 기동 로그에 `PUBLIC DEMO MODE` 경고가 남고, `app.seed.enabled=true`인데 플래그가 `false`이면 기동이 실패한다 (`StartupSafetyValidatorTest`).
+- 시드 적재는 멱등이다. 시드 원장 계정이 이미 있으면 새로 만들지 않고 시나리오 샘플만 보충한다.
 
 ## 4. 테스트
 

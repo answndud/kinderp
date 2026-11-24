@@ -584,7 +584,7 @@ flowchart TD
 - `Performance Smoke`
 
 이건 처음부터 있던 구조는 아닙니다.
-결정 로그 [phase16_github_actions_ci.md](../docs/COMPLETED.md#archive-002) 와 [phase44_tagged_ci_readiness_and_hiring_pack.md](../docs/COMPLETED.md#archive-003) 를 보면,
+결정 로그 phase16_github_actions_ci.md 와 phase44_tagged_ci_readiness_and_hiring_pack.md 를 보면,
 
 - 처음에는 전체 `./gradlew test`
 - 나중에는 태그 기반 분리

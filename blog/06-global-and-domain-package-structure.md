@@ -252,7 +252,7 @@ sequenceDiagram
 
 즉, 공통 구조가 테스트의 기대값까지 단순하게 만들어 줍니다.
 
-또한 [docs/COMPLETED.md#archive-001](../docs/COMPLETED.md#archive-001)에서도
+또한 docs/COMPLETED.md#archive-001에서도
 
 - `ApiResponse<T>`
 - `GlobalExceptionHandler`

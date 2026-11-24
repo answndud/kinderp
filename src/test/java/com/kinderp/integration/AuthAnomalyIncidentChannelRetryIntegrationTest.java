@@ -1,5 +1,6 @@
 package com.kinderp.integration;
 
+import com.kinderp.global.common.ProductTime;
 import com.kinderp.common.BaseIntegrationTest;
 import com.kinderp.domain.authaudit.service.AuthAnomalyAlertService;
 import com.kinderp.domain.kindergarten.entity.Kindergarten;
@@ -102,7 +103,7 @@ class AuthAnomalyIncidentChannelRetryIntegrationTest extends BaseIntegrationTest
         writeCommitted(() -> {
             jdbcTemplate.update(
                     "UPDATE notification_outbox SET next_attempt_at = ? WHERE id = ?",
-                    Timestamp.valueOf(LocalDateTime.now().minusSeconds(1)),
+                    Timestamp.valueOf(ProductTime.nowDateTime().minusSeconds(1)),
                     firstAttempt.getId()
             );
             return null;
