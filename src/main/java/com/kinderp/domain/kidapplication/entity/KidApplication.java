@@ -17,6 +17,10 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * 입학 신청. 같은 학부모·유치원·원생(이름+생년월일)의 미삭제 신청은 1건이며(uk_kid_application_active_kid),
+ * 이름과 생년월일이 모두 같은 형제는 없다고 가정한다.
+ */
 @Entity
 @Table(name = "kid_application")
 @Getter
@@ -181,14 +185,14 @@ public class KidApplication extends BaseEntity {
         this.offerExpiresAt = null;
     }
 
-    public void reapply(Kindergarten kindergarten, String kidName, LocalDate birthDate, Gender gender,
-                        Classroom preferredClassroom, String notes) {
+    /**
+     * 같은 원생의 취소·거절·만료된 신청을 다시 접수한다. 이름·생년월일은 신청을 식별하는 키의 일부라 바꾸지 않는다.
+     */
+    public void reapply(Kindergarten kindergarten, Gender gender, Classroom preferredClassroom, String notes) {
         ensureState(status.isCancelled() || status.isRejected() || status.isOfferExpired(),
                 "재신청 가능한 상태가 아닙니다: " + status);
 
         this.kindergarten = kindergarten;
-        this.kidName = kidName;
-        this.birthDate = birthDate;
         this.gender = gender;
         this.preferredClassroom = preferredClassroom;
         this.notes = notes;

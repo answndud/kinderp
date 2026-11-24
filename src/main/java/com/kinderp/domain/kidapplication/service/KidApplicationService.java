@@ -77,21 +77,24 @@ public class KidApplicationService {
 
         Classroom preferredClassroom = resolvePreferredClassroom(request.preferredClassroomId(), kindergarten.getId());
 
-        applicationRepository.findActiveApplicationByParentAndKindergarten(parentId, request.kindergartenId(), ACTIVE_APPLICATION_STATUSES)
+        applicationRepository.findActiveApplicationForKidInKindergarten(
+                        parentId, request.kindergartenId(), request.kidName(), request.birthDate(), ACTIVE_APPLICATION_STATUSES)
                 .ifPresent(existing -> {
                     throw new BusinessException(ErrorCode.APPLICATION_ALREADY_EXISTS);
                 });
 
-        if (applicationRepository.existsByParentIdAndStatusInAndDeletedAtIsNull(parentId, ACTIVE_APPLICATION_STATUSES)) {
+        if (applicationRepository.existsByParentIdAndKidNameAndBirthDateAndStatusInAndDeletedAtIsNull(
+                parentId, request.kidName(), request.birthDate(), ACTIVE_APPLICATION_STATUSES)) {
             throw new BusinessException(ErrorCode.PENDING_APPLICATION_EXISTS);
         }
 
         KidApplication saved;
-        var existing = applicationRepository.findByParentAndKindergarten(parentId, request.kindergartenId());
+        var existing = applicationRepository.findByParentAndKindergartenAndKid(
+                parentId, request.kindergartenId(), request.kidName(), request.birthDate());
         if (existing.isPresent()) {
             KidApplication application = existing.get();
             if (application.getStatus().isCancelled() || application.getStatus().isRejected() || application.getStatus().isOfferExpired()) {
-                application.reapply(kindergarten, request.kidName(), request.birthDate(), request.gender(), preferredClassroom, request.notes());
+                application.reapply(kindergarten, request.gender(), preferredClassroom, request.notes());
                 saved = applicationRepository.save(application);
             } else {
                 throw new BusinessException(ErrorCode.APPLICATION_ALREADY_EXISTS);
