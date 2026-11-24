@@ -108,6 +108,26 @@ class DomainAuditApiIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("업무 감사 로그 CSV - 수식으로 시작하는 사용자 입력은 실행되지 않도록 작은따옴표가 붙는다")
+    void exportDomainAuditLogs_NeutralizesFormulaInjection() throws Exception {
+        domainAuditLogService.record(
+                principalMember,
+                kindergarten.getId(),
+                DomainAuditAction.ANNOUNCEMENT_UPDATED,
+                DomainAuditTargetType.ANNOUNCEMENT,
+                announcement.getId(),
+                "=HYPERLINK(\"http://evil.example\",\"click\")",
+                java.util.Map.of()
+        );
+
+        mockMvc.perform(get("/api/v1/domain-audit-logs/export")
+                        .with(authenticated(principalMember)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("\"'=HYPERLINK(")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString(",\"=HYPERLINK("))));
+    }
+
+    @Test
     @DisplayName("교사는 업무 감사 로그 조회가 차단된다")
     void getDomainAuditLogs_Fail_TeacherForbidden() throws Exception {
         mockMvc.perform(get("/api/v1/domain-audit-logs")
