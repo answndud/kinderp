@@ -1,10 +1,10 @@
-# PLAN.md
+# TRACK.md
 
 No active work
 
 ## Backlog (이번 계획 범위 밖)
 
-- 기존 netcup 배포 외부 증거 확보(SMTP 실수신, 암호화 백업 외부 보관, 이미지 롤백, provider sandbox). 상세 내용은 `git show HEAD:PLAN.md`의 P2/P3를 참고한다.
+- 기존 netcup 배포 외부 증거 확보(SMTP 실수신, 암호화 백업 외부 보관, 이미지 롤백, provider sandbox). 상세 내용은 `git show 21ec2e4:PLAN.md`(파일 이름을 바꾸기 전 이력)의 P2/P3를 참고한다.
 - 생성 POST를 201로 응답하고 `/kids`와 `/kids/page` 이원화를 정리한다. 프론트가 쓰는 API 계약이 바뀌므로 JS·템플릿·테스트를 함께 확인해야 한다. (컨트롤러의 `badRequest().body(...)` 직접 생성은 정리했다.)
 - `ProductTime` static을 `Clock` 주입으로 전환 (시간 의존 테스트 용이성).
 - 공개 데모 데이터 주기적 초기화(예: 매일 새벽 시드 재적재). 방문자가 데모 데이터를 훼손할 수 있음.
