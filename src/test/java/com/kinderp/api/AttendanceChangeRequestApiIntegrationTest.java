@@ -43,7 +43,7 @@ class AttendanceChangeRequestApiIntegrationTest extends BaseIntegrationTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true));
 
         var requests = attendanceChangeRequestRepository.findByRequesterIdOrderByCreatedAtDesc(parentMember.getId());
@@ -70,7 +70,7 @@ class AttendanceChangeRequestApiIntegrationTest extends BaseIntegrationTest {
                                 .header("Idempotency-Key", "attendance-retry-001")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestBody))
-                        .andExpect(status().isOk())
+                        .andExpect(status().isCreated())
                         .andReturn()
                         .getResponse()
                         .getContentAsString())
@@ -83,7 +83,7 @@ class AttendanceChangeRequestApiIntegrationTest extends BaseIntegrationTest {
                         .header("Idempotency-Key", "attendance-retry-001")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data").value(firstId));
 
         assertThat(attendanceChangeRequestRepository.findByRequesterIdOrderByCreatedAtDesc(parentMember.getId()))
@@ -267,7 +267,7 @@ class AttendanceChangeRequestApiIntegrationTest extends BaseIntegrationTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -289,7 +289,7 @@ class AttendanceChangeRequestApiIntegrationTest extends BaseIntegrationTest {
                                     "note": "멱등성 테스트"
                                 }
                                 """.formatted(date, status)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();

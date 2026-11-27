@@ -8,6 +8,7 @@ import com.kinderp.global.common.ApiResponse;
 import com.kinderp.global.security.user.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -45,7 +46,7 @@ public class KindergartenController {
         Kindergarten kindergarten = kindergartenService.getKindergartenForRequester(id, userDetails.getMemberId());
 
         return ResponseEntity
-                .ok(ApiResponse.success(KindergartenResponse.from(kindergarten), "유치원이 등록되었습니다"));
+                .status(HttpStatus.CREATED).body(ApiResponse.success(KindergartenResponse.from(kindergarten), "유치원이 등록되었습니다"));
     }
 
     /**

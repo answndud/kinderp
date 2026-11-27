@@ -11,6 +11,7 @@ import com.kinderp.global.security.ClientIpResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -41,7 +42,7 @@ public class NotificationController {
                 clientIpResolver.resolve(httpServletRequest)
         );
         Long notificationId = notificationService.create(request, userDetails.getMemberId());
-        return ResponseEntity.ok(ApiResponse.success(notificationId));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(notificationId));
     }
 
     /**

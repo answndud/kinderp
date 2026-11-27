@@ -1,10 +1,10 @@
 # Docs Index
 
-개발·실행·배포·설계 문서의 인덱스입니다. 현재/향후 구현 작업은 저장소 루트 `PLAN.md`에서 관리합니다.
+개발·실행·배포·설계 문서의 인덱스입니다. 현재/향후 구현 작업은 저장소 루트 `TRACK.md`에서 관리합니다.
 
 ## Start Here
 
-1. [`PLAN.md`](../PLAN.md): 현재/향후 구현 작업, 검증 명령, 완료 조건
+1. [`TRACK.md`](../TRACK.md): 현재/향후 구현 작업, 검증 명령, 완료 조건
 2. [개발자 가이드](guides/developer-guide.md): 구조, 실행, 코드 규칙
 3. [환경 계약](guides/env-contract.md): local/demo/prod 환경 변수와 안전한 기본값
 

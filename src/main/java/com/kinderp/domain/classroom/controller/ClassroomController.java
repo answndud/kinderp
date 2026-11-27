@@ -9,6 +9,7 @@ import com.kinderp.global.exception.BusinessException;
 import com.kinderp.global.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.kinderp.global.security.user.CustomUserDetails;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,7 +48,7 @@ public class ClassroomController {
         Classroom classroom = classroomService.getClassroom(id, userDetails.getMemberId());
 
         return ResponseEntity
-                .ok(ApiResponse.success(ClassroomResponse.from(classroom), "반이 생성되었습니다"));
+                .status(HttpStatus.CREATED).body(ApiResponse.success(ClassroomResponse.from(classroom), "반이 생성되었습니다"));
     }
 
     /**

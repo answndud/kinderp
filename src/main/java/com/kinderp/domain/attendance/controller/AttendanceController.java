@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -120,7 +121,7 @@ public class AttendanceController {
         AttendanceResponse attendance = attendanceService.getAttendance(id, userDetails.getMemberId());
 
         return ResponseEntity
-                .ok(ApiResponse.success(attendance, "출석이 등록되었습니다"));
+                .status(HttpStatus.CREATED).body(ApiResponse.success(attendance, "출석이 등록되었습니다"));
     }
 
     /**

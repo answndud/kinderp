@@ -64,7 +64,7 @@ SPRING_PROFILES_ACTIVE=demo ./gradlew bootRun
 | 알림 실패는 어떻게 재처리하나요? | `src/main/java/com/kinderp/domain/notification/*`, `src/main/resources/templates/notifications/outbox.html` |
 | 입학 workflow는 어디서 관리하나요? | `src/main/java/com/kinderp/domain/kidapplication/service/*` |
 | 운영 환경 변수는 어디에 정리했나요? | `docs/guides/env-contract.md` |
-| 현재 작업과 검증 계획은 어디에 남기나요? | 루트 `PLAN.md` |
+| 현재 작업과 검증 계획은 어디에 남기나요? | 루트 `TRACK.md` |
 
 ## 7. 시연 실패 시 빠른 복구
 
