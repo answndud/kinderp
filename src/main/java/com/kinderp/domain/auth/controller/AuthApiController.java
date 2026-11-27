@@ -22,6 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -85,7 +86,7 @@ public class AuthApiController {
         Member member = memberService.getMemberById(memberId);
 
         return ResponseEntity
-                .ok(ApiResponse.success(MemberResponse.from(member), "회원가입이 완료되었습니다"));
+                .status(HttpStatus.CREATED).body(ApiResponse.success(MemberResponse.from(member), "회원가입이 완료되었습니다"));
     }
 
     /**

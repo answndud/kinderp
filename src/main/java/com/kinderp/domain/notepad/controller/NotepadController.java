@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -81,7 +82,7 @@ public class NotepadController {
         Notepad notepad = notepadService.getNotepad(id, userDetails.getMemberId());
 
         return ResponseEntity
-                .ok(ApiResponse.success(notepadService.toResponse(notepad), "알림장이 작성되었습니다"));
+                .status(HttpStatus.CREATED).body(ApiResponse.success(notepadService.toResponse(notepad), "알림장이 작성되었습니다"));
     }
 
     /**

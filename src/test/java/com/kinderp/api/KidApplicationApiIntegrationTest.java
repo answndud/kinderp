@@ -300,10 +300,10 @@ class KidApplicationApiIntegrationTest extends BaseIntegrationTest {
         Member applicant = testData.createTestMember("sibling-parent@test.com", "형제학부모", MemberRole.PARENT, "test1234");
 
         applyRaw(applicant, 1L, "첫째", "2020-02-02")
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true));
         applyRaw(applicant, 1L, "둘째", "2022-04-04")
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true));
 
         assertThat(kidApplicationRepository.findByParentIdAndDeletedAtIsNullOrderByCreatedAtDesc(applicant.getId()))
@@ -315,7 +315,7 @@ class KidApplicationApiIntegrationTest extends BaseIntegrationTest {
     @DisplayName("입학 신청 - 같은 원생을 같은 유치원에 진행 중에 다시 신청하면 거부된다")
     void applyKidApplication_Fail_SameKidSameKindergarten() throws Exception {
         Member applicant = testData.createTestMember("dup-parent@test.com", "중복학부모", MemberRole.PARENT, "test1234");
-        applyRaw(applicant, 1L, "중복아이", "2020-02-02").andExpect(status().isOk());
+        applyRaw(applicant, 1L, "중복아이", "2020-02-02").andExpect(status().isCreated());
 
         applyRaw(applicant, 1L, "중복아이", "2020-02-02")
                 .andExpect(status().isConflict())
@@ -327,7 +327,7 @@ class KidApplicationApiIntegrationTest extends BaseIntegrationTest {
     void applyKidApplication_Fail_SameKidOtherKindergarten() throws Exception {
         Member applicant = testData.createTestMember("other-kg-parent@test.com", "다른유치원학부모", MemberRole.PARENT, "test1234");
         var otherKindergarten = testData.createKindergarten();
-        applyRaw(applicant, 1L, "이중아이", "2020-02-02").andExpect(status().isOk());
+        applyRaw(applicant, 1L, "이중아이", "2020-02-02").andExpect(status().isCreated());
 
         applyRaw(applicant, otherKindergarten.getId(), "이중아이", "2020-02-02")
                 .andExpect(status().isBadRequest())
@@ -335,7 +335,7 @@ class KidApplicationApiIntegrationTest extends BaseIntegrationTest {
 
         // 다른 원생이라면 다른 유치원에도 신청할 수 있다.
         applyRaw(applicant, otherKindergarten.getId(), "다른아이", "2021-03-03")
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     @Test
@@ -411,7 +411,7 @@ class KidApplicationApiIntegrationTest extends BaseIntegrationTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(applyBody))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
                 .andReturn();
 

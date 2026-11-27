@@ -44,7 +44,7 @@ class KindergartenApiIntegrationTest extends BaseIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true));
 
         Member persistedPrincipal = memberRepository.findById(unassignedPrincipal.getId()).orElseThrow();

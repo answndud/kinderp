@@ -51,7 +51,7 @@ class AnnouncementApiIntegrationTest extends BaseIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andDo(print())
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.title").value("2025년 봄학기 원아 모집 안내"));
         }
@@ -74,7 +74,7 @@ class AnnouncementApiIntegrationTest extends BaseIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andDo(print())
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.writerName").value("김선생"));
         }

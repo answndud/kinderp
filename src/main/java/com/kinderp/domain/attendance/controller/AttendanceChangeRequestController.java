@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -44,7 +45,7 @@ public class AttendanceChangeRequestController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
         Long id = attendanceChangeRequestService.create(request, userDetails.getMemberId(), idempotencyKey);
-        return ResponseEntity.ok(ApiResponse.success(id));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(id));
     }
 
     @GetMapping("/my")

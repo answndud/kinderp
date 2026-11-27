@@ -8,6 +8,7 @@ import com.kinderp.domain.kindergartenapplication.dto.response.KindergartenAppli
 import com.kinderp.domain.kindergartenapplication.service.KindergartenApplicationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,7 +32,7 @@ public class KindergartenApplicationController {
             @Valid @RequestBody KindergartenApplicationRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long applicationId = applicationService.apply(userDetails.getMemberId(), request);
-        return ResponseEntity.ok(ApiResponse.success(applicationId));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(applicationId));
     }
 
     /**

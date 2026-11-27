@@ -41,7 +41,7 @@ class NotificationApiIntegrationTest extends BaseIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true));
 
         mockMvc.perform(get("/api/v1/notifications/unread-count"))
@@ -81,7 +81,7 @@ class NotificationApiIntegrationTest extends BaseIntegrationTest {
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
-                    .andExpect(status().isOk());
+                    .andExpect(status().isCreated());
         }
 
         mockMvc.perform(post("/api/v1/notifications")
@@ -113,7 +113,7 @@ class NotificationApiIntegrationTest extends BaseIntegrationTest {
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
-                    .andExpect(status().isOk());
+                    .andExpect(status().isCreated());
         }
 
         mockMvc.perform(post("/api/v1/notifications")
@@ -121,7 +121,7 @@ class NotificationApiIntegrationTest extends BaseIntegrationTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
 
         mockMvc.perform(post("/api/v1/notifications")
                         .with(authenticated(teacherMember))
@@ -203,7 +203,7 @@ class NotificationApiIntegrationTest extends BaseIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
 
         long notificationId = objectMapper.readTree(createResult.getResponse().getContentAsString())

@@ -85,7 +85,7 @@ class AuthApiIntegrationTest extends BaseIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andDo(print())
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.email").value("newparent@test.com"))
                     .andExpect(jsonPath("$.data.name").value("새학부모"));
@@ -112,7 +112,7 @@ class AuthApiIntegrationTest extends BaseIntegrationTest {
                                 .with(remoteAddr("198.51.100.120"))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestBody))
-                        .andExpect(status().isOk());
+                        .andExpect(status().isCreated());
             }
 
             mockMvc.perform(post("/api/v1/auth/signup")

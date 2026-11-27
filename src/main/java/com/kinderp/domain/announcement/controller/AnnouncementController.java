@@ -11,6 +11,7 @@ import com.kinderp.global.security.user.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -42,7 +43,7 @@ public class AnnouncementController {
         Announcement announcement = announcementService.getAnnouncementWithoutIncrement(id, writerId);
 
         return ResponseEntity
-                .ok(ApiResponse.success(announcementService.toResponse(announcement), "공지사항이 작성되었습니다"));
+                .status(HttpStatus.CREATED).body(ApiResponse.success(announcementService.toResponse(announcement), "공지사항이 작성되었습니다"));
     }
 
     /**

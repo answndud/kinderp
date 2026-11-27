@@ -13,6 +13,7 @@ import com.kinderp.global.exception.BusinessException;
 import com.kinderp.global.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.kinderp.global.security.user.CustomUserDetails;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,7 +50,7 @@ public class KidController {
         Kid kid = kidService.getKid(id, userDetails.getMemberId());
 
         return ResponseEntity
-                .ok(ApiResponse.success(KidResponse.from(kid), "원생이 등록되었습니다"));
+                .status(HttpStatus.CREATED).body(ApiResponse.success(KidResponse.from(kid), "원생이 등록되었습니다"));
     }
 
     /**
@@ -81,23 +82,9 @@ public class KidController {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "classroomId 또는 kindergartenId 중 하나는 필수입니다");
         }
 
-        List<Kid> kids;
-
-        if (classroomId != null) {
-            if (name != null && !name.isBlank()) {
-                kids = kidService.searchKidsByName(classroomId, name, userDetails.getMemberId());
-            } else {
-                kids = kidService.getKidsByClassroom(classroomId, userDetails.getMemberId());
-            }
-        } else if (kindergartenId != null) {
-            if (name != null && !name.isBlank()) {
-                kids = kidService.searchKidsByKindergarten(kindergartenId, name, userDetails.getMemberId());
-            } else {
-                kids = kidService.getKidsByKindergarten(kindergartenId, userDetails.getMemberId());
-            }
-        } else {
-            kids = List.of();
-        }
+        // 목록 응답도 페이지 조회 경로를 재사용한다 (unpaged라 조건에 맞는 전체를 반환한다).
+        List<Kid> kids = findKids(classroomId, kindergartenId, name, Pageable.unpaged(), userDetails.getMemberId())
+                .getContent();
 
         List<KidResponse> responses = kids.stream()
                 .map(KidResponse::from)
@@ -144,28 +131,31 @@ public class KidController {
                 resolveSort(sort)
         );
 
-        Page<Kid> kidsPage;
-
-        if (classroomId != null) {
-            if (name != null && !name.isBlank()) {
-                kidsPage = kidService.searchKidsByName(classroomId, name, pageable, userDetails.getMemberId());
-            } else {
-                kidsPage = kidService.getKidsByClassroom(classroomId, pageable, userDetails.getMemberId());
-            }
-        } else if (kindergartenId != null) {
-            if (name != null && !name.isBlank()) {
-                kidsPage = kidService.searchKidsByKindergarten(kindergartenId, name, pageable, userDetails.getMemberId());
-            } else {
-                kidsPage = kidService.getKidsByKindergarten(kindergartenId, pageable, userDetails.getMemberId());
-            }
-        } else {
-            kidsPage = Page.empty(pageable);
-        }
+        Page<Kid> kidsPage = findKids(classroomId, kindergartenId, name, pageable, userDetails.getMemberId());
 
         Page<KidResponse> responses = kidsPage.map(KidResponse::from);
 
         return ResponseEntity
                 .ok(ApiResponse.success(responses));
+    }
+
+    /**
+     * 반·유치원 범위와 이름 검색 여부에 따른 원생 조회를 한곳에서 분기한다.
+     * 범위가 없으면 빈 결과를 돌려주고, 필수 여부는 호출하는 엔드포인트가 판단한다.
+     */
+    private Page<Kid> findKids(Long classroomId, Long kindergartenId, String name, Pageable pageable, Long memberId) {
+        boolean hasName = name != null && !name.isBlank();
+        if (classroomId != null) {
+            return hasName
+                    ? kidService.searchKidsByName(classroomId, name, pageable, memberId)
+                    : kidService.getKidsByClassroom(classroomId, pageable, memberId);
+        }
+        if (kindergartenId != null) {
+            return hasName
+                    ? kidService.searchKidsByKindergarten(kindergartenId, name, pageable, memberId)
+                    : kidService.getKidsByKindergarten(kindergartenId, pageable, memberId);
+        }
+        return Page.empty(pageable);
     }
 
     private Sort resolveSort(String sortKey) {

@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -71,7 +72,7 @@ public class KidApplicationController {
             @Valid @RequestBody KidApplicationRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long applicationId = applicationService.apply(request, userDetails.getMemberId());
-        return ResponseEntity.ok(ApiResponse.success(applicationId));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(applicationId));
     }
 
     /**
